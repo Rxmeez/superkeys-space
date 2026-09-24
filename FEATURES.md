@@ -4,6 +4,17 @@ Candidates for Superkeys, ranked by how much they help against how hard they are
 
 Effort: **S** an afternoon, **M** a few days, **L** needs research or a new subsystem.
 
+## Before launch
+
+Required before the Download button and `brew install` go live on superkeys.space.
+
+| # | Task | Why | Effort |
+|---|---|---|---|
+| 16 | **Apple Developer Program + Developer ID signing** | Buy the Apple Developer Program membership ($99/year), create a **Developer ID Application** certificate, sign with the hardened runtime, and notarise with `notarytool`, then staple. Without it Gatekeeper blocks the download, Homebrew's main cask repo won't accept it, and Accessibility access has to be re-granted after every unsigned update. `Signing.xcconfig` already takes a real identity via `Signing.local.xcconfig`; the self-signed "Hypercaps Dev" identity is for local builds only. | M |
+| 54 | **DMG and release pipeline** | A signed, notarised `.dmg` (or zip) attached to a GitHub release per version, built by a script so every release is reproducible. The landing page's Download button and the cask both point at it. | M |
+| 55 | **Homebrew cask** | Start with an own tap (`brew install --cask rxmeez/tap/superkeys`), since homebrew/cask expects a notable, notarised app. Move to plain `brew install --cask superkeys` once accepted; the landing page already shows that command as "Soon". Note the established app **Superkey** (superkey.app) is already cask `superkey`, one letter away. | S |
+| 56 | **Updates** | Signed builds can update in place. Decide between a Sparkle-style updater (currently listed under "Decided against") and relying on Homebrew and GitHub releases. | S |
+
 ## Next up
 
 | # | Feature | Why it helps | Effort |
@@ -55,7 +66,6 @@ Effort: **S** an afternoon, **M** a few days, **L** needs research or a new subs
 | 13 | **Desktop 10** | ☾ 0 currently reports "No Desktop 10". Symbolic hotkey 127 may be "Switch to Desktop 10", but that is unverified and needs ten desktops to test. | M |
 | 14 | **Per-display desktops** | With "Displays have separate Spaces", switch and move should act on the display under the pointer, not always the main one. | L |
 | 15 | **Rebind the built-in chords** | Let the snap and desktop chords move to other keys, for people who want ✦ H/J/K/L. The recorder and validation already exist. | M |
-| 16 | **Signed, notarised release** | A DMG that opens without the right-click-Open dance. Needs a paid Developer ID; the Signing.xcconfig override already supports a real identity. | M |
 | 17 | **Tests** | Unit tests for the remap merge, key labels, key validation, and snap geometry. The remap merge was verified by hand this time; it should not have to be again. | M |
 | 25 | **Save and restore layouts** | ☾ S saves where every window sits across desktops; ☾ R puts them back, after a display reconnect or a reboot. Restoring onto other desktops reuses the carry, one window at a time, so it will be slow for large layouts. | L |
 | 40 | **Glass window chrome** | Build with an Xcode 26+ SDK so the Settings window's toolbar and controls get Liquid Glass natively, and replace the run-time `NSGlassEffectView` lookup with the public API. Blocked only on the installed Xcode (16.4). | S |

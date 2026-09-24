@@ -236,6 +236,65 @@
         width: 18px;
         height: 18px;
       }
+      .brew {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 100%;
+        margin-top: 26px;
+        padding: 8px 8px 8px 18px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid var(--edge);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 15px;
+      }
+      .brew .prompt {
+        color: var(--faint);
+      }
+      .brew code {
+        font: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .brew .soon {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--amber);
+        background: var(--amber-wash);
+        border: 1px solid rgba(255, 184, 77, 0.4);
+        border-radius: 8px;
+        padding: 5px 8px;
+        white-space: nowrap;
+      }
+      .brew button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        border: 1px solid var(--edge);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .brew button:hover {
+        color: var(--text);
+      }
+      .brew button svg {
+        width: 16px;
+        height: 16px;
+      }
+      .credit {
+        width: 100%;
+        font-size: 13px;
+      }
       .meta {
         position: relative;
         margin-top: 18px;
@@ -556,6 +615,14 @@
         .shot {
           padding: 16px;
         }
+        .brew {
+          gap: 10px;
+          padding-left: 14px;
+          font-size: 14px;
+        }
+        .brew .soon {
+          display: none;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         html {
@@ -617,6 +684,14 @@
               Watch the film
             </a>
             <span class="btn" aria-disabled="true">Coming soon for macOS</span>
+          </div>
+          <div class="brew" aria-label="Homebrew install command, coming soon">
+            <span class="prompt">$</span>
+            <code id="brew-cmd">brew install --cask superkeys</code>
+            <span class="soon">Soon</span>
+            <button type="button" id="brew-copy" title="Copy command">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+            </button>
           </div>
           <p class="meta">macOS 14 or later · Native Swift</p>
         </div>
@@ -790,7 +865,20 @@
       <div class="wrap">
         <span>© 2026 Superkeys</span>
         <span>superkeys.space</span>
+        <span class="credit">Music in the film by Sascha Ende at <a href="https://ende.app/en">ende.app</a> (CC BY 4.0).</span>
       </div>
     </footer>
+    <script>
+      // Copy the install command; the button shows a tick for a moment.
+      const copyButton = document.getElementById("brew-copy");
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(document.getElementById("brew-cmd").textContent);
+          const icon = copyButton.innerHTML;
+          copyButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb84d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
+          setTimeout(() => (copyButton.innerHTML = icon), 1400);
+        } catch {}
+      });
+    </script>
   </body>
 </html>
