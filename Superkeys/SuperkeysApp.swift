@@ -20,6 +20,9 @@ struct SuperkeysApp: App {
     /// the stars amber, holding ☾ lights the moon indigo. At rest it is a
     /// plain template icon like the rest of the menu bar.
     private var menuBarImage: NSImage {
+        if let badge = hyper.alertBadge {
+            return Self.alertImage(badge: badge, offset: hyper.shakeOffset)
+        }
         let base = NSImage(systemSymbolName: "moon.stars", accessibilityDescription: "Superkeys") ?? NSImage()
         guard hyper.held || hyper.meh else {
             base.isTemplate = true
@@ -32,6 +35,40 @@ struct SuperkeysApp: App {
             .applying(.init(paletteColors: [moon, stars]))
         let image = base.withSymbolConfiguration(config) ?? base
         image.isTemplate = false
+        return image
+    }
+
+    /// The logo in red with a small count badge on its top-right corner,
+    /// drawn `offset` points sideways for the shake. The canvas has room on
+    /// both sides so the menu bar item keeps its width while it shakes.
+    private static func alertImage(badge: Int, offset: CGFloat) -> NSImage {
+        let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            .applying(.init(paletteColors: [.systemRed, .systemRed]))
+        guard let symbol = NSImage(systemSymbolName: "moon.stars", accessibilityDescription: nil)?
+            .withSymbolConfiguration(config) else { return NSImage() }
+        let text = badge > 9 ? "9+" : "\(badge)"
+        let font = NSFont.systemFont(ofSize: 8, weight: .bold)
+        let textSize = (text as NSString).size(withAttributes: [.font: font])
+        let badgeSize = CGSize(width: max(11, textSize.width + 5), height: 11)
+        let margin: CGFloat = 3
+        let size = CGSize(width: symbol.size.width + badgeSize.width / 2 + margin * 2,
+                          height: max(symbol.size.height, 16))
+
+        let image = NSImage(size: size, flipped: false) { _ in
+            let origin = CGPoint(x: margin + offset, y: (size.height - symbol.size.height) / 2)
+            symbol.draw(in: CGRect(origin: origin, size: symbol.size))
+            let badgeRect = CGRect(x: origin.x + symbol.size.width - badgeSize.width / 2,
+                                   y: size.height - badgeSize.height,
+                                   width: badgeSize.width, height: badgeSize.height)
+            NSColor.systemRed.setFill()
+            NSBezierPath(roundedRect: badgeRect, xRadius: badgeSize.height / 2, yRadius: badgeSize.height / 2).fill()
+            (text as NSString).draw(
+                at: CGPoint(x: badgeRect.midX - textSize.width / 2, y: badgeRect.midY - textSize.height / 2),
+                withAttributes: [.font: font, .foregroundColor: NSColor.white])
+            return true
+        }
+        image.isTemplate = false
+        image.accessibilityDescription = "Superkeys: too many windows to arrange"
         return image
     }
 }

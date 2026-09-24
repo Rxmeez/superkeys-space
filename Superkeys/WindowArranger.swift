@@ -49,7 +49,7 @@ final class WindowArranger {
         }
         guard windows.count <= Self.maxWindows else {
             AppState.shared.lastAction = "Too many windows to arrange (\(windows.count))"
-            NSSound.beep()
+            HyperIndicator.shared.alert(badge: windows.count)
             return
         }
 

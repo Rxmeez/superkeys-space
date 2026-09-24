@@ -38,7 +38,7 @@ Hold **right ⌘**.
 
 ![Arrange layouts](docs/images/arrange-layouts.png)
 
-- **2 windows** side by side, **3** as one large with two stacked, **4** as quarters. One window fills the screen; with five or more nothing moves.
+- **2 windows** side by side, **3** as one large with two stacked, **4** as quarters. One window fills the screen. With five or more nothing moves, and the menu bar icon shakes and shows how many windows it found.
 - **✦ ⇧ arrow** swaps windows around afterwards. ✦ ⇧ ← on a small window promotes it to the large slot.
 - It only arranges when you ask. New windows are never tiled automatically, and a window you drag stays where you put it.
 - Minimised, hidden, full-screen and fixed-size windows are left out. Apps that can't shrink to a quarter stay pinned to their slot's outer edge instead of running off screen.

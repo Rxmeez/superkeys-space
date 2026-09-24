@@ -9,6 +9,28 @@ final class HyperIndicator: ObservableObject {
     static let shared = HyperIndicator()
     @Published var held = false
     @Published var meh = false
+
+    /// A quiet "that didn't work" on the menu bar icon: it turns red, shakes
+    /// once, and shows a number badge for a moment. Used when ✦ ↑ finds more
+    /// windows than it can arrange.
+    @Published private(set) var alertBadge: Int?
+    @Published private(set) var shakeOffset: CGFloat = 0
+    private var alertTask: Task<Void, Never>?
+
+    func alert(badge: Int) {
+        alertTask?.cancel()
+        alertBadge = badge
+        alertTask = Task { @MainActor [weak self] in
+            for x: CGFloat in [-3, 3, -2.5, 2.5, -1.5, 1.5, 0] {
+                guard !Task.isCancelled else { return }
+                self?.shakeOffset = x
+                try? await Task.sleep(for: .milliseconds(40))
+            }
+            try? await Task.sleep(for: .milliseconds(1300))
+            guard !Task.isCancelled else { return }
+            self?.alertBadge = nil
+        }
+    }
 }
 
 @MainActor
