@@ -59,7 +59,16 @@ Any key can open any app. Pick the app, press the key, done.
 
 ## Install
 
-There's no signed download yet. Build it yourself:
+With [Homebrew](https://brew.sh):
+
+```bash
+brew trust --tap rxmeez/tap
+brew install --cask rxmeez/tap/superkeys
+```
+
+0.1.0 is an early build that isn't notarised by Apple yet, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. Updates keep the Accessibility grant, because every build is signed with the same identity. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
+
+Or build it yourself:
 
 1. Open `Superkeys.xcodeproj` in Xcode 15 or later.
 2. Run the **Superkeys** scheme. The app isn't sandboxed and is signed ad hoc by default.
