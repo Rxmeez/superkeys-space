@@ -20,6 +20,7 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 63 | **Changelog and versioning** | `CHANGELOG.md` in Keep a Changelog format with an Unreleased section filled as work lands; SemVer, `0.x` until stable. `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the Xcode project, shown in Settings. Cadence: a feature release every 2–4 weeks when a batch is ready, fix releases any time. | S |
 | 64 | **Downloads outside the private repo** | Release assets on a private GitHub repo aren't publicly downloadable, so until the source is open the signed DMG lives on Cloudflare R2 behind `superkeys.space/download/`. Switch to GitHub releases once the repo is public. | S |
 | 65 | **One-tag release workflow** | Tagging `vX.Y.Z` runs GitHub Actions on a macOS runner: build, Developer ID sign, notarise, staple, DMG, upload, create the release from the changelog section, bump the tap's cask version and sha256, and let the site redeploy. Signing secrets wait on #16. | M |
+| 66 | **Clean uninstall** | An "Uninstall Superkeys…" menu item that restores the user's own key mappings, removes the login item, deletes `space.superkeys` preferences, and moves the app to the Trash, and a matching `zap` stanza in the cask (`~/Library/Preferences/space.superkeys.plist`, the login item). Accessibility entries can't be removed by the app, so it opens that pane with a one-line note. Matters for trust in a tool that remaps keys. | S |
 
 ## Next up
 
