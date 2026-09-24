@@ -303,19 +303,74 @@
       }
 
       /* ---------- film ---------- */
+      /* The film's own background is the page colour, so with no frame and
+         softly faded edges it reads as part of the page. */
       .film {
-        margin: 10px auto 0;
-        border-radius: var(--radius);
-        overflow: hidden;
-        border: 1px solid var(--edge);
-        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
-        background: #000;
+        position: relative;
+        margin: 0 auto;
         aspect-ratio: 16 / 9;
       }
+      .film::before {
+        content: "";
+        position: absolute;
+        inset: 8% 4%;
+        background: radial-gradient(50% 60% at 30% 50%, rgba(255, 184, 77, 0.1), transparent 70%),
+          radial-gradient(50% 60% at 70% 50%, rgba(163, 163, 255, 0.1), transparent 70%);
+        filter: blur(40px);
+        pointer-events: none;
+      }
       .film video {
+        position: relative;
         display: block;
         width: 100%;
         height: 100%;
+        object-fit: cover;
+        background: var(--bg);
+        /* Wide side fades fall in the film's empty margins (its scenes sit in
+           the middle 73%), so any tone difference between video and page
+           dissolves instead of showing as an edge. */
+        --fade-x: 12%;
+        --fade-y: 4%;
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-x), #000 calc(100% - var(--fade-x)), transparent),
+          linear-gradient(to bottom, transparent, #000 var(--fade-y), #000 calc(100% - var(--fade-y)), transparent);
+        -webkit-mask-composite: source-in;
+        mask-image: linear-gradient(to right, transparent, #000 var(--fade-x), #000 calc(100% - var(--fade-x)), transparent),
+          linear-gradient(to bottom, transparent, #000 var(--fade-y), #000 calc(100% - var(--fade-y)), transparent);
+        mask-composite: intersect;
+      }
+      .sound {
+        position: absolute;
+        right: 3.5%;
+        bottom: 6%;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 14px 0 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(20, 20, 24, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: var(--muted);
+        font: 500 13px system-ui, -apple-system, sans-serif;
+        cursor: pointer;
+      }
+      .sound:hover {
+        color: var(--text);
+      }
+      .sound svg {
+        width: 16px;
+        height: 16px;
+      }
+      .sound .on {
+        display: none;
+      }
+      .sound[aria-pressed="true"] .on {
+        display: inline;
+      }
+      .sound[aria-pressed="true"] .off {
+        display: none;
       }
 
       /* ---------- sections ---------- */
@@ -623,6 +678,19 @@
         .brew .soon {
           display: none;
         }
+        /* On phones crop the film's empty side margins so the scenes are
+           a third bigger. */
+        .film {
+          aspect-ratio: 4 / 3;
+          margin: 0 -16px;
+        }
+        .film video {
+          --fade-x: 3%;
+        }
+        .sound {
+          right: 20px;
+          bottom: 5%;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         html {
@@ -697,9 +765,14 @@
         </div>
       </header>
 
-      <div class="wrap" id="film">
+      <div class="wrap" id="film" style="scroll-margin-top: 80px">
         <div class="film">
-          <video src="assets/superkeys.mp4" poster="assets/superkeys-poster.jpg" controls playsinline preload="metadata"></video>
+          <video id="film-video" src="assets/superkeys.mp4" poster="assets/film-start.jpg" autoplay muted loop playsinline preload="auto" aria-label="Superkeys launch film: opening apps, snapping and arranging windows, and switching desktops"></video>
+          <button type="button" class="sound" id="film-sound" aria-pressed="false" aria-label="Sound">
+            <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="m22 9-6 6M16 9l6 6" /></svg>
+            <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></svg>
+            <span class="off">Sound off</span><span class="on">Sound on</span>
+          </button>
         </div>
       </div>
 
@@ -869,6 +942,39 @@
       </div>
     </footer>
     <script>
+      // The film plays muted and looping; it pauses off screen, and waits for
+      // a tap when Reduce Motion is on. "Watch the film" restarts it with sound.
+      const video = document.getElementById("film-video");
+      const soundButton = document.getElementById("film-sound");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let wantsPlay = !reduceMotion.matches;
+      if (!wantsPlay) video.removeAttribute("autoplay");
+
+      function setSound(on) {
+        video.muted = !on;
+        soundButton.setAttribute("aria-pressed", String(on));
+      }
+      function play() {
+        wantsPlay = true;
+        video.play().catch(() => {});
+      }
+      soundButton.addEventListener("click", () => {
+        setSound(video.muted);
+        play();
+      });
+      document.querySelector('a[href="#film"]').addEventListener("click", () => {
+        video.currentTime = 0;
+        setSound(true);
+        play();
+      });
+      new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          if (wantsPlay) video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }, { threshold: 0.25 }).observe(video);
+
       // Copy the install command; the button shows a tick for a moment.
       const copyButton = document.getElementById("brew-copy");
       copyButton.addEventListener("click", async () => {
