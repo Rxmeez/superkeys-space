@@ -1,0 +1,10 @@
+// Ad-hoc by default so the project builds on any Mac.
+// An ad-hoc signature changes on every build, and macOS then drops the
+// Accessibility grant. To keep it, create a gitignored Signing.local.xcconfig
+// next to this file containing:
+//   CODE_SIGN_IDENTITY = <your signing identity>
+//   ENABLE_DEBUG_DYLIB = NO
+// A self-signed identity has no Team ID, and the hardened runtime refuses to
+// load Xcode's separate debug dylib into a process whose Team ID differs.
+CODE_SIGN_IDENTITY = -
+#include? "Signing.local.xcconfig"
