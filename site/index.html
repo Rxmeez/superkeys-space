@@ -293,6 +293,15 @@
         width: 16px;
         height: 16px;
       }
+      .meta code.inline {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 13px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        padding: 2px 6px;
+        white-space: nowrap;
+      }
       .credit {
         width: 100%;
         font-size: 13px;
@@ -675,7 +684,14 @@
         .brew {
           gap: 10px;
           padding-left: 14px;
-          font-size: 14px;
+          font-size: 13px;
+        }
+        /* On narrow screens the command wraps after the slash rather than
+           being cut off. */
+        .brew code {
+          white-space: normal;
+          overflow-wrap: anywhere;
+          text-align: left;
         }
         .brew .soon {
           display: none;
@@ -757,13 +773,14 @@
           </div>
           <div class="brew" aria-label="Homebrew install command, coming soon">
             <span class="prompt">$</span>
-            <code id="brew-cmd">brew install --cask superkeys</code>
+            <code id="brew-cmd">brew install --cask rxmeez/tap/<wbr>superkeys</code>
             <span class="soon">Soon</span>
             <button type="button" id="brew-copy" title="Copy command">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
             </button>
           </div>
-          <p class="meta">macOS 14 or later · Native Swift</p>
+          <p class="meta">First time with this tap? Run <code class="inline">brew trust --tap rxmeez/tap</code> once.</p>
+          <p class="meta" style="margin-top: 6px">macOS 14 or later · Native Swift</p>
         </div>
       </header>
 
