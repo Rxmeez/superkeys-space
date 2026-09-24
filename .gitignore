@@ -4,3 +4,4 @@ DerivedData/
 build/
 *.xcuserstate
 Signing.local.xcconfig
+brag-output*/
