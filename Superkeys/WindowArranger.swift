@@ -15,7 +15,7 @@ final class WindowArranger {
 
     /// What the last arrange did, so pressing ✦ ↑ again can undo it.
     private struct Placement {
-        let window: AXWindow
+        let window: any ManagedWindow
         let original: CGRect
         var slot: CGRect
         var placed: CGRect
@@ -31,7 +31,7 @@ final class WindowArranger {
         }
         // After ⌘W closes an app's last window the app stays in front with
         // nothing focused; arrange the screen under the pointer instead.
-        let focused = AXWindow.focused()
+        let focused = Windows.focused()
         let focusedFrame = focused?.cocoaFrame
         guard let screen = focusedFrame.flatMap(AXWindow.screen(for:)) ?? Self.screenUnderPointer() else { return }
 
@@ -66,7 +66,7 @@ final class WindowArranger {
     /// A second ✦ ↑ puts every window back, but only when it is the same set
     /// of windows and none has moved. A window opened or closed since means
     /// the screen changed, so arrange again instead of undoing.
-    private func restoreIfUnchanged(current: [AXWindow]) -> Bool {
+    private func restoreIfUnchanged(current: [any ManagedWindow]) -> Bool {
         guard !placements.isEmpty else { return false }
         let sameWindows = Set(current.map(\.windowID)) == Set(placements.keys)
         let unchanged = sameWindows && placements.values.allSatisfy { p in
@@ -104,7 +104,7 @@ final class WindowArranger {
     /// minimum size larger than its slot stays pinned to the slot's outer
     /// corner, so it overlaps inwards instead of running off the screen.
     @discardableResult
-    private func place(_ window: AXWindow, in slot: CGRect, visible vis: CGRect) -> CGRect {
+    private func place(_ window: any ManagedWindow, in slot: CGRect, visible vis: CGRect) -> CGRect {
         window.setCocoaFrame(slot)
         guard let actual = window.cocoaFrame else { return slot }
         guard actual.width > slot.width + 1 || actual.height > slot.height + 1 else { return actual }
@@ -127,7 +127,7 @@ final class WindowArranger {
             Permissions.requestAccessibility()
             return
         }
-        guard let focused = AXWindow.focused(), let frame = focused.cocoaFrame,
+        guard let focused = Windows.focused(), let frame = focused.cocoaFrame,
               let screen = AXWindow.screen(for: frame) else {
             AppState.shared.lastAction = "No window focused"
             return
@@ -158,8 +158,8 @@ final class WindowArranger {
     /// The closest window past this one's edge in that direction that shares
     /// some of its span on the other axis. Ties go to the larger overlap, then
     /// to the upper or left-hand window.
-    private static func neighbour(of frame: CGRect, in windows: [AXWindow], toward direction: Direction) -> AXWindow? {
-        var best: (window: AXWindow, distance: CGFloat, overlap: CGFloat, tiebreak: CGFloat)?
+    private static func neighbour(of frame: CGRect, in windows: [any ManagedWindow], toward direction: Direction) -> (any ManagedWindow)? {
+        var best: (window: any ManagedWindow, distance: CGFloat, overlap: CGFloat, tiebreak: CGFloat)?
         for window in windows {
             guard let other = window.cocoaFrame else { continue }
             let distance: CGFloat
@@ -195,7 +195,7 @@ final class WindowArranger {
 
     /// Standard, resizable, visible windows mostly on this screen and on the
     /// current desktop, front to back.
-    private static func windows(on screen: NSScreen) -> [AXWindow] {
+    private static func windows(on screen: NSScreen) -> [any ManagedWindow] {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         guard let info = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else { return [] }
         let ownPID = ProcessInfo.processInfo.processIdentifier
@@ -203,7 +203,7 @@ final class WindowArranger {
         var order: [(id: UInt32, pid: pid_t)] = []
         for entry in info {
             guard (entry[kCGWindowLayer as String] as? Int) == 0,
-                  let pid = entry[kCGWindowOwnerPID as String] as? pid_t, pid != ownPID,
+                  let pid = entry[kCGWindowOwnerPID as String] as? pid_t,
                   let id = entry[kCGWindowNumber as String] as? UInt32,
                   (entry[kCGWindowAlpha as String] as? Double ?? 1) > 0,
                   let boundsDict = entry[kCGWindowBounds as String] as? NSDictionary,
@@ -214,8 +214,12 @@ final class WindowArranger {
             order.append((id, pid))
         }
 
-        var elements: [UInt32: AXWindow] = [:]
-        for pid in Set(order.map(\.pid)) {
+        var elements: [UInt32: any ManagedWindow] = [:]
+        // Superkeys' own windows (Settings) are handled through AppKit.
+        for window in NSApp.windows where OwnWindow.isArrangeable(window) {
+            elements[UInt32(window.windowNumber)] = OwnWindow(window: window)
+        }
+        for pid in Set(order.map(\.pid)) where pid != ownPID {
             for window in AXWindow.windows(of: pid) where window.isArrangeable {
                 elements[window.windowID] = window
             }

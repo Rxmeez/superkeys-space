@@ -87,3 +87,52 @@ struct AXWindow {
         return best ?? NSScreen.main
     }
 }
+
+/// A window Superkeys can move and resize. Other apps' windows go through the
+/// Accessibility API; Superkeys' own go straight through AppKit, because an
+/// Accessibility request to our own process would wait on the main thread
+/// that is making it.
+@MainActor
+protocol ManagedWindow {
+    var windowID: UInt32 { get }
+    var cocoaFrame: CGRect? { get }
+    @discardableResult func setCocoaFrame(_ frame: CGRect) -> Bool
+}
+
+extension AXWindow: ManagedWindow {}
+
+/// One of Superkeys' own windows, such as Settings.
+struct OwnWindow: ManagedWindow {
+    let window: NSWindow
+
+    var windowID: UInt32 { UInt32(window.windowNumber) }
+    var cocoaFrame: CGRect? { window.frame }
+
+    @discardableResult
+    func setCocoaFrame(_ frame: CGRect) -> Bool {
+        window.setFrame(frame, display: true)
+        // Settings normally fits each tab; once placed it keeps this size.
+        (window.windowController as? SettingsWindowController)?.keepCurrentSize()
+        return true
+    }
+
+    /// Normal, visible, resizable windows. Panels such as the chord sheet are
+    /// left alone.
+    static func isArrangeable(_ window: NSWindow) -> Bool {
+        window.isVisible && !window.isMiniaturized && !(window is NSPanel)
+            && window.styleMask.contains(.titled) && window.styleMask.contains(.resizable)
+            && !window.styleMask.contains(.fullScreen)
+    }
+}
+
+enum Windows {
+    /// The focused window of the frontmost app, whichever app that is.
+    @MainActor
+    static func focused() -> (any ManagedWindow)? {
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == ProcessInfo.processInfo.processIdentifier else {
+            return AXWindow.focused()
+        }
+        guard let key = NSApp.keyWindow ?? NSApp.mainWindow, OwnWindow.isArrangeable(key) else { return nil }
+        return OwnWindow(window: key)
+    }
+}

@@ -15,7 +15,7 @@ final class WindowManager {
             Permissions.requestAccessibility()
             return
         }
-        guard let window = AXWindow.focused(), let current = window.cocoaFrame else {
+        guard let window = Windows.focused(), let current = window.cocoaFrame else {
             AppState.shared.lastAction = "No window focused"
             return
         }

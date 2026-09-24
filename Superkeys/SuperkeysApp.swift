@@ -129,6 +129,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "right": WindowArranger.shared.swap(.right)
                 case "up": WindowArranger.shared.swap(.up)
                 case "down": WindowArranger.shared.swap(.down)
+                case "snap-left": WindowManager.shared.snap(.left)
+                case "snap-right": WindowManager.shared.snap(.right)
+                case "fill": WindowManager.shared.snap(.full)
                 default: break
                 }
                 Logger.debugHook.info("\(action ?? "", privacy: .public): \(AppState.shared.lastAction, privacy: .public)")
