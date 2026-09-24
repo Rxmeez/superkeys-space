@@ -113,6 +113,10 @@ Superkeys never records or stores what you type. Keys pass straight through unle
 - Desktop 10 has no system shortcut, so ☾ 0 does nothing.
 - The chord panel uses Liquid Glass on macOS 26 and later, and a blur before that.
 
+## Website
+
+The landing page for [superkeys.space](https://superkeys.space) lives in `site/`: one static HTML page with no build step. Open `site/index.html` in a browser to preview it; deploy the `site/` folder to any static host.
+
 ## Roadmap
 
 Ideas, trade-offs, and what macOS does and doesn't allow are tracked in [FEATURES.md](FEATURES.md).

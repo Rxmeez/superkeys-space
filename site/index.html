@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Superkeys — two private keys for your Mac</title>
+    <meta name="description" content="Caps Lock and right ⌘ become private keys for opening apps, snapping and arranging windows, and jumping between desktops. They never type a thing. Native macOS app." />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Superkeys — two private keys for your Mac" />
+    <meta property="og:description" content="Caps Lock opens your apps and arranges your windows. Right ⌘ jumps between desktops. Neither ever types a thing." />
+    <meta property="og:image" content="assets/superkeys-poster.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #16161a;
+        --cap: #1c1c20;
+        --edge: rgba(255, 255, 255, 0.12);
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.62);
+        --faint: rgba(255, 255, 255, 0.42);
+        --amber: #ffb84d;
+        --indigo: #a3a3ff;
+        --amber-wash: rgba(255, 184, 77, 0.14);
+        --indigo-wash: rgba(163, 163, 255, 0.14);
+        --radius: 22px;
+        --max: 1120px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 18px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .amber {
+        color: var(--amber);
+      }
+      .indigo {
+        color: var(--indigo);
+      }
+
+      /* ---------- nav ---------- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(14, 14, 16, 0.72);
+        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      nav .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 18px;
+        text-decoration: none;
+      }
+      .brand svg {
+        width: 24px;
+        height: 24px;
+      }
+      nav .links {
+        display: flex;
+        gap: 28px;
+        font-size: 15px;
+        color: var(--muted);
+      }
+      nav .links a {
+        text-decoration: none;
+      }
+      nav .links a:hover {
+        color: var(--text);
+      }
+
+      /* ---------- keycaps ---------- */
+      .kc {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 30px;
+        padding: 0 9px;
+        border-radius: 8px;
+        background: var(--cap);
+        border: 1px solid var(--edge);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 14px;
+        line-height: 1;
+        color: var(--text);
+        vertical-align: middle;
+      }
+      .kc svg {
+        width: 14px;
+        height: 14px;
+      }
+      .kc.hyper {
+        background: var(--amber-wash);
+        border-color: rgba(255, 184, 77, 0.5);
+      }
+      .kc.meh {
+        background: var(--indigo-wash);
+        border-color: rgba(163, 163, 255, 0.5);
+      }
+      .combo {
+        display: inline-flex;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        position: relative;
+        padding: 110px 0 70px;
+        text-align: center;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: -20% -10% auto;
+        height: 620px;
+        background: radial-gradient(420px 260px at 38% 40%, rgba(255, 184, 77, 0.16), transparent 70%),
+          radial-gradient(420px 260px at 62% 42%, rgba(163, 163, 255, 0.16), transparent 70%);
+        pointer-events: none;
+      }
+      .bigkeys {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        gap: 28px;
+        margin-bottom: 48px;
+      }
+      .bigkey {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border-radius: 30px;
+        background: var(--cap);
+        border: 1.5px solid var(--edge);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .bigkey.hyper {
+        background: linear-gradient(var(--amber-wash), var(--amber-wash)), var(--cap);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(255, 184, 77, 0.28);
+      }
+      .bigkey.meh {
+        background: linear-gradient(var(--indigo-wash), var(--indigo-wash)), var(--cap);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(163, 163, 255, 0.28);
+      }
+      .bigkey svg {
+        width: 62px;
+        height: 62px;
+        margin-top: -16px;
+      }
+      .bigkey .legend {
+        position: absolute;
+        left: 16px;
+        bottom: 13px;
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+      }
+      h1 {
+        position: relative;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 76px);
+        line-height: 1.05;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        position: relative;
+        max-width: 640px;
+        margin: 22px auto 0;
+        font-size: clamp(18px, 2.2vw, 21px);
+        color: var(--muted);
+        font-weight: 300;
+      }
+      .cta {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 36px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        height: 48px;
+        padding: 0 22px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: none;
+        border: 1px solid var(--edge);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .btn.primary {
+        background: var(--text);
+        color: #0e0e10;
+        border-color: transparent;
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .meta {
+        position: relative;
+        margin-top: 18px;
+        font-size: 14px;
+        color: var(--faint);
+      }
+
+      /* ---------- film ---------- */
+      .film {
+        margin: 10px auto 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--edge);
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+        background: #000;
+        aspect-ratio: 16 / 9;
+      }
+      .film video {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ---------- sections ---------- */
+      section.block {
+        padding: 120px 0 0;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h2 {
+        margin: 14px 0 0;
+        font-size: clamp(32px, 4.6vw, 52px);
+        line-height: 1.1;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+      .sub {
+        max-width: 620px;
+        margin: 16px 0 0;
+        color: var(--muted);
+        font-size: 19px;
+        font-weight: 300;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 44px;
+      }
+      .card {
+        position: relative;
+        padding: 26px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .card h3 {
+        margin: 18px 0 6px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      /* mini screens for window layouts */
+      .screen {
+        position: relative;
+        height: 128px;
+        border-radius: 12px;
+        background: linear-gradient(160deg, #1f2233, #14141c);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px 8px 8px;
+        display: grid;
+        gap: 6px;
+      }
+      .screen::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 6px;
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 12px 12px 0 0;
+      }
+      .pane {
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .pane.on {
+        background: rgba(255, 184, 77, 0.22);
+        border-color: rgba(255, 184, 77, 0.8);
+      }
+      .l-half {
+        grid-template-columns: 1fr 1fr;
+      }
+      .l-three {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .l-three .pane:first-child {
+        grid-row: span 2;
+      }
+      .l-four {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .ghost {
+        background: transparent;
+        border: 1px dashed rgba(255, 255, 255, 0.14);
+      }
+
+      /* app key list */
+      .apps {
+        display: grid;
+        gap: 10px;
+      }
+      .app {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 15px;
+      }
+      .app .dot {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+
+      /* desktop tiles */
+      .desks {
+        display: flex;
+        gap: 8px;
+      }
+      .desk {
+        flex: 1;
+        height: 56px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 18px;
+      }
+      .desk.on {
+        background: linear-gradient(180deg, rgba(163, 163, 255, 0.85), var(--indigo));
+        color: #fff;
+        box-shadow: 0 0 22px rgba(163, 163, 255, 0.35);
+      }
+
+      /* feature rows */
+      .feature {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr;
+        gap: 56px;
+        align-items: center;
+        margin-top: 60px;
+      }
+      .feature.flip .copy {
+        order: 2;
+      }
+      .feature > *,
+      .grid > *,
+      .promise > * {
+        min-width: 0;
+      }
+      .chords {
+        list-style: none;
+        margin: 26px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+      .chords li {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .chords li .combo {
+        min-width: 176px;
+      }
+      .shot {
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 28px;
+        display: flex;
+        justify-content: center;
+      }
+      .shot img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      .layouts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .layouts figure {
+        margin: 0;
+      }
+      .layouts figcaption {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--faint);
+        text-align: center;
+      }
+
+      /* promise */
+      .promise {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 44px;
+      }
+      .promise .card h3 {
+        margin-top: 0;
+      }
+      .promise .num {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      /* closing */
+      .closing {
+        margin: 140px 0 0;
+        padding: 80px 24px;
+        text-align: center;
+        border-radius: 32px;
+        background: radial-gradient(500px 240px at 35% 0%, rgba(255, 184, 77, 0.12), transparent 70%),
+          radial-gradient(500px 240px at 65% 0%, rgba(163, 163, 255, 0.12), transparent 70%), var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .closing svg.logo {
+        width: 72px;
+        height: 72px;
+      }
+      footer {
+        padding: 56px 0 64px;
+        color: var(--faint);
+        font-size: 14px;
+      }
+      footer .wrap {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      /* ---------- small screens ---------- */
+      @media (max-width: 880px) {
+        .grid,
+        .promise {
+          grid-template-columns: 1fr 1fr;
+        }
+        .feature {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+        .feature.flip .copy {
+          order: 0;
+        }
+      }
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        nav .links {
+          display: none;
+        }
+        .hero {
+          padding: 72px 0 48px;
+        }
+        .bigkey {
+          width: 116px;
+          height: 116px;
+          border-radius: 24px;
+        }
+        .bigkey svg {
+          width: 48px;
+          height: 48px;
+        }
+        .grid,
+        .promise {
+          grid-template-columns: 1fr;
+        }
+        section.block {
+          padding-top: 84px;
+        }
+        .chords li {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+        .shot {
+          padding: 16px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <path id="sparkle" d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0Z" />
+        <path id="moon" d="M58 8 A44 44 0 1 0 92 70 A36 36 0 0 1 58 8 Z" />
+        <g id="logo">
+          <path d="M52 22 A40 40 0 1 0 98 74 A34 34 0 0 1 52 22 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" />
+          <path d="M84 8 C85.5 19 90 23.5 101 25 C90 26.5 85.5 31 84 42 C82.5 31 78 26.5 67 25 C78 23.5 82.5 19 84 8Z" fill="#ffb84d" />
+          <path d="M105 40 C105.8 45 108 47.2 113 48 C108 48.8 105.8 51 105 56 C104.2 51 102 48.8 97 48 C102 47.2 104.2 45 105 40Z" fill="#ffb84d" />
+        </g>
+      </defs>
+    </svg>
+
+    <nav>
+      <div class="wrap">
+        <a class="brand" href="#top">
+          <svg viewBox="0 0 120 120" style="color: var(--indigo)"><use href="#logo" /></svg>
+          Superkeys
+        </a>
+        <div class="links">
+          <a href="#apps">Apps</a>
+          <a href="#windows">Windows</a>
+          <a href="#desktops">Desktops</a>
+          <a href="#privacy">Privacy</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="top">
+      <!-- ================= hero ================= -->
+      <header class="hero">
+        <div class="wrap">
+          <div class="bigkeys" aria-hidden="true">
+            <div class="bigkey hyper">
+              <svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg>
+              <span class="legend">caps lock</span>
+            </div>
+            <div class="bigkey meh">
+              <svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg>
+              <span class="legend">right ⌘</span>
+            </div>
+          </div>
+          <h1>Two private keys<br />for your Mac.</h1>
+          <p class="lede">
+            Caps Lock becomes <span class="amber">✦ Hyper</span> and right ⌘ becomes <span class="indigo">☾ Meh</span>.
+            Hold one and the rest of your keyboard opens apps, arranges windows, and jumps between desktops.
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#film">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
+              Watch the film
+            </a>
+            <span class="btn" aria-disabled="true">Coming soon for macOS</span>
+          </div>
+          <p class="meta">macOS 14 or later · Native Swift</p>
+        </div>
+      </header>
+
+      <div class="wrap" id="film">
+        <div class="film">
+          <video src="assets/superkeys.mp4" poster="assets/superkeys-poster.jpg" controls playsinline preload="metadata"></video>
+        </div>
+      </div>
+
+      <!-- ================= keys ================= -->
+      <section class="block">
+        <div class="wrap">
+          <span class="eyebrow"><span class="amber">✦</span>&nbsp;<span class="indigo">☾</span>&nbsp;Two keys</span>
+          <h2>Keys you already own.<br />Finally doing something.</h2>
+          <p class="sub">
+            Neither key types, locks, or reaches the app you're in. Everything pressed while one is held is caught, so a
+            mistyped chord never leaks a stray character.
+          </p>
+          <div class="grid">
+            <div class="card">
+              <span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">B</span></span>
+              <h3>Open any app</h3>
+              <p>Pick a key for each app you use. It opens, or comes forward if it's already running.</p>
+            </div>
+            <div class="card">
+              <span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">↑</span></span>
+              <h3>Arrange windows</h3>
+              <p>Snap to halves, fill the screen, or lay out up to four windows with one chord.</p>
+            </div>
+            <div class="card">
+              <span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">3</span></span>
+              <h3>Jump desktops</h3>
+              <p>Go to any desktop, send a window there, or flip back to the last one.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= apps ================= -->
+      <section class="block" id="apps">
+        <div class="wrap feature">
+          <div class="copy">
+            <span class="eyebrow amber">✦ Apps</span>
+            <h2>Any app,<br />one key.</h2>
+            <p class="sub">
+              ✦ B for your browser, ✦ T for your terminal, ✦ N for notes. Any key you like, set in a second: pick the
+              app, press the key.
+            </p>
+          </div>
+          <div class="shot">
+            <img src="assets/settings-shortcuts.png" width="700" height="326" alt="Superkeys Shortcuts settings with Zen on ✦ B and Ghostty on ✦ T" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= windows ================= -->
+      <section class="block" id="windows">
+        <div class="wrap feature flip">
+          <div class="copy">
+            <span class="eyebrow amber">✦ Windows</span>
+            <h2>Snap it.<br />Or arrange it all.</h2>
+            <ul class="chords">
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">←</span><span class="kc">→</span></span>Snap to the left or right half</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">↩</span></span>Fill the screen, again to restore</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">↑</span></span>Arrange up to four windows, again to undo</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">⇧</span><span class="kc">←↑↓→</span></span>Swap with the window next to it</li>
+            </ul>
+          </div>
+          <div class="shot" style="display: block">
+            <div class="layouts">
+              <figure>
+                <div class="screen l-half"><div class="pane on"></div><div class="pane"></div></div>
+                <figcaption>2 windows</figcaption>
+              </figure>
+              <figure>
+                <div class="screen l-three"><div class="pane on"></div><div class="pane"></div><div class="pane"></div></div>
+                <figcaption>3 windows</figcaption>
+              </figure>
+              <figure>
+                <div class="screen l-four"><div class="pane on"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div></div>
+                <figcaption>4 windows</figcaption>
+              </figure>
+            </div>
+            <p class="sub" style="font-size: 16px; margin-top: 22px">
+              The window you're in always takes the big slot. It only arranges when you ask: new windows are never tiled
+              behind your back.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= desktops ================= -->
+      <section class="block" id="desktops">
+        <div class="wrap feature">
+          <div class="copy">
+            <span class="eyebrow indigo">☾ Desktops</span>
+            <h2>Every desktop,<br />one key away.</h2>
+            <ul class="chords">
+              <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">1–9</span></span>Switch to that desktop</li>
+              <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">⇧</span><span class="kc">1–9</span></span>Move the window there and follow it</li>
+              <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">right ⌥</span></span>Flip back to the previous desktop</li>
+            </ul>
+            <p class="sub" style="font-size: 16px">Desktops that don't exist yet are created for you.</p>
+          </div>
+          <div class="shot">
+            <img src="assets/chords-meh.png" width="438" height="258" alt="The ☾ Meh chord panel showing desktops 1 to 4" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= cheat sheet ================= -->
+      <section class="block">
+        <div class="wrap feature flip">
+          <div class="copy">
+            <span class="eyebrow"><span class="amber">✦</span>&nbsp;Hold to see</span>
+            <h2>Forgot a chord?<br />Just hold.</h2>
+            <p class="sub">
+              Hold ✦ or ☾ for a moment and a glass panel shows everything that key does, including your own app keys.
+              Let go and it's gone. It never takes focus.
+            </p>
+          </div>
+          <div class="shot">
+            <img src="assets/chords-hyper.png" width="438" height="319" alt="The ✦ Hyper chord panel listing window chords and app keys" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= privacy ================= -->
+      <section class="block" id="privacy">
+        <div class="wrap">
+          <span class="eyebrow">Quiet by design</span>
+          <h2>It stays out of the way.</h2>
+          <div class="promise">
+            <div class="card">
+              <div class="num">0</div>
+              <h3>Keystrokes kept</h3>
+              <p>Keys pass straight through unless ✦ or ☾ is held. Nothing is recorded.</p>
+            </div>
+            <div class="card">
+              <div class="num">0</div>
+              <h3>Network calls</h3>
+              <p>No analytics, no accounts, no phoning home. It never leaves your Mac.</p>
+            </div>
+            <div class="card">
+              <div class="num">0%</div>
+              <h3>Idle CPU</h3>
+              <p>No timers or polling. It wakes only when you press a key.</p>
+            </div>
+            <div class="card">
+              <div class="num">&lt;60ms</div>
+              <h3>To snap a window</h3>
+              <p>Native Swift, AppKit and the Accessibility API. No Electron, no scripting layer.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= closing ================= -->
+      <div class="wrap">
+        <div class="closing">
+          <svg class="logo" viewBox="0 0 120 120" style="color: var(--indigo)"><use href="#logo" /></svg>
+          <h2 style="margin-top: 18px">Superkeys</h2>
+          <p class="sub" style="margin: 12px auto 0">Two private keys for your Mac. Coming soon for macOS 14 and later.</p>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Superkeys</span>
+        <span>superkeys.space</span>
+      </div>
+    </footer>
+  </body>
+</html>
