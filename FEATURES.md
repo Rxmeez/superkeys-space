@@ -15,6 +15,8 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 55 | **Homebrew cask** | Start with an own tap (`brew install --cask rxmeez/tap/superkeys`), since homebrew/cask expects a notable, notarised app. Move to plain `brew install --cask superkeys` once accepted; the landing page already shows that command as "Soon". Note the established app **Superkey** (superkey.app) is already cask `superkey`, one letter away. | S |
 | 56 | **Updates** | Signed builds can update in place. Decide between a Sparkle-style updater (currently listed under "Decided against") and relying on Homebrew and GitHub releases. | S |
 | 57 | **"Get notified" signup** | The landing page's Coming Soon button becomes an email field through a hosted list (Buttondown or similar, no backend of our own), so launch day has an audience. Keep it one field, no tracking pixels, to match the privacy promise on the page. | S |
+| 61 | **Release notes page** | A `/changelog` on superkeys.space generated from GitHub release notes at deploy time, so each version's changes live in one place and the Homebrew cask and the in-app updater can link to it. Plain HTML in `site/`, same styling. | S |
+| 62 | **Site visit counts, no cookies** | Cloudflare Web Analytics (cookieless, no personal data, one script tag) to see whether the launch film and page are reaching anyone. Website only: the app itself keeps its no-analytics promise, and the page's privacy section should say so plainly. Optional. | S |
 
 ## Next up
 
