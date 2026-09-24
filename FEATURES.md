@@ -56,7 +56,7 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 21 | **Drag and resize with ✦ and the mouse** | Hold ✦ and move the mouse to drag the window under the pointer from anywhere, or hold ✦ ⌥ to resize it, as on many Linux desktops. To keep typing fast, the mouse tap would exist only while ✦ is held, created on press and removed on release. | M |
 | 22 | **Cycle an app's windows** | ✦ Tab steps through the frontmost app's windows in place, without the ⌘ \` guesswork or Mission Control. Reads `kAXWindowsAttribute` and raises the next one. | M |
 | 23 | **Forward unmapped chords as ⌃⌥⇧⌘** | Opt-in, off by default. When ✦ plus a key does nothing in Superkeys, send it on as the classic four-modifier "Hyper" so Raycast, Alfred, or app menus can bind it too. Keeps the default promise that the Hyper Key never reaches other apps. | M |
-| 24 | **Shortcuts in the menu bar menu** | A short list of assigned app keys in the menu, so checking ✦ G doesn't need Settings. A lighter companion to the cheat sheet (#1). | S |
+| 24 | **Shortcuts in the menu bar menu** | A short list of assigned app keys in the menu, so checking ✦ G doesn't need Settings. A lighter companion to the chord panel (built). | S |
 | 36 | **New window with ✦ ⇧ key** | ✦ B brings Zen forward; ✦ ⇧ B opens a fresh window of it (⌘N sent to that app only, after it activates). Shift is already the "do more" modifier on ☾. Needs a per-app opt-out for apps where ⌘N means something else. | M |
 | 37 | **Warn about conflicting remappers** | Karabiner-Elements, Hyperkey, or a manual `hidutil` mapping on Caps Lock or right ⌘ fight the remap silently. Detect them (running bundle IDs and foreign `UserKeyMapping` entries on those keys) and explain in General rather than just not working. | M |
 | 38 | **VoiceOver announcements** | Spoken feedback for chords that change something off-screen: "Desktop 3", "Moved Safari to Desktop 2", "Snapped left". `NSAccessibility.post(... .announcementRequested)`. Silent unless VoiceOver is running. | S |
@@ -118,6 +118,9 @@ The same 8pt gap as snapping, inside the visible frame (below the menu bar, abov
 
 ## Built
 
+- **Superkeys identity.** Renamed from Hypercaps (bundle id `space.superkeys`, settings migrated on first launch); moon-and-stars menu bar logo whose stars light amber for ✦ and moon lights indigo for ☾.
+- **Too many windows.** With five or more windows, ✦ ↑ leaves them alone and the menu bar icon turns red, shakes once, and shows the count, instead of beeping.
+- **Launch presence.** superkeys.space (static page in `site/`, Cloudflare Pages, deploys on every push) with the autoplaying launch film, and the public Homebrew tap `Rxmeez/homebrew-tap`, which is ready for a cask once a signed build exists.
 - **Arrange windows.** ✦ ↑ lays out up to four windows on the current screen (2 → halves, 3 → large plus two stacked, 4 → quarters) and undoes on a second press; ✦ ⇧ arrows swap the focused window with its neighbour. Windows with a minimum size stay pinned to their slot's outer edge. Design notes below.
 - **Key colours and glass.** ✦ is warm amber and ☾ moonlight indigo across keycaps, the lit key tiles in Settings, and the menu bar icon while held; everything else keeps the system accent. The chord panel sits on tinted Liquid Glass on macOS 26 and later, with a blur fallback before that.
 - **Settings file.** Export and import app shortcuts and preferences as readable JSON. Keys can be written by hand ("B", "F5"); reserved keys, duplicates, and unknown keys are skipped with a reason, and nothing changes until you confirm.
