@@ -14,6 +14,7 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 54 | **DMG and release pipeline** | A signed, notarised `.dmg` (or zip) attached to a GitHub release per version, built by a script so every release is reproducible. The landing page's Download button and the cask both point at it. | M |
 | 55 | **Homebrew cask** | Start with an own tap (`brew install --cask rxmeez/tap/superkeys`), since homebrew/cask expects a notable, notarised app. Move to plain `brew install --cask superkeys` once accepted; the landing page already shows that command as "Soon". Note the established app **Superkey** (superkey.app) is already cask `superkey`, one letter away. | S |
 | 56 | **Updates** | Signed builds can update in place. Decide between a Sparkle-style updater (currently listed under "Decided against") and relying on Homebrew and GitHub releases. | S |
+| 57 | **"Get notified" signup** | The landing page's Coming Soon button becomes an email field through a hosted list (Buttondown or similar, no backend of our own), so launch day has an audience. Keep it one field, no tracking pixels, to match the privacy promise on the page. | S |
 
 ## Next up
 
@@ -33,6 +34,8 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 46 | **Suggest a key** | When an app is picked in Add App, pre-fill the first free letter of its name (Zen → Z, Ghostty → G, or the next letter if taken), so Return, Return adds it. Recording a different key still works as now. `BindingsStore.validate` already knows what is free. | S |
 | 47 | **Real Caps Lock on both Shift keys** | Some people still need Caps Lock now and then. Pressing left and right Shift together would toggle it, a common Linux convention. Opt-in; the existing `CapsLock` helper already talks to IOHIDSystem, it would set the lock instead of clearing it. | S |
 | 51 | **Move focus between windows** | ✦ ⌃ + arrow focuses the window next to this one, without moving anything. After ✦ ↑ arranges four windows, this is how you get between them without the mouse. Reuses the arranger's neighbour search; ✦ ⌃ is unused. | S |
+| 58 | **Key labels from your keyboard layout** | Key names come from a fixed US ANSI map (`KeyCodes.typed`), so on a British, German or French layout ✦ plus the key left of 1 shows the wrong character in Settings, the chord panel and exported files. Read the active layout with `TISCopyCurrentKeyboardLayoutInputSource` + `UCKeyTranslate` and relabel when it changes. Key codes stay the source of truth, so bindings survive a layout switch. | M |
+| 59 | **Caps Lock never left dead** | If Superkeys crashes or is force-quit, Caps Lock stays mapped to F18 (which does nothing) until Superkeys starts again. A tiny launchd agent, or a `KeepAlive` login item that clears Superkeys' two `UserKeyMapping` entries when the app isn't running, would make the keys fall back to normal within seconds. | M |
 
 ## Worth doing
 
@@ -58,6 +61,7 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 49 | **Hide the menu bar icon** | For people who don't want another icon. Opening Superkeys again from Finder or Spotlight shows Settings, where the icon can come back; `applicationShouldHandleReopen` already does this. | S |
 | 52 | **Resize the split** | ✦ − / ✦ = moves the edge between the focused window and its neighbours in 10% steps, so the 3-split can become 60/40 and quarters can go 2:1. The neighbours shrink to match. Takes − and = away from app keys, so it should be opt-in or use ✦ ⌃ ⇧ arrows instead. | M |
 | 53 | **The 4 most recent when there are more** | With 5 or more windows ✦ ↑ does nothing, as designed. An option could arrange the 4 most recently used instead and leave the rest behind them. Off by default. | S |
+| 60 | **"Try it" check after setup** | Right after Accessibility is granted, General shows one line, "Hold Caps Lock", that turns into a lit ✦ with "You're set" the first time the key is held. Proves the setup worked without a tour or carousel (those stay decided against). | S |
 
 ## Later
 
