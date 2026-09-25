@@ -208,43 +208,13 @@
         color: var(--muted);
         font-weight: 300;
       }
-      .cta {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 14px;
-        margin-top: 36px;
-      }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        height: 48px;
-        padding: 0 22px;
-        border-radius: 14px;
-        font-size: 16px;
-        font-weight: 500;
-        text-decoration: none;
-        border: 1px solid var(--edge);
-        background: rgba(255, 255, 255, 0.06);
-      }
-      .btn.primary {
-        background: var(--text);
-        color: #0e0e10;
-        border-color: transparent;
-      }
-      .btn svg {
-        width: 18px;
-        height: 18px;
-      }
       .brew {
         position: relative;
         display: inline-flex;
         align-items: center;
         gap: 12px;
         max-width: 100%;
-        margin-top: 26px;
+        margin-top: 36px;
         padding: 8px 8px 8px 18px;
         border-radius: 14px;
         background: rgba(0, 0, 0, 0.45);
@@ -764,13 +734,6 @@
             Caps Lock becomes <span class="amber">✦ Hyper</span> and right ⌘ becomes <span class="indigo">☾ Meh</span>.
             Hold one and the rest of your keyboard opens apps, arranges windows, and jumps between desktops.
           </p>
-          <div class="cta">
-            <a class="btn primary" href="#film">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
-              Watch the film
-            </a>
-            <span class="btn" aria-disabled="true">Coming soon for macOS</span>
-          </div>
           <div class="brew" aria-label="Homebrew install command, early build">
             <span class="prompt">$</span>
             <code id="brew-cmd">brew install --cask rxmeez/tap/<wbr>superkeys</code>
@@ -949,7 +912,7 @@
         <div class="closing">
           <svg class="logo" viewBox="0 0 120 120" style="color: var(--indigo)"><use href="#logo" /></svg>
           <h2 style="margin-top: 18px">Superkeys</h2>
-          <p class="sub" style="margin: 12px auto 0">Two private keys for your Mac. Coming soon for macOS 14 and later.</p>
+          <p class="sub" style="margin: 12px auto 0">Two private keys for your Mac. Free, for macOS 14 and later.</p>
         </div>
       </div>
     </main>
@@ -963,7 +926,7 @@
     </footer>
     <script>
       // The film plays muted and looping; it pauses off screen, and waits for
-      // a tap when Reduce Motion is on. "Watch the film" restarts it with sound.
+      // a tap when Reduce Motion is on. The Sound button unmutes it.
       const video = document.getElementById("film-video");
       const soundButton = document.getElementById("film-sound");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -980,11 +943,6 @@
       }
       soundButton.addEventListener("click", () => {
         setSound(video.muted);
-        play();
-      });
-      document.querySelector('a[href="#film"]').addEventListener("click", () => {
-        video.currentTime = 0;
-        setSound(true);
         play();
       });
       new IntersectionObserver(([entry]) => {
