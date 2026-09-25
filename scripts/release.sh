@@ -149,9 +149,8 @@ say "Bumping the Homebrew cask"
 git -C "$TAP" pull -q
 sed -i '' "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA\"/" "$TAP/Casks/superkeys.rb"
 # The app updates itself through Sparkle, so brew shouldn't try to.
-grep -q "auto_updates true" "$TAP/Casks/superkeys.rb" || sed -i '' 's/^  app "Superkeys.app"/  auto_updates true\
-\
-  app "Superkeys.app"/' "$TAP/Casks/superkeys.rb"
+grep -q "auto_updates true" "$TAP/Casks/superkeys.rb" || sed -i '' 's/^  depends_on macos/  auto_updates true\
+  depends_on macos/' "$TAP/Casks/superkeys.rb"
 git -C "$TAP" commit -qam "superkeys $VERSION"
 git -C "$TAP" push -q
 
