@@ -17,6 +17,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         return controller
     }
     private static var current: SettingsWindowController?
+    static var isOpen: Bool { current?.window?.isVisible == true }
 
     enum Pane: Int {
         case general, shortcuts, permissions

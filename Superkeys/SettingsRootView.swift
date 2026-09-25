@@ -81,6 +81,16 @@ struct GeneralTab: View {
                 ))
                 UpdatesRow()
                 LabeledContent {
+                    Button("Take the Tour") { OnboardingWindowController.show() }
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Welcome tour")
+                        Text("A two-minute, hands-on walk through the keys.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                LabeledContent {
                     HStack {
                         Button("Import…") { SettingsTransfer.importFile() }
                         Button("Export…") { SettingsTransfer.export() }

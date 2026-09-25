@@ -208,6 +208,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "snap-right": WindowManager.shared.snap(.right)
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
+                case let s? where s.hasPrefix("onboarding"):
+                    OnboardingWindowController.debugShow(step: Int(s.dropFirst("onboarding-".count)) ?? 0)
                 case "attention-on": HyperIndicator.shared.needsAttention = true
                 case "attention-off": HyperIndicator.shared.needsAttention = false
                 case "throw-left": WindowManager.shared.throwWindow(.left)
@@ -230,8 +232,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Task { @MainActor in
             AppState.shared.bootstrap()
-            // Once set up, e.g. launched at login, it stays in the menu bar.
-            if firstLaunch || !Permissions.isTrusted {
+            OnboardingWindowController.noteLaunch(firstLaunch: firstLaunch)
+            // New users get the tour; after that, Settings only opens itself
+            // when access is missing. Launched at login it stays quiet.
+            if !OnboardingWindowController.hasCompleted {
+                OnboardingWindowController.show()
+            } else if !Permissions.isTrusted {
                 SettingsWindowController.shared.show()
             }
         }

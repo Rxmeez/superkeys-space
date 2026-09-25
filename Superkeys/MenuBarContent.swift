@@ -32,6 +32,7 @@ struct MenuBarContent: View {
             Button("Check for Updates…") { Updater.shared.checkForUpdates() }
                 .disabled(!updater.canCheckForUpdates)
         }
+        Button("Welcome Tour…") { OnboardingWindowController.show() }
         Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",")
         Divider()
