@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-25
+
 ### Changed
 
 - **Nothing runs while you're idle.** The helper that restores Caps Lock after a crash used to check every two seconds; it now sleeps until Superkeys actually exits, and restores the keys within a fraction of a second instead of up to two.
@@ -68,7 +70,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.0...v0.1.1
