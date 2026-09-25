@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-25
+
 ### Added
 
 - **Multiple displays.** ✦ ← / → snap to a half, and pressed again at the edge walk the window onto the neighbouring display's facing half. ✦ ⌥ ← / → move the window to the next display as it is. ✦ ↩'s restore works across displays.
@@ -14,6 +16,11 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 - **Try it**: right after setup, General asks you to hold Caps Lock and confirms it works.
 - Superkeys and Superkeys Dev (a development build) no longer run at the same time; launching one offers to quit the other.
 
+### Fixed
+
+- **☾ ⇧ 1–9 moves windows again.** A recent macOS change made it ignore the drag Superkeys uses to carry a window to another desktop; 0.1.x switched desktops but left the window behind.
+- Moving a wide window no longer grabs a toolbar button instead of the title bar.
+- New desktops are always added to the right display, and never more than needed.
 
 ### Changed
 
@@ -53,7 +60,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Rxmeez/superkeys-space/releases/tag/v0.1.0
