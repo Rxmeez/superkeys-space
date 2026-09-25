@@ -91,10 +91,56 @@ enum LegacySettings {
     }
 }
 
+/// Superkeys and Superkeys Dev (a development build) both remap Caps Lock and
+/// right ⌘, so only one should run. On launch, if the other is running, ask
+/// which to keep.
+enum OtherCopy {
+    private static let identifiers = ["space.superkeys", "space.superkeys.dev"]
+
+    /// Returns false when this copy should quit.
+    @MainActor
+    static func resolve() -> Bool {
+        let mine = Bundle.main.bundleIdentifier ?? ""
+        let others = NSWorkspace.shared.runningApplications.filter {
+            guard let id = $0.bundleIdentifier else { return false }
+            return identifiers.contains(id) && $0 != .current
+        }
+        guard let other = others.first else { return true }
+        let otherName = other.localizedName ?? "Superkeys"
+        let myName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Superkeys"
+        guard other.bundleIdentifier != mine else {
+            // A second copy of the same app: the first one keeps running.
+            other.activate()
+            return false
+        }
+
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "\(otherName) is already running"
+        alert.informativeText = "\(otherName) and \(myName) both use Caps Lock and right ⌘, so only one can run at a time."
+        alert.addButton(withTitle: "Quit \(otherName)")
+        alert.addButton(withTitle: "Keep \(otherName)")
+        guard alert.runModal() == .alertFirstButtonReturn else { return false }
+
+        other.terminate()
+        // Give it a moment to hand the keys back before this copy takes them.
+        let deadline = Date().addingTimeInterval(3)
+        while !other.isTerminated, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        if !other.isTerminated { other.forceTerminate() }
+        return true
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private static let launchedKey = "hasLaunchedBefore"
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard OtherCopy.resolve() else {
+            NSApp.terminate(nil)
+            return
+        }
         LegacySettings.migrate()
         let defaults = UserDefaults.standard
         let firstLaunch = !defaults.bool(forKey: Self.launchedKey)
