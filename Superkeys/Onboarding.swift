@@ -305,9 +305,9 @@ private struct BigKey: View {
     }
 }
 
-/// A row of a Mac keyboard with the key to use pressing itself in a loop,
-/// for the two keys people wouldn't guess: Caps Lock, and the right ⌘ rather
-/// than the left one. Holding the real key keeps it lit.
+/// Part of a Mac keyboard with the key to use outlined, for the two keys
+/// people wouldn't guess: Caps Lock, and the right ⌘ rather than the left
+/// one. The key lights up while the real one is held.
 private struct KeyboardRow: View {
     struct Key: Identifiable {
         let id: Int
@@ -331,7 +331,6 @@ private struct KeyboardRow: View {
     let description: String
 
     private let unit: CGFloat = 40
-    @State private var pressed = false
 
     static func capsLock(held: Bool) -> KeyboardRow {
         func letters(_ text: String) -> [Key] {
@@ -362,15 +361,6 @@ private struct KeyboardRow: View {
         Group {
             if rows.count == 1 { singleRow(rows[0]) } else { block }
         }
-        // Press quickly, hold, let go, rest; until the step goes away.
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(0.9))
-                withAnimation(.easeOut(duration: 0.14)) { pressed = true }
-                try? await Task.sleep(for: .seconds(0.7))
-                withAnimation(.easeInOut(duration: 0.3)) { pressed = false }
-            }
-        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(description)
     }
@@ -385,7 +375,7 @@ private struct KeyboardRow: View {
 
     private func keys(_ row: [Key]) -> some View {
         HStack(spacing: 5) {
-            ForEach(row) { key in cap(key, down: key.target && (pressed || held)) }
+            ForEach(row) { key in cap(key, down: key.target && held) }
         }
     }
 
