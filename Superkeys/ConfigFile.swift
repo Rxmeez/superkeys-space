@@ -273,6 +273,10 @@ struct ConfigFile {
             problems.append(Problem(line: line, message: "✦ \(key): \(reason)"))
             return nil
         }
+        if codes.count == 2, codes[1] == codes[0] {
+            problems.append(Problem(line: line, message: "✦ \(key): a group's second key has to be different from its first."))
+            return nil
+        }
         if codes.count == 2, codes[1] == Int(KeyCodes.escape) {
             problems.append(Problem(line: line, message: "✦ \(key): Escape cancels a group, so it can't be the second key."))
             return nil

@@ -223,6 +223,9 @@ final class BindingsStore: ObservableObject {
         if let second, second == Int(KeyCodes.escape) {
             return "Escape cancels a group, so it can't be the second key."
         }
+        if let second, second == keyCode {
+            return "The second key has to be different from the first."
+        }
         if let existing = bindings.first(where: { $0.keyCode == keyCode && $0.keyCode2 == second && $0.id != id }) {
             return "\(Glyph.hyper) \(KeySequence.text(existing.label, existing.label2)) already opens \(existing.name)."
         }
