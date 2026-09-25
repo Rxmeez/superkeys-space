@@ -152,10 +152,6 @@ Superkeys never records or stores what you type. Keys pass straight through unle
 
 The landing page for [superkeys.space](https://superkeys.space) lives in `site/`: one static HTML page with no build step. Open `site/index.html` in a browser to preview it; deploy the `site/` folder to any static host.
 
-## Roadmap
-
-Ideas, trade-offs, and what macOS does and doesn't allow are tracked in [FEATURES.md](FEATURES.md).
-
 ## Ideas and problems
 
 [Suggest a feature](https://github.com/Rxmeez/superkeys-space/issues/new?template=feature.yml) or [report a problem](https://github.com/Rxmeez/superkeys-space/issues/new?template=bug.yml). Both are also in Settings → General, which fills in your versions for you. If an idea is already there, a 👍 on it helps decide what comes next.

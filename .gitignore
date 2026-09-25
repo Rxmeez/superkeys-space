@@ -5,3 +5,4 @@ build/
 *.xcuserstate
 Signing.local.xcconfig
 brag-output*/
+.claude/
