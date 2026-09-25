@@ -4,10 +4,14 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-09-25
+
 ### Changed
 
 - Single-letter keycaps use the system font, so ✦ O no longer looks like ✦ 0.
 - The welcome tour opens with "Caps Lock and right ⌘, finally useful."
+- Config files written before keystrokes existed gain a commented `[keys]` section, so a keystroke added by hand lands in the right place.
+- `brew uninstall --zap superkeys` also removes `~/.config/superkeys`.
 
 ## [0.2.5] - 2026-09-25
 
@@ -114,7 +118,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...v0.2.3

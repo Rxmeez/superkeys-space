@@ -17,7 +17,7 @@ final class CheatSheet {
 
     func pressed(_ layer: Layer) {
         pending?.cancel()
-        guard AppState.shared.showCheatSheet else { return }
+        guard AppState.shared.showCheatSheet, !TestRun.active else { return }
         let work = DispatchWorkItem { [weak self] in self?.show(layer) }
         pending = work
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.delay, execute: work)
@@ -28,7 +28,7 @@ final class CheatSheet {
     func showGroup(_ first: Int) {
         pending?.cancel()
         dismissPanel()
-        guard AppState.shared.showCheatSheet else { return }
+        guard AppState.shared.showCheatSheet, !TestRun.active else { return }
         let work = DispatchWorkItem { [weak self] in
             let store = BindingsStore.shared
             let group = store.group(first)

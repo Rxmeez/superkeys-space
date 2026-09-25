@@ -166,6 +166,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private static let launchedKey = "hasLaunchedBefore"
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Unit tests run inside the app: leave the keys, windows and
+        // settings alone, and don't offer to quit another copy.
+        if TestRun.active { return }
         guard OtherCopy.resolve() else {
             NSApp.terminate(nil)
             return

@@ -393,14 +393,36 @@ final class ConfigSync: ObservableObject {
     // MARK: File → app
 
     private func load() {
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return }
+        guard var text = try? String(contentsOf: url, encoding: .utf8) else { return }
         guard text != lastText else { return }
+        let upgraded = Self.addingKeysSection(to: text)
+        if upgraded != text {
+            try? upgraded.write(to: url, atomically: true, encoding: .utf8)
+            text = upgraded
+        }
         lastText = text
         let reading = ConfigFile.read(text)
         problems = reading.problems
         notApplied = reading.syntaxError
         guard !reading.syntaxError else { return }
         apply(reading.config)
+    }
+
+    /// Files from before keystrokes existed have no [keys] heading, so a
+    /// keystroke added by hand would land under [apps]. Add the heading, with
+    /// its explanation, once; nothing else in the file changes.
+    static func addingKeysSection(to text: String) -> String {
+        let hasKeys = text.components(separatedBy: .newlines)
+            .contains { $0.trimmingCharacters(in: .whitespaces).hasPrefix("[keys]") }
+        guard !hasKeys, !ConfigFile.read(text).syntaxError else { return text }
+        return text + (text.hasSuffix("\n") ? "" : "\n") + """
+
+        # ✦ plus a key sends another key combination to the app in front, e.g.
+        # C = "ctrl+c" to stop a command in the terminal. Modifiers: ctrl, opt,
+        # shift, cmd. Holding the key repeats it.
+        [keys]
+
+        """
     }
 
     private func apply(_ config: ConfigFile) {

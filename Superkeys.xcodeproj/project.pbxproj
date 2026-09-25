@@ -40,7 +40,21 @@
 		6E06A398F73F987A368242C7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DCB291738E0365B015BD8276 /* Carbon.framework */; };
 		FF355C0B8E21DC0DBEAF222D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4674EE231C0408FAC44AC671 /* CoreGraphics.framework */; };
 		0426934D998E46E43B056102 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 58392FF787190A130F57AC37 /* Sparkle */; };
+		F1ACE5C942E8A0F93315A52F /* ConfigFileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154E78C7E9EA50DBF85FF28 /* ConfigFileTests.swift */; };
+		1B5956F2E1C38D084B7C0DF4 /* KeystrokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837AD11619498B0FF06C32EB /* KeystrokeTests.swift */; };
+		877B980F52C2B26173FB4B42 /* KeyHandlingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */; };
+		302BA7E01983ECDB5A35E955 /* KeyGroupsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		46B174A1F0F1A498B0831D68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 42AEFBAE01D2DFD981F7DA7D;
+			remoteInfo = Superkeys;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		F5BF48AA40CAD7891EB709FC /* Superkeys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Superkeys.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +93,11 @@
 		BC743474C47B0510B14DA1B7 /* Combine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Combine.framework; path = System/Library/Frameworks/Combine.framework; sourceTree = SDKROOT; };
 		DCB291738E0365B015BD8276 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		4674EE231C0408FAC44AC671 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		F9D22AD988431229927A9911 /* SuperkeysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SuperkeysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C154E78C7E9EA50DBF85FF28 /* ConfigFileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigFileTests.swift; sourceTree = "<group>"; };
+		837AD11619498B0FF06C32EB /* KeystrokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeTests.swift; sourceTree = "<group>"; };
+		4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyHandlingTests.swift; sourceTree = "<group>"; };
+		586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyGroupsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +117,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D2E90322B493B9AE82EC2FF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -106,6 +132,7 @@
 			children = (
 				16A2199B7E72237C3C0B49E7 /* Signing.xcconfig */,
 				CA452AC6DB53E1C10D6D7F5F /* Superkeys */,
+				8E180C87CB57F7E37A13C4FE /* SuperkeysTests */,
 				FCC647F68DE5A5F8E3AAF6DC /* Frameworks */,
 				3936A56E033FE156B0D38F79 /* Products */,
 			);
@@ -144,6 +171,17 @@
 			path = Superkeys;
 			sourceTree = "<group>";
 		};
+		8E180C87CB57F7E37A13C4FE /* SuperkeysTests */ = {
+			isa = PBXGroup;
+			children = (
+				C154E78C7E9EA50DBF85FF28 /* ConfigFileTests.swift */,
+				837AD11619498B0FF06C32EB /* KeystrokeTests.swift */,
+				4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */,
+				586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */,
+			);
+			path = SuperkeysTests;
+			sourceTree = "<group>";
+		};
 		FCC647F68DE5A5F8E3AAF6DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -163,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				F5BF48AA40CAD7891EB709FC /* Superkeys.app */,
+				F9D22AD988431229927A9911 /* SuperkeysTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -189,6 +228,23 @@
 			productName = Superkeys;
 			productReference = F5BF48AA40CAD7891EB709FC /* Superkeys.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6982AA1890AAE83246A43D56 /* SuperkeysTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7497AF0A8C1024775BD658F8 /* Build configuration list for PBXNativeTarget "SuperkeysTests" */;
+			buildPhases = (
+				C487078F950E5A88E79D57B1 /* Sources */,
+				D2E90322B493B9AE82EC2FF6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A752CD51616FEF8E8554B5CD /* PBXTargetDependency */,
+			);
+			name = SuperkeysTests;
+			productName = SuperkeysTests;
+			productReference = F9D22AD988431229927A9911 /* SuperkeysTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -217,6 +273,7 @@
 			projectRoot = "";
 			targets = (
 				42AEFBAE01D2DFD981F7DA7D /* Superkeys */,
+				6982AA1890AAE83246A43D56 /* SuperkeysTests */,
 			);
 		};
 /* End PBXProject section */
@@ -263,7 +320,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C487078F950E5A88E79D57B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1ACE5C942E8A0F93315A52F /* ConfigFileTests.swift in Sources */,
+				1B5956F2E1C38D084B7C0DF4 /* KeystrokeTests.swift in Sources */,
+				877B980F52C2B26173FB4B42 /* KeyHandlingTests.swift in Sources */,
+				302BA7E01983ECDB5A35E955 /* KeyGroupsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A752CD51616FEF8E8554B5CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 42AEFBAE01D2DFD981F7DA7D /* Superkeys */;
+			targetProxy = 46B174A1F0F1A498B0831D68 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2D53B50AE2273FABAAF8B8FA /* Debug */ = {
@@ -347,6 +423,32 @@
 			};
 			name = Release;
 		};
+		225219FC1D63C087AF0620C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = space.superkeys.tests;
+				PRODUCT_NAME = SuperkeysTests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Superkeys Dev.app/Contents/MacOS/Superkeys Dev";
+			};
+			name = Debug;
+		};
+		E3121FC854180253ACBF7EDC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = space.superkeys.tests;
+				PRODUCT_NAME = SuperkeysTests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Superkeys.app/Contents/MacOS/Superkeys";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -364,6 +466,15 @@
 			buildConfigurations = (
 				FA7C752E798F561D7D156D98 /* Debug */,
 				22F75101C717335ACF4089A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7497AF0A8C1024775BD658F8 /* Build configuration list for PBXNativeTarget "SuperkeysTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225219FC1D63C087AF0620C5 /* Debug */,
+				E3121FC854180253ACBF7EDC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

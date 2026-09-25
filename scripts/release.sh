@@ -10,6 +10,7 @@
 # deleted on exit, and the Sparkle key is piped straight into Sparkle's tools.
 #
 # What it does:
+#   0. runs the unit tests, and stops if any fail
 #   1. bumps the version and build number in scripts/generate_project.py
 #   2. builds a universal Release app signed as "Superkeys"
 #   3. zips it into site/download/ with release notes from CHANGELOG.md
@@ -47,6 +48,11 @@ fi
   || die "run scripts/setup_signing_keys.sh first"
 [[ -x "$BIN/sign_update" ]] || xcodebuild -scheme Superkeys -derivedDataPath build -resolvePackageDependencies >/dev/null
 command -v op >/dev/null || die "install the 1Password CLI: brew install 1password-cli"
+
+# --- Tests ------------------------------------------------------------------------
+say "Running the tests"
+TEST_LOG=$(xcodebuild -scheme Superkeys -configuration Debug -derivedDataPath build test 2>&1 || true)
+[[ "$TEST_LOG" == *"** TEST SUCCEEDED **"* ]] || { print -r -- "$TEST_LOG" | grep -E "error:|failed" | head -20; die "tests failed"; }
 
 # --- Signing certificate into a throwaway keychain ------------------------------
 say "Reading the signing certificate from 1Password"

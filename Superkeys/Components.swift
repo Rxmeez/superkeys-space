@@ -86,6 +86,12 @@ extension KeyCap {
     }
 }
 
+/// Running as the host for unit tests, when startup is skipped and nothing
+/// may appear on screen.
+enum TestRun {
+    static let active = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+}
+
 /// ✦ O, or a group: ✦ O then P.
 struct SequenceCombo: View {
     let label: String
