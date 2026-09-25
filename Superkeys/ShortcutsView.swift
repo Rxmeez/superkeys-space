@@ -323,7 +323,9 @@ struct ShortcutsTab: View {
                     ForEach(KeyGroups.rows(store.bindings, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
                         switch row.kind {
                         case .header(let label): GroupHeader(label: label, keyFirst: false)
-                        case .item(let app, let indented): ShortcutRow(app: app, indented: indented) { rekeying = app }
+                        case .item(let app, let indented):
+                            ShortcutRow(app: app, indented: indented,
+                                        wideKeys: store.bindings.contains { $0.keyCode2 != nil }) { rekeying = app }
                         }
                     }
                 }
@@ -365,7 +367,9 @@ struct ShortcutsTab: View {
                     ForEach(KeyGroups.rows(store.keystrokes, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
                         switch row.kind {
                         case .header(let label): GroupHeader(label: label, keyFirst: true)
-                        case .item(let stroke, let indented): KeystrokeRow(stroke: stroke, indented: indented)
+                        case .item(let stroke, let indented):
+                            KeystrokeRow(stroke: stroke, indented: indented,
+                                         wideKeys: store.keystrokes.contains { $0.keyCode2 != nil })
                         }
                     }
                 }
@@ -422,6 +426,8 @@ struct ShortcutsTab: View {
 private struct ShortcutRow: View {
     let app: BoundApp
     var indented = false
+    /// Room for a group's second key, only when the list has groups.
+    var wideKeys = false
     let rebind: () -> Void
 
     @State private var hovering = false
@@ -440,9 +446,6 @@ private struct ShortcutRow: View {
                 }
             }
             Spacer()
-            Button(action: rebind) { KeyColumn(label: app.label, then: app.label2, linked: indented) }
-                .buttonStyle(.plain)
-                .help("Change key")
             Button {
                 BindingsStore.shared.remove(app)
             } label: {
@@ -452,6 +455,9 @@ private struct ShortcutRow: View {
             .buttonStyle(.plain)
             .opacity(hovering ? 1 : 0)
             .help("Remove")
+            Button(action: rebind) { KeyColumn(label: app.label, then: app.label2, linked: indented, wide: wideKeys) }
+                .buttonStyle(.plain)
+                .help("Change key")
         }
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
@@ -688,13 +694,12 @@ private struct RebindSheet: View {
 private struct KeystrokeRow: View {
     let stroke: Keystroke
     var indented = false
+    var wideKeys = false
     @State private var hovering = false
 
     var body: some View {
         HStack(spacing: 10) {
-            KeyColumn(label: stroke.label, then: stroke.label2, linked: indented)
-            Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
-            KeyCombo(keys: stroke.sendKeys)
+            KeyColumn(label: stroke.label, then: stroke.label2, linked: indented, wide: wideKeys)
             Spacer()
             Button {
                 BindingsStore.shared.remove(stroke)
@@ -705,6 +710,9 @@ private struct KeystrokeRow: View {
             .buttonStyle(.plain)
             .opacity(hovering ? 1 : 0)
             .help("Remove")
+            // What it sends sits on the right, like the apps' keys.
+            Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
+            KeyCombo(keys: stroke.sendKeys)
         }
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
@@ -911,8 +919,8 @@ private struct KeyColumn: View {
     let then: String?
     /// Sits under its group's first key in the list.
     let linked: Bool
-
-    static let width: CGFloat = 124
+    /// The list has groups, so leave room for a second key.
+    var wide = true
 
     var body: some View {
         Group {
@@ -940,7 +948,7 @@ private struct KeyColumn: View {
                 SequenceCombo(label: label, then: then)
             }
         }
-        .frame(width: Self.width, alignment: .leading)
+        .frame(width: wide ? 124 : 72, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(then.map { "Hyper \(label), then \($0)" } ?? "Hyper \(label)")
     }
@@ -961,8 +969,6 @@ private struct GroupHeader: View {
                 Text("\(Glyph.hyper) \(label) group").font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 KeyColumn(label: label, then: nil, linked: false)
-                // Room for the remove button the other rows have.
-                Image(systemName: "minus.circle.fill").hidden()
             }
         }
         .accessibilityElement(children: .combine)

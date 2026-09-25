@@ -76,15 +76,12 @@ struct GeneralTab: View {
 
 /// Everything the two keys do, for reference.
 struct KeysTab: View {
-    let showApps: () -> Void
 
     var body: some View {
         Form {
             Section {
                 LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock. Apps and windows.")
-                ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app, or send a keystroke such as ⌃ C") {
-                    Button("Edit Shortcuts…", action: showApps).buttonStyle(.link)
-                }
+                ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app, or send a keystroke such as ⌃ C")
                 ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half; again for the next display")
                 ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
                 ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen; again to restore")

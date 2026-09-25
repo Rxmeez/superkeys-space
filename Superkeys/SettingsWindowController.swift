@@ -41,7 +41,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         // you switch, like other macOS settings windows.
         tabs.addTabViewItem(Self.item("General", symbol: "gearshape", height: Self.generalHeight, GeneralTab()))
         tabs.addTabViewItem(Self.item("Keys", symbol: "command", height: Self.keysHeight,
-                                      KeysTab(showApps: { [weak self] in self?.select(.shortcuts) })))
+                                      KeysTab()))
         let shortcuts = Self.item("Shortcuts", symbol: "keyboard", height: 440, ShortcutsTab())
         tabs.addTabViewItem(shortcuts)
         let permissions = Self.item("Permissions", symbol: "lock.shield", height: 260, PermissionsTab())
