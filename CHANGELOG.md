@@ -8,6 +8,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 - **Nothing runs while you're idle.** The helper that restores Caps Lock after a crash used to check every two seconds; it now sleeps until Superkeys actually exits, and restores the keys within a fraction of a second instead of up to two.
 - Desktop chords read the list of desktops once instead of several times.
+- **Less memory after closing Settings.** The Settings window, the installed-apps list and its icons, and the chord panel are now released when closed instead of kept for the life of the app, and the app list no longer caches every scanned app's bundle.
+- The app picker shows apps by the name Finder uses (for example "Visual Studio Code" rather than "Code").
 - The chord panel's snap line is shorter, so it no longer gets cut off.
 
 ## [0.2.0] - 2026-09-25

@@ -56,6 +56,16 @@ final class AppCatalog: ObservableObject {
         icon(for: bundleID) != nil
     }
 
+    /// Called when Settings closes: forget the installed-apps list and every
+    /// icon except those of apps with a key (the chord panel shows those).
+    func trim() {
+        apps = []
+        loaded = false
+        missing.removeAll()
+        let bound = Set(BindingsStore.shared.bindings.map(\.bundleID))
+        icons = icons.filter { bound.contains($0.key) }
+    }
+
     /// Apps can be installed or removed while Superkeys runs.
     func forgetMissing() {
         missing.removeAll()
@@ -87,11 +97,14 @@ final class AppCatalog: ObservableObject {
         }
     }
 
+    /// Reads the app's Info.plist directly rather than through Bundle, which
+    /// caches every bundle it opens for the life of the process (about a
+    /// hundred apps' worth of dictionaries). The name is the one Finder shows.
     nonisolated private static func app(at url: URL) -> InstalledApp? {
-        guard let bundle = Bundle(url: url), let bundleID = bundle.bundleIdentifier else { return nil }
-        let name = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
-            ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
-            ?? url.deletingPathExtension().lastPathComponent
+        guard let info = NSDictionary(contentsOf: url.appendingPathComponent("Contents/Info.plist")),
+              let bundleID = info["CFBundleIdentifier"] as? String else { return nil }
+        var name = FileManager.default.displayName(atPath: url.path)
+        if name.hasSuffix(".app") { name = String(name.dropLast(4)) }
         return InstalledApp(bundleID: bundleID, name: name, url: url)
     }
 }

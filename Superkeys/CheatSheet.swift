@@ -27,7 +27,12 @@ final class CheatSheet {
     func dismiss() {
         pending?.cancel()
         pending = nil
-        panel?.orderOut(nil)
+        guard let panel else { return }
+        // Released rather than kept hidden: it's rebuilt in a few
+        // milliseconds the next time a key is held.
+        panel.orderOut(nil)
+        panel.contentView = nil
+        self.panel = nil
     }
 
     private func show(_ layer: Layer) {

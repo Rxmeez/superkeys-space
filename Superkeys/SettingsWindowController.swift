@@ -7,7 +7,16 @@ import SwiftUI
 /// only shows while this window is open.
 @MainActor
 final class SettingsWindowController: NSWindowController, NSWindowDelegate {
-    static let shared = SettingsWindowController()
+    /// Created when Settings opens and released when it closes, so the
+    /// window, its SwiftUI panes and the app list don't stay in memory while
+    /// Superkeys sits in the menu bar.
+    static var shared: SettingsWindowController {
+        if let current { return current }
+        let controller = SettingsWindowController()
+        current = controller
+        return controller
+    }
+    private static var current: SettingsWindowController?
 
     enum Pane: Int {
         case general, shortcuts, permissions
@@ -108,6 +117,11 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        // Let AppKit finish closing, then drop the window and everything in it.
+        DispatchQueue.main.async {
+            Self.current = nil
+            AppCatalog.shared.trim()
+        }
         NSApp.setActivationPolicy(.accessory)
         // Next time it opens, each tab fits its content again.
         fitsContent = true
