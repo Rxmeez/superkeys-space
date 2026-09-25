@@ -322,7 +322,7 @@ struct ShortcutsTab: View {
                 } else {
                     ForEach(KeyGroups.rows(store.bindings, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
                         switch row.kind {
-                        case .header(let label): GroupHeader(label: label)
+                        case .header(let label): GroupHeader(label: label, keyFirst: false)
                         case .item(let app, let indented): ShortcutRow(app: app, indented: indented) { rekeying = app }
                         }
                     }
@@ -364,7 +364,7 @@ struct ShortcutsTab: View {
                 } else {
                     ForEach(KeyGroups.rows(store.keystrokes, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
                         switch row.kind {
-                        case .header(let label): GroupHeader(label: label)
+                        case .header(let label): GroupHeader(label: label, keyFirst: true)
                         case .item(let stroke, let indented): KeystrokeRow(stroke: stroke, indented: indented)
                         }
                     }
@@ -429,7 +429,6 @@ private struct ShortcutRow: View {
     var body: some View {
         let installed = AppCatalog.shared.isInstalled(app.bundleID)
         HStack(spacing: 10) {
-            if indented { GroupConnector() }
             AppIcon(bundleID: app.bundleID)
             VStack(alignment: .leading, spacing: 1) {
                 Text(app.name)
@@ -441,7 +440,7 @@ private struct ShortcutRow: View {
                 }
             }
             Spacer()
-            Button(action: rebind) { SequenceCombo(label: app.label, then: app.label2) }
+            Button(action: rebind) { KeyColumn(label: app.label, then: app.label2, linked: indented) }
                 .buttonStyle(.plain)
                 .help("Change key")
             Button {
@@ -693,8 +692,7 @@ private struct KeystrokeRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            if indented { GroupConnector() }
-            SequenceCombo(label: stroke.label, then: stroke.label2)
+            KeyColumn(label: stroke.label, then: stroke.label2, linked: indented)
             Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
             KeyCombo(keys: stroke.sendKeys)
             Spacer()
@@ -905,25 +903,60 @@ enum KeyGroups {
     }
 }
 
-/// The small └ that ties a group's second keys to its first.
-private struct GroupConnector: View {
+/// A row's keys in a fixed-width column so every ✦ lines up. In a group,
+/// the second keys show as ↳ + C under the row with ✦ G, since that row
+/// already shows the first key.
+private struct KeyColumn: View {
+    let label: String
+    let then: String?
+    /// Sits under its group's first key in the list.
+    let linked: Bool
+
+    static let width: CGFloat = 104
+
     var body: some View {
-        Image(systemName: "arrow.turn.down.right")
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(.tertiary)
-            .frame(width: 14)
-            .accessibilityHidden(true)
+        Group {
+            if linked, let then {
+                HStack(spacing: 4) {
+                    // Same width as the ✦ keycap, so the arrow sits under it.
+                    KeyCap(text: Glyph.hyper)
+                        .hidden()
+                        .overlay {
+                            Image(systemName: "arrow.turn.down.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    Text("+").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                    KeyCap(text: then)
+                }
+            } else {
+                SequenceCombo(label: label, then: then)
+            }
+        }
+        .frame(width: Self.width, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(then.map { "Hyper \(label), then \($0)" } ?? "Hyper \(label)")
     }
 }
 
 private struct GroupHeader: View {
     let label: String
+    /// Keystrokes list their keys first; apps list the app first.
+    let keyFirst: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
-            SequenceCombo(label: label, then: nil)
-            Text("group").font(.caption).foregroundStyle(.secondary)
-            Spacer()
+        HStack(spacing: 10) {
+            if keyFirst {
+                KeyColumn(label: label, then: nil, linked: false)
+                Text("group").font(.caption).foregroundStyle(.secondary)
+                Spacer()
+            } else {
+                Text("\(Glyph.hyper) \(label) group").font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                KeyColumn(label: label, then: nil, linked: false)
+                // Room for the remove button the other rows have.
+                Image(systemName: "minus.circle.fill").hidden()
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Hyper \(label) group")
