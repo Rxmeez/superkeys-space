@@ -33,10 +33,16 @@ die() { print -P "%F{red}error:%f $*" >&2; exit 1; }
 
 # --- Checks ---------------------------------------------------------------------
 [[ "$VERSION" =~ '^[0-9]+\.[0-9]+\.[0-9]+$' ]] || die "version must look like 1.2.3"
-[[ -z "$(git status --porcelain)" ]] || die "commit or stash your changes first"
-[[ "$(git branch --show-current)" == main ]] || die "release from main"
-git rev-parse "v$VERSION" >/dev/null 2>&1 && die "v$VERSION is already tagged"
-grep -q "^## \[$VERSION\]" CHANGELOG.md || die "add a '## [$VERSION] - $(date +%F)' section to CHANGELOG.md"
+NOTES_SECTION="$VERSION"
+if [[ "$DRY_RUN" == "--dry-run" ]]; then
+  # A dry run may use the Unreleased notes and a dirty tree.
+  grep -q "^## \[$VERSION\]" CHANGELOG.md || NOTES_SECTION="Unreleased"
+else
+  [[ -z "$(git status --porcelain)" ]] || die "commit or stash your changes first"
+  [[ "$(git branch --show-current)" == main ]] || die "release from main"
+  git rev-parse "v$VERSION" >/dev/null 2>&1 && die "v$VERSION is already tagged"
+  grep -q "^## \[$VERSION\]" CHANGELOG.md || die "add a '## [$VERSION] - $(date +%F)' section to CHANGELOG.md"
+fi
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' Superkeys/Info.plist)" != SPARKLE_PUBLIC_KEY_NOT_SET ]] \
   || die "run scripts/setup_signing_keys.sh first"
 [[ -x "$BIN/sign_update" ]] || xcodebuild -scheme Superkeys -derivedDataPath build -resolvePackageDependencies >/dev/null
@@ -80,13 +86,14 @@ xcodebuild -scheme Superkeys -configuration Release -derivedDataPath build \
 APP="build/Build/Products/Release/Superkeys.app"
 [[ "$(defaults read "$ROOT/$APP/Contents/Info" CFBundleShortVersionString)" == "$VERSION" ]] || die "build failed"
 codesign --verify --deep --strict "$APP" || die "signature check failed"
-codesign -dvv "$APP" 2>&1 | grep -q "Authority=Superkeys" || die "not signed as Superkeys"
+SIGNATURE=$(codesign -dvv "$APP" 2>&1)
+[[ "$SIGNATURE" == *"Authority=Superkeys"* ]] || die "not signed as Superkeys"
 
 # --- Package + release notes ---------------------------------------------------
 say "Packaging $ZIP"
 mkdir -p site/download
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
-python3 - "$VERSION" > "site/download/Superkeys-$VERSION.html" <<'PY'
+python3 - "$NOTES_SECTION" > "site/download/Superkeys-$VERSION.html" <<'PY'
 import html, re, sys
 version = sys.argv[1]
 text = open("CHANGELOG.md").read()
