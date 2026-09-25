@@ -231,19 +231,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .brew .soon {
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--amber);
-        background: var(--amber-wash);
-        border: 1px solid rgba(255, 184, 77, 0.4);
-        border-radius: 8px;
-        padding: 5px 8px;
-        white-space: nowrap;
-      }
       .brew button {
         display: inline-flex;
         align-items: center;
@@ -663,9 +650,6 @@
           overflow-wrap: anywhere;
           text-align: left;
         }
-        .brew .soon {
-          display: none;
-        }
         /* On phones crop the film's empty side margins so the scenes are
            a third bigger. */
         .film {
@@ -734,10 +718,9 @@
             Caps Lock becomes <span class="amber">✦ Hyper</span> and right ⌘ becomes <span class="indigo">☾ Meh</span>.
             Hold one and the rest of your keyboard opens apps, arranges windows, and jumps between desktops.
           </p>
-          <div class="brew" aria-label="Homebrew install command, early build">
+          <div class="brew" aria-label="Homebrew install command">
             <span class="prompt">$</span>
             <code id="brew-cmd">brew install --cask rxmeez/tap/<wbr>superkeys</code>
-            <span class="soon">Early build</span>
             <button type="button" id="brew-copy" title="Copy command">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
             </button>
