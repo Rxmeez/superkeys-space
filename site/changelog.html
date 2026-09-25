@@ -238,6 +238,17 @@
         <h1>Changelog</h1>
         <p class="lede">Every release of Superkeys. Installed copies update themselves; this is what changed.</p>
       </header>
+      <section class="release" id="v0.2.1">
+        <h2>0.2.1 <time datetime="2026-09-25">2026-09-25</time></h2>
+        <h3>Changed</h3>
+        <ul>
+          <li><strong>Nothing runs while you&#x27;re idle.</strong> The helper that restores Caps Lock after a crash used to check every two seconds; it now sleeps until Superkeys actually exits, and restores the keys within a fraction of a second instead of up to two.</li>
+          <li>Desktop chords read the list of desktops once instead of several times.</li>
+          <li><strong>Less memory after closing Settings.</strong> The Settings window, the installed-apps list and its icons, and the chord panel are now released when closed instead of kept for the life of the app, and the app list no longer caches every scanned app&#x27;s bundle.</li>
+          <li>The app picker shows apps by the name Finder uses (for example &quot;Visual Studio Code&quot; rather than &quot;Code&quot;).</li>
+          <li>The chord panel&#x27;s snap line is shorter, so it no longer gets cut off.</li>
+        </ul>
+      </section>
       <section class="release" id="v0.2.0">
         <h2>0.2.0 <time datetime="2026-09-25">2026-09-25</time></h2>
         <h3>Added</h3>
