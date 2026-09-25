@@ -10,6 +10,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Changed
 
+- If the app in front stops responding, a window chord now gives up after a second instead of six, so your typing never stalls behind it.
+- Snapping is smoother in apps that animate each resize step while an assistive app is on (Chrome and Electron apps with VoiceOver, for example).
 - What's New ends with a short thank-you to Superkeys' sponsors.
 
 ## [0.2.7] - 2026-09-25

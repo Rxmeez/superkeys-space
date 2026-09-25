@@ -53,6 +53,9 @@ final class HyperEventTap: @unchecked Sendable {
     /// Keys whose key-down was consumed; their repeats and key-up are consumed too.
     private var consumed: Set<Int64> = []
     private var posting = false
+    /// One source for everything Superkeys sends, rather than one per event
+    /// (a held keystroke repeats about 30 times a second).
+    private lazy var eventSource = CGEventSource(stateID: .hidSystemState)
 
     /// ✦ chord → the key combination it sends.
     private var keystrokes: [Chord: (key: CGKeyCode, flags: CGEventFlags)] = [:]
@@ -427,8 +430,7 @@ final class HyperEventTap: @unchecked Sendable {
         #endif
         posting = true
         defer { posting = false }
-        guard let e = CGEvent(keyboardEventSource: CGEventSource(stateID: .hidSystemState),
-                              virtualKey: stroke.key, keyDown: down) else { return }
+        guard let e = CGEvent(keyboardEventSource: eventSource, virtualKey: stroke.key, keyDown: down) else { return }
         e.flags = stroke.flags
         if repeating { e.setIntegerValueField(.keyboardEventAutorepeat, value: 1) }
         e.setIntegerValueField(.eventSourceUserData, value: Self.syntheticMarker)
@@ -438,9 +440,8 @@ final class HyperEventTap: @unchecked Sendable {
     func post(key: CGKeyCode, flags: CGEventFlags) {
         posting = true
         defer { posting = false }
-        let src = CGEventSource(stateID: .hidSystemState)
         for down in [true, false] {
-            guard let e = CGEvent(keyboardEventSource: src, virtualKey: key, keyDown: down) else { continue }
+            guard let e = CGEvent(keyboardEventSource: eventSource, virtualKey: key, keyDown: down) else { continue }
             e.flags = flags
             // Delivery can be asynchronous, so also tag events to skip re-entry.
             e.setIntegerValueField(.eventSourceUserData, value: Self.syntheticMarker)

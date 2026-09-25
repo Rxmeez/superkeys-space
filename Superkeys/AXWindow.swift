@@ -4,6 +4,15 @@ import ApplicationServices
 struct AXWindow {
     let element: AXUIElement
 
+    /// Every Accessibility call waits on the other app, by default for up to
+    /// 6 s. Superkeys' key handling shares the main thread with these calls,
+    /// so a frozen app would hold up every key press on the Mac for that long;
+    /// 1 s is plenty for an app that's responding. Setting it on the
+    /// system-wide element sets the default for every element.
+    static func limitWaits() {
+        AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.0)
+    }
+
     static func focused() -> AXWindow? {
         guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -32,12 +41,31 @@ struct AXWindow {
         var size = ax.size
         guard let pointValue = AXValueCreate(.cgPoint, &point),
               let sizeValue = AXValueCreate(.cgSize, &size) else { return false }
-        // Size first so a shrinking window is not clamped by its old extent,
-        // then position, then size again for windows that adjust after a move.
-        let a = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
-        let b = AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, pointValue)
-        let c = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
-        return a == .success || b == .success || c == .success
+        return withoutEnhancedUI {
+            // Size first so a shrinking window is not clamped by its old extent,
+            // then position, then size again for windows that adjust after a move.
+            let a = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
+            let b = AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, pointValue)
+            let c = AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
+            return a == .success || b == .success || c == .success
+        }
+    }
+
+    /// Chrome, Electron apps and others switch on "enhanced user interface"
+    /// for assistive apps, and then animate each size and position change on
+    /// its own, so a snap stutters through three steps. Switched off for the
+    /// move and back on straight after, as other window managers do.
+    private func withoutEnhancedUI<T>(_ body: () -> T) -> T {
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(element, &pid) == .success else { return body() }
+        let app = AXUIElementCreateApplication(pid)
+        let attribute = "AXEnhancedUserInterface" as CFString
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, attribute, &value) == .success,
+              (value as? Bool) == true else { return body() }
+        AXUIElementSetAttributeValue(app, attribute, kCFBooleanFalse)
+        defer { AXUIElementSetAttributeValue(app, attribute, kCFBooleanTrue) }
+        return body()
     }
 
     private func readPoint(_ attribute: String) -> CGPoint? {

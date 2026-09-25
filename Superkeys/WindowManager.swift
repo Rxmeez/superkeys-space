@@ -8,7 +8,13 @@ final class WindowManager {
     enum Side { case left, right }
 
     private let gap: CGFloat = 8
-    private var previousFrames: [UInt32: CGRect] = [:]
+    /// Frames to go back to, by window. Closed windows never say so, so this
+    /// starts over once it holds more than a few dozen.
+    private var previousFrames: [UInt32: CGRect] = [:] {
+        didSet {
+            if previousFrames.count > 64 { previousFrames = [:]; filled.removeAll() }
+        }
+    }
     private var filled: Set<UInt32> = []
 
     /// ✦ ← / → snap to a half; pressed again at the screen's edge, the window

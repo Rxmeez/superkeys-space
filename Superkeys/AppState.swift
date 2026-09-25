@@ -73,6 +73,7 @@ final class AppState: ObservableObject {
     private var observers: [NSObjectProtocol] = []
 
     func bootstrap() {
+        AXWindow.limitWaits()
         _ = BindingsStore.shared
         ConfigSync.shared.start()
         MissionControlShortcuts.enable()
