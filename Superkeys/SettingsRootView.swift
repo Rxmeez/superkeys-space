@@ -66,9 +66,75 @@ struct GeneralTab: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                LabeledContent {
+                    HStack {
+                        Button("Suggest a Feature…") { Feedback.open(.feature) }
+                        Button("Report a Problem…") { Feedback.open(.problem) }
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Ideas and problems")
+                        Text("Opens a short form on GitHub.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                LabeledContent {
+                    Link("View Source", destination: Feedback.repository)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Open source")
+                        Text("Free, under the GNU GPL v3.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Opens the repository's issue forms with what's known filled in. Only the
+/// versions and the Mac go along, never the config or anything typed.
+@MainActor
+enum Feedback {
+    enum Kind { case feature, problem }
+
+    static let repository = URL(string: "https://github.com/Rxmeez/superkeys-space")!
+
+    static func open(_ kind: Kind) {
+        NSWorkspace.shared.open(url(kind))
+    }
+
+    static func url(_ kind: Kind) -> URL {
+        var parts = URLComponents(url: repository.appendingPathComponent("issues/new"),
+                                  resolvingAgainstBaseURL: false)!
+        let os = ProcessInfo.processInfo.operatingSystemVersion
+        switch kind {
+        case .feature:
+            parts.queryItems = [
+                URLQueryItem(name: "template", value: "feature.yml"),
+                URLQueryItem(name: "version", value: Updater.version),
+            ]
+        case .problem:
+            parts.queryItems = [
+                URLQueryItem(name: "template", value: "bug.yml"),
+                URLQueryItem(name: "version", value: Updater.version),
+                URLQueryItem(name: "macos", value: "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"),
+                URLQueryItem(name: "mac", value: [sysctl("hw.model"), sysctl("machdep.cpu.brand_string")]
+                    .compactMap { $0 }.joined(separator: ", ")),
+            ]
+        }
+        return parts.url!
+    }
+
+    private static func sysctl(_ name: String) -> String? {
+        var size = 0
+        guard sysctlbyname(name, nil, &size, nil, 0) == 0, size > 0 else { return nil }
+        var value = [CChar](repeating: 0, count: size)
+        guard sysctlbyname(name, &value, &size, nil, 0) == 0 else { return nil }
+        return String(cString: value)
     }
 }
 

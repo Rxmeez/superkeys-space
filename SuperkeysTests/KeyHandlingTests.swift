@@ -41,4 +41,13 @@ final class KeyHandlingTests: XCTestCase {
         let log = tap.selfTestGroups(first: CGKeyCode(o), second: CGKeyCode(p), other: CGKeyCode(b))
         XCTAssertEqual(log[1], "✦ first, let go: nothing")
     }
+
+    @MainActor func testProblemReportCarriesOnlyVersionsAndMac() throws {
+        let url = Feedback.url(.problem)
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        XCTAssertEqual(url.path, "/Rxmeez/superkeys-space/issues/new")
+        XCTAssertEqual(items.map(\.name), ["template", "version", "macos", "mac"])
+        XCTAssertEqual(items.first?.value, "bug.yml")
+        XCTAssertFalse(try XCTUnwrap(items.last?.value).isEmpty)
+    }
 }

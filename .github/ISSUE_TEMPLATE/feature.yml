@@ -1,0 +1,26 @@
+name: Suggest a feature
+description: Something you'd love Superkeys to do.
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Check the [open ideas](https://github.com/Rxmeez/superkeys-space/issues?q=is%3Aissue+is%3Aopen+label%3Afeature) first; if yours is there, a 👍 on it helps decide what comes next.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like Superkeys to do?
+      placeholder: e.g. ✦ plus a key opens a website, like ✦ M for my mail.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When would you use it?
+      description: What you're doing when you wish it existed, and what you do instead today.
+  - type: input
+    id: version
+    attributes:
+      label: Superkeys version
+      description: Settings → General shows it.
+      placeholder: "0.2.6"

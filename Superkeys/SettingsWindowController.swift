@@ -71,7 +71,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private static let paneWidth: CGFloat = 700
-    private static let generalHeight: CGFloat = 380
+    private static let generalHeight: CGFloat = 480
     private static let keysHeight: CGFloat = 560
     private static let advancedHeight: CGFloat = 320
 

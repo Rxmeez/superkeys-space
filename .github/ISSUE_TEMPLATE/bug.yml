@@ -1,0 +1,46 @@
+name: Report a problem
+description: Something in Superkeys doesn't work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the keys do nothing at all, try **Settings → Advanced → Reset Access** first; macOS sometimes keeps an old Accessibility entry after an update.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      placeholder: e.g. ✦ ← snaps Safari to the left, but not Finder.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can I make it happen?
+      description: The keys you pressed and the app in front, step by step.
+      placeholder: |
+        1. Open Finder
+        2. Hold Caps Lock and press ←
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: input
+    id: version
+    attributes:
+      label: Superkeys version
+      description: Filled in when you use Report a Problem in Settings.
+      placeholder: "0.2.6"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "15.3"
+  - type: input
+    id: mac
+    attributes:
+      label: Mac and keyboard
+      description: Your Mac, and the keyboard if it's not the built-in one.
+      placeholder: MacBook Air (M2), Keychron K2 over Bluetooth

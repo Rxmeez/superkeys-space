@@ -71,11 +71,11 @@ brew trust --tap rxmeez/tap
 brew install --cask rxmeez/tap/superkeys
 ```
 
-Superkeys isn't notarised by Apple, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. [superkeys.space/install](https://superkeys.space/install) walks through it with screenshots. That's the only prompt: after that Superkeys updates itself in the background (Settings → General → Keep Superkeys up to date), and because every release is signed with the same certificate, updates keep both the approval and the Accessibility grant. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
+Superkeys isn't notarised by Apple, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. [superkeys.space/install](https://superkeys.space/install) walks through it with screenshots. That's the only prompt: after that Superkeys updates itself in the background (Settings → General → Install updates automatically), and because every release is signed with the same certificate, updates keep both the approval and the Accessibility grant. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
 
 Or build it yourself:
 
-1. Open `Superkeys.xcodeproj` in Xcode 15 or later.
+1. Open `Superkeys.xcodeproj` in Xcode 16 or later.
 2. Run the **Superkeys** scheme. The app isn't sandboxed and is signed ad hoc by default.
 3. Grant **Accessibility** when asked. Input Monitoring is only needed on the few Macs where the keys still won't start; Superkeys asks for it then.
 
@@ -91,6 +91,14 @@ ENABLE_DEBUG_DYLIB = NO
 ```
 
 A self-signed certificate from Keychain Access works. It has no Team ID, which is why Xcode's debug dylib has to be off: the hardened runtime won't load a library whose Team ID differs from the app's. Without a stable identity, run `tccutil reset Accessibility space.superkeys` after rebuilding and grant access again.
+
+### Tests
+
+```bash
+xcodebuild -scheme Superkeys -configuration Debug -derivedDataPath build test
+```
+
+The tests run inside Superkeys Dev without starting it: they feed made-up key events to the event tap and parse sample config files, so nothing is typed, launched or remapped.
 
 ## Releasing
 
@@ -148,6 +156,12 @@ The landing page for [superkeys.space](https://superkeys.space) lives in `site/`
 
 Ideas, trade-offs, and what macOS does and doesn't allow are tracked in [FEATURES.md](FEATURES.md).
 
+## Ideas and problems
+
+[Suggest a feature](https://github.com/Rxmeez/superkeys-space/issues/new?template=feature.yml) or [report a problem](https://github.com/Rxmeez/superkeys-space/issues/new?template=bug.yml). Both are also in Settings → General, which fills in your versions for you. If an idea is already there, a 👍 on it helps decide what comes next.
+
+Pull requests are welcome. For anything bigger than a fix, open an issue first so we can agree on the shape before you build it. Keep to the style around you, run the tests, and note user-facing changes under `## [Unreleased]` in `CHANGELOG.md`.
+
 ## License
 
-Not yet open source. A license will be added when the project is published.
+Superkeys is free software under the [GNU General Public License v3.0](LICENSE): you can use, study, change and share it, and anything built from it must stay open under the same terms. It bundles [Sparkle](https://sparkle-project.org) (MIT).
