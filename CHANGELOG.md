@@ -4,13 +4,19 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Changed
+
+- **Nothing runs while you're idle.** The helper that restores Caps Lock after a crash used to check every two seconds; it now sleeps until Superkeys actually exits, and restores the keys within a fraction of a second instead of up to two.
+- Desktop chords read the list of desktops once instead of several times.
+- The chord panel's snap line is shorter, so it no longer gets cut off.
+
 ## [0.2.0] - 2026-09-25
 
 ### Added
 
 - **Multiple displays.** ✦ ← / → snap to a half, and pressed again at the edge walk the window onto the neighbouring display's facing half. ✦ ⌥ ← / → move the window to the next display as it is. ✦ ↩'s restore works across displays.
 - **Desktops per display.** ☾ 1–9 switch the display under the pointer, ☾ ⇧ 1–9 move a window within its own display, and ☾ right ⌥ remembers the previous desktop separately for each display. The chord panel shows one row of desktops per display. Settings → Permissions checks that "Displays have separate Spaces" is on when more than one display is connected.
-- **Caps Lock is never left dead.** If Superkeys crashes or is force-quit, Caps Lock and right ⌘ go back to normal within two seconds instead of staying remapped until the next launch.
+- **Caps Lock is never left dead.** If Superkeys crashes or is force-quit, Caps Lock and right ⌘ go back to normal right away instead of staying remapped until the next launch.
 - **"Keys aren't working" is visible and fixable.** The menu bar logo shows an orange dot when the keys should be on but aren't, and Settings and the menu offer Reset Access for the case where the Accessibility switch looks on but macOS is holding an old entry.
 - **What's New after an update**, in the menu until you've read it once.
 - **Try it**: right after setup, General asks you to hold Caps Lock and confirms it works.

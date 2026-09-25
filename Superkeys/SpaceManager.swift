@@ -365,6 +365,19 @@ final class SpaceManager {
     /// Every display's desktops, in the order SkyLight lists them. When
     /// "Displays have separate Spaces" is off there is a single entry for all.
     func displays() -> [Display] {
+        // One chord asks for this several times in a row; reuse the answer
+        // for a moment. Anything that waits for a change (creating desktops
+        // polls every 100 ms) always sees fresh data.
+        let now = CFAbsoluteTimeGetCurrent()
+        if let cached = displayCache, now - cached.time < 0.025 { return cached.value }
+        let value = readDisplays()
+        displayCache = (now, value)
+        return value
+    }
+
+    private var displayCache: (time: CFAbsoluteTime, value: [Display])?
+
+    private func readDisplays() -> [Display] {
         guard let connection = SkyLightBridge.mainConnectionID,
               let copy = SkyLightBridge.copyManagedDisplaySpaces,
               let raw = copy(connection())?.takeRetainedValue() as? [[String: Any]] else { return [] }

@@ -143,27 +143,38 @@ enum HIDRemap {
 
     /// If Superkeys is force-quit or crashes, nothing would take its
     /// mappings back out, and Caps Lock would stay dead until the next launch.
-    /// A tiny shell process outlives it, notices within two seconds that it's
-    /// gone, and restores the user's own mappings with hidutil.
+    /// A tiny shell process outlives it and restores the user's own mappings
+    /// with hidutil. It waits on a pipe whose other end Superkeys holds: when
+    /// Superkeys exits for any reason, even kill -9, macOS closes that end and
+    /// the read returns at once. No polling, so nothing wakes while idle.
     private enum Watchdog {
         private static let pidKey = "remapWatchdogPID"
         private static var process: Process?
+        private static var lifeline: Pipe?
 
         static func start(restoring mappings: [Mapping]) {
             stop()
             let json = mappings.map { m in
                 "{\"\(source)\":\(m[source] ?? 0),\"\(destination)\":\(m[destination] ?? 0)}"
             }.joined(separator: ",")
+            // `read` blocks until Superkeys' end of the pipe closes (EOF), then
+            // the mappings go back. A normal stop terminates it first.
             let script = """
-            while /bin/kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do /bin/sleep 2; done
+            read -r _
             /usr/bin/hidutil property --set '{"UserKeyMapping":[\(json)]}' >/dev/null
             """
+            let pipe = Pipe()
             let task = Process()
             task.executableURL = URL(fileURLWithPath: "/bin/sh")
             task.arguments = ["-c", script]
+            task.standardInput = pipe
             task.standardOutput = FileHandle.nullDevice
             task.standardError = FileHandle.nullDevice
             guard (try? task.run()) != nil else { return }
+            // Only Superkeys may hold the write end; the child's copy of the
+            // read end is all it needs.
+            try? pipe.fileHandleForReading.close()
+            lifeline = pipe
             process = task
             UserDefaults.standard.set(Int(task.processIdentifier), forKey: pidKey)
         }
@@ -173,6 +184,8 @@ enum HIDRemap {
         static func stop() {
             process?.terminate()
             process = nil
+            try? lifeline?.fileHandleForWriting.close()
+            lifeline = nil
             let stale = UserDefaults.standard.integer(forKey: pidKey)
             if stale > 0, isWatchdog(pid_t(stale)) { kill(pid_t(stale), SIGTERM) }
             UserDefaults.standard.removeObject(forKey: pidKey)
