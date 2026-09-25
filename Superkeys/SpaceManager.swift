@@ -151,9 +151,11 @@ final class SpaceManager {
         guard let shortcut = shortcut(forDesktop: n, on: display),
               let original = window.cocoaFrame else { return false }
         let frame = AXWindow.cocoaToAX(original)
-        let grab = CGPoint(x: frame.midX, y: frame.minY + 12)
+        let grab = Self.dragPoint(in: frame, window: window)
         let pointer = CGEvent(source: nil)?.location ?? grab
-        let source = CGEventSource(stateID: .hidSystemState)
+        // A private event source: macOS now ignores synthetic drags from the
+        // HID-system source (it checks the real button, which isn't down).
+        let source = CGEventSource(stateID: .privateState)
 
         func post(_ type: CGEventType, _ point: CGPoint) {
             CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)?
@@ -187,6 +189,42 @@ final class SpaceManager {
         return moved
     }
 
+    /// A point in the window's title bar that starts a drag: empty chrome,
+    /// not a toolbar button, tab or search field. Hit-tests candidates across
+    /// the top of the window, falling back to the middle of the title bar.
+    private static func dragPoint(in frame: CGRect, window: AXWindow) -> CGPoint {
+        let wide = CGRect(x: frame.minX + 80, y: frame.minY, width: max(frame.width - 160, 1), height: frame.height)
+        let fractions: [CGFloat] = [0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9, 0.5]
+        let system = AXUIElementCreateSystemWide()
+        for y in [frame.minY + 12, frame.minY + 6] {
+            for fraction in fractions {
+                let point = CGPoint(x: wide.minX + wide.width * fraction, y: y)
+                var hit: AXUIElement?
+                guard AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success,
+                      let hit else { continue }
+                var role: CFTypeRef?
+                AXUIElementCopyAttributeValue(hit, kAXRoleAttribute as CFString, &role)
+                let draggable: Set<String> = [kAXWindowRole as String, kAXToolbarRole as String, kAXGroupRole as String,
+                                              kAXStaticTextRole as String, "AXTitleBar"]
+                if let role = role as? String, draggable.contains(role), CFEqual(Self.window(of: hit), window.element) {
+                    return point
+                }
+            }
+        }
+        return CGPoint(x: frame.midX, y: frame.minY + 12)
+    }
+
+    private static func window(of element: AXUIElement) -> AXUIElement? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXWindowAttribute as CFString, &value) == .success,
+              let value, CFGetTypeID(value) == AXUIElementGetTypeID() else {
+            var role: CFTypeRef?
+            AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
+            return (role as? String) == kAXWindowRole as String ? element : nil
+        }
+        return (value as! AXUIElement)
+    }
+
     // MARK: Creating spaces
 
     /// Presses Mission Control's new-space button until Space n exists.
@@ -198,22 +236,36 @@ final class SpaceManager {
     /// is opened once for the whole run rather than per space.
     private func createSpaces(upTo n: Int, on display: String) async -> Bool {
         if spaceID(at: n, on: display) != nil { return true }
+        let before = Dictionary(uniqueKeysWithValues: displays().map { ($0.uuid, $0.spaces.count) })
+        let needed = n - (before[display] ?? 0)
+        guard needed > 0 else { return true }
 
         let missionControl = MissionControlShortcuts.missionControl
         HyperEventTap.shared.post(key: missionControl.keyCode, flags: missionControl.flags)
 
         var created = true
-        var attempts = 0
+        var presses = 0
         while spaceID(at: n, on: display) == nil {
-            attempts += 1
-            guard attempts <= 12, let button = await addSpaceButton(on: display),
-                  AXUIElementPerformAction(button, kAXPressAction as CFString) == .success else {
+            // One press per missing desktop, never more.
+            presses += 1
+            guard presses <= needed, let button = await addSpaceButton(on: display) else {
+                created = false
+                break
+            }
+            let countBefore = spaces(on: display).count
+            guard AXUIElementPerformAction(button, kAXPressAction as CFString) == .success else {
                 created = false
                 break
             }
             for _ in 0..<10 {
                 try? await Task.sleep(nanoseconds: 100_000_000)
-                if spaceID(at: n, on: display) != nil { break }
+                if spaces(on: display).count > countBefore { break }
+            }
+            // A desktop that appeared on another display means the wrong
+            // button was pressed: undo it and stop.
+            if await removeStrayDesktops(expected: before, except: display) {
+                created = false
+                break
             }
         }
 
@@ -222,20 +274,65 @@ final class SpaceManager {
         return created
     }
 
-    /// Mission Control shows one add button per display; pick the one on
-    /// this display's screen.
+    /// Removes desktops added to any display other than `except` since
+    /// `expected` was taken, using Mission Control's own remove action.
+    /// Returns true if it found any.
+    private func removeStrayDesktops(expected: [String: Int], except display: String) async -> Bool {
+        var found = false
+        for other in displays() where other.uuid != display {
+            let extra = other.spaces.count - (expected[other.uuid] ?? other.spaces.count)
+            guard extra > 0, let group = await missionControlGroup(for: other.uuid) else { continue }
+            found = true
+            var buttons: [AXUIElement] = []
+            desktopButtons(group, depth: 0, into: &buttons)
+            for button in buttons.suffix(extra).reversed() {
+                AXUIElementPerformAction(button, "AXRemoveDesktop" as CFString)
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
+        }
+        return found
+    }
+
+    private func desktopButtons(_ root: AXUIElement, depth: Int, into found: inout [AXUIElement]) {
+        if depth > 8 { return }
+        var names: CFArray?
+        if AXUIElementCopyActionNames(root, &names) == .success,
+           (names as? [String])?.contains("AXRemoveDesktop") == true {
+            found.append(root)
+            return
+        }
+        var raw: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(root, kAXChildrenAttribute as CFString, &raw) == .success,
+              let children = raw as? [AXUIElement] else { return }
+        for child in children { desktopButtons(child, depth: depth + 1, into: &found) }
+    }
+
+    /// Mission Control draws one "mc.display" section per display, sized to
+    /// its screen. The add button sits in that section but can lie just
+    /// outside the screen's edge, so match the section, not the button.
     private func addSpaceButton(on display: String) async -> AXUIElement? {
+        guard let group = await missionControlGroup(for: display) else { return nil }
+        var buttons: [AXUIElement] = []
+        elements(group, identifier: "mc.spaces.add", depth: 0, into: &buttons)
+        return buttons.first
+    }
+
+    private func missionControlGroup(for display: String) async -> AXUIElement? {
         guard let windowManager = NSRunningApplication
             .runningApplications(withBundleIdentifier: "com.apple.WindowManager").first else { return nil }
         let app = AXUIElementCreateApplication(windowManager.processIdentifier)
+        let single = displays().count == 1
         let area = screen(for: display).map { AXWindow.cocoaToAX($0.frame) }
         for _ in 0..<20 {
-            var buttons: [AXUIElement] = []
-            elements(app, identifier: "mc.spaces.add", depth: 0, into: &buttons)
-            if let area, let onScreen = buttons.first(where: { position(of: $0).map(area.contains) ?? false }) {
-                return onScreen
+            var groups: [AXUIElement] = []
+            elements(app, identifier: "mc.display", depth: 0, into: &groups)
+            if single, groups.count == 1 { return groups[0] }
+            if let area, let match = groups.first(where: { group in
+                guard let origin = position(of: group) else { return false }
+                return abs(origin.x - area.minX) < 2 && abs(origin.y - area.minY) < 2
+            }) {
+                return match
             }
-            if let first = buttons.first { return first }
             try? await Task.sleep(nanoseconds: 50_000_000)
         }
         return nil
