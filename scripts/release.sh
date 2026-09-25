@@ -122,6 +122,12 @@ op read "op://$VAULT/Sparkle update key/credential" | "$BIN/generate_appcast" --
   --download-url-prefix "$SITE_URL/download/" --embed-release-notes --maximum-deltas 0 --maximum-versions 0 \
   -o site/appcast.xml site/download
 grep -q "<sparkle:shortVersionString>$VERSION<" site/appcast.xml || die "appcast is missing $VERSION"
+# generate_appcast moves downloads it no longer lists into old_updates/;
+# every release stays downloadable, so put them back.
+if [[ -d site/download/old_updates ]]; then
+  mv site/download/old_updates/* site/download/ 2>/dev/null || true
+  rmdir site/download/old_updates
+fi
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 
 if [[ "$DRY_RUN" == "--dry-run" ]]; then
