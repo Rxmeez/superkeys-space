@@ -428,20 +428,6 @@ struct AdvancedTab: View {
             }
 
             Section {
-                Picker(selection: Binding(
-                    get: { SpaceManager.numbering },
-                    set: { config.setDesktopNumbering($0) }
-                )) {
-                    Text("Across all displays").tag(SpaceManager.Numbering.global)
-                    Text("Per display").tag(SpaceManager.Numbering.perDisplay)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Desktop numbers")
-                        Text("With several displays, which desktop ☾ 1–9 mean. macOS counts across all of them.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
                 LabeledContent {
                     Button("Reset Access…") { Permissions.resetAccessibility() }
                 } label: {

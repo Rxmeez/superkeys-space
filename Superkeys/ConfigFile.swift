@@ -48,9 +48,10 @@ struct ConfigFile {
         # of everything that key does.
         show_chords_while_held = \(showChordsWhileHeld)
 
-        # How ☾ 1–9 count desktops when you have more than one display:
-        # "global" follows macOS's own numbering across all displays,
-        # "per-display" starts again at 1 on each display.
+        # ☾ 1–9 always mean the desktops of the display under the pointer. This
+        # only tells Superkeys how macOS numbers its own "Switch to Desktop"
+        # shortcuts: "global" (across all displays, as macOS does) or
+        # "per-display". Change it only if ☾ goes to the wrong display.
         desktop_numbering = "\(desktopNumbering == .global ? "global" : "per-display")"
 
         # ✦ plus a key opens an app, or brings it forward. Write keys as you'd type
@@ -299,12 +300,6 @@ final class ConfigSync: ObservableObject {
         ConfigFile(showChordsWhileHeld: AppState.shared.showCheatSheet,
                    desktopNumbering: SpaceManager.numbering,
                    apps: BindingsStore.shared.bindings)
-    }
-
-    func setDesktopNumbering(_ numbering: SpaceManager.Numbering) {
-        UserDefaults.standard.set(numbering.rawValue, forKey: "desktopNumbering")
-        objectWillChange.send()
-        scheduleWrite()
     }
 
     func open() {

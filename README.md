@@ -103,7 +103,6 @@ Your app keys and preferences live in `~/.config/superkeys/config.toml` (or unde
 
 ```toml
 show_chords_while_held = true
-desktop_numbering = "global"   # or "per-display"
 
 [apps]
 B = "app.zen-browser.zen"  # Zen

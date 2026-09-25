@@ -73,7 +73,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private static let paneWidth: CGFloat = 700
     private static let generalHeight: CGFloat = 380
     private static let keysHeight: CGFloat = 560
-    private static let advancedHeight: CGFloat = 380
+    private static let advancedHeight: CGFloat = 320
 
     private static func shortcutsHeight(rows: Int) -> CGFloat {
         rows == 0 ? 300 : min(620, max(240, 162 + CGFloat(rows) * 42))

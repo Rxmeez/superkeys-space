@@ -10,7 +10,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Changed
 
-- **Tidier Settings.** General is down to the essentials; the list of chords moved to a new Keys tab, Shortcuts is now Apps, and a new Advanced tab holds the config file, desktop numbering and Reset Access.
+- **Tidier Settings.** General is down to the essentials; the list of chords moved to a new Keys tab, Shortcuts is now Apps, and a new Advanced tab holds the config file and Reset Access.
 
 ### Removed
 
