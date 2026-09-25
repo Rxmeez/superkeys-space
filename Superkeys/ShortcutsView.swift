@@ -917,16 +917,23 @@ private struct KeyColumn: View {
     var body: some View {
         Group {
             if linked, let then {
-                HStack(spacing: 4) {
-                    // Same width as the ✦ keycap, so the arrow sits under it.
+                // ↳ and + share the slot under ✦, so the second key lines up
+                // under the first, as in KeyCombo.
+                HStack(spacing: 3) {
                     KeyCap(text: Glyph.hyper)
                         .hidden()
                         .overlay {
-                            Image(systemName: "arrow.turn.down.right")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.tertiary)
+                            HStack(spacing: 0) {
+                                Image(systemName: "arrow.turn.down.right")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(.tertiary)
+                                Spacer(minLength: 0)
+                                Text("+")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.trailing, 4)
+                            }
                         }
-                    Text("+").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
                     KeyCap(text: then)
                 }
             } else {
