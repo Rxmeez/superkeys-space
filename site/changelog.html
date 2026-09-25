@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Superkeys changelog</title>
+    <meta name="description" content="What changed in each release of Superkeys." />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Superkeys changelog" />
+    <meta property="og:description" content="What changed in each release of Superkeys." />
+    <meta property="og:image" content="https://superkeys.space/assets/superkeys-poster.jpg" />
+    <meta property="og:url" content="https://superkeys.space/changelog" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #16161a;
+        --edge: rgba(255, 255, 255, 0.12);
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.62);
+        --faint: rgba(255, 255, 255, 0.42);
+        --amber: #ffb84d;
+        --indigo: #a3a3ff;
+        --red: #ff6b6b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 18px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--indigo);
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      nav {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      nav .wrap {
+        display: flex;
+        align-items: center;
+        height: 60px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--text);
+      }
+      .brand img {
+        width: 24px;
+        height: 24px;
+      }
+      header {
+        padding: 72px 0 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(34px, 6vw, 52px);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 19px;
+        font-weight: 300;
+      }
+      .step {
+        margin-top: 56px;
+      }
+      .step h2 {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        margin: 0 0 10px;
+        font-size: 26px;
+        letter-spacing: -0.01em;
+      }
+      .num {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 17px;
+        color: #0e0e10;
+        background: var(--amber);
+        transform: translateY(-3px);
+      }
+      .step p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+      .step p strong {
+        color: var(--text);
+      }
+      .shot {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        margin: 8px 0 4px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--edge);
+        line-height: 0;
+      }
+      .shot img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      /* Rings drawn over the exact control to press, in % of the image. */
+      .ring {
+        position: absolute;
+        border: 3px solid var(--amber);
+        border-radius: 14px;
+        box-shadow: 0 0 0 4px rgba(255, 184, 77, 0.25), 0 0 24px rgba(255, 184, 77, 0.45);
+        pointer-events: none;
+      }
+      .strike {
+        position: absolute;
+        height: 3px;
+        background: var(--red);
+        border-radius: 2px;
+        transform: rotate(-8deg);
+        box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);
+        pointer-events: none;
+      }
+      .note {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        font-size: 16px;
+        color: var(--muted);
+      }
+      .note strong {
+        color: var(--text);
+      }
+      code {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.88em;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 6px;
+        padding: 2px 6px;
+        color: var(--text);
+      }
+      .done {
+        margin-top: 64px;
+        padding: 28px;
+        border-radius: 20px;
+        background: radial-gradient(400px 160px at 20% 0%, rgba(255, 184, 77, 0.1), transparent 70%), var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .done h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+      .done p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .help {
+        margin-top: 56px;
+      }
+      .help h2 {
+        font-size: 22px;
+        margin: 0 0 12px;
+      }
+      .help dt {
+        font-weight: 600;
+        margin-top: 18px;
+      }
+      .help dd {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+      footer {
+        margin-top: 80px;
+        padding: 40px 0 56px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--faint);
+        font-size: 14px;
+      }
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        header {
+          padding-top: 48px;
+        }
+        .step h2 {
+          font-size: 22px;
+        }
+      }
+    </style>
+    <style>
+      .release { margin-top: 48px; }
+      .release h2 { display: flex; align-items: baseline; gap: 14px; margin: 0; font-size: 28px; }
+      .release time { font-size: 15px; font-weight: 400; color: var(--faint); }
+      .release h3 { margin: 22px 0 6px; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber); }
+      .release ul { margin: 0; padding-left: 20px; color: var(--muted); }
+      .release li { margin: 8px 0; }
+      .release li strong, .prose strong { color: var(--text); }
+      .release p { color: var(--muted); }
+      .prose h2 { margin: 48px 0 10px; font-size: 24px; }
+      .prose p, .prose li { color: var(--muted); }
+      .prose ul { padding-left: 20px; }
+      .prose li { margin: 8px 0; }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="wrap">
+        <a class="brand" href="index.html"><img src="assets/favicon.svg" alt="" />Superkeys</a>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <header>
+        <h1>Changelog</h1>
+        <p class="lede">Every release of Superkeys. Installed copies update themselves; this is what changed.</p>
+      </header>
+      <section class="release" id="v0.1.2">
+        <h2>0.1.2 <time datetime="2026-09-25">2026-09-25</time></h2>
+        <h3>Added</h3>
+        <ul>
+          <li>The menu bar menu shows which version of Superkeys is running.</li>
+        </ul>
+      </section>
+      <section class="release" id="v0.1.1">
+        <h2>0.1.1 <time datetime="2026-09-25">2026-09-25</time></h2>
+        <h3>Added</h3>
+        <ul>
+          <li><strong>Updates install themselves.</strong> Superkeys checks superkeys.space once a day and installs new versions in the background, with no Gatekeeper prompt and without losing Accessibility access. Turn it off, or check now, in Settings → General; &quot;Check for Updates…&quot; is also in the menu bar menu. Every update is verified against a signing key before it&#x27;s installed.</li>
+        </ul>
+        <h3>Changed</h3>
+        <ul>
+          <li>Releases are signed as &quot;Superkeys&quot; instead of &quot;Hypercaps Dev&quot;. Coming from 0.1.0, grant Accessibility once more after upgrading; later updates keep it.</li>
+        </ul>
+      </section>
+      <section class="release" id="v0.1.0">
+        <h2>0.1.0 <time datetime="2026-09-24">2026-09-24</time></h2>
+        <p>The first build anyone can install. It isn&#x27;t signed with an Apple Developer ID or notarised yet, so macOS asks you to approve it once on first launch (see the README).</p>
+        <h3>Added</h3>
+        <ul>
+          <li><strong>✦ Hyper Key on Caps Lock</strong> and <strong>☾ Meh Key on right ⌘</strong>: private keys that never type, lock, or reach other apps. Everything pressed while one is held is caught.</li>
+          <li><strong>Open apps</strong> with ✦ plus any key you assign.</li>
+          <li><strong>Snap windows</strong>: ✦ ← / → for halves, ✦ ↩ to fill the screen and again to restore.</li>
+          <li><strong>Arrange windows</strong> with ✦ ↑: 2 side by side, 3 as one large and two stacked, 4 as quarters; again to undo. ✦ ⇧ arrow swaps a window with its neighbour. With five or more windows nothing moves and the menu bar icon shakes with the count.</li>
+          <li><strong>Desktops</strong>: ☾ 1–9 switches (creating desktops that don&#x27;t exist yet), ☾ ⇧ 1–9 moves the window there and follows it, ☾ right ⌥ flips back to the previous desktop.</li>
+          <li><strong>Chord panel</strong>: hold ✦ or ☾ for a moment to see everything that key does, on Liquid Glass where available.</li>
+          <li><strong>Settings file</strong>: export and import app keys and preferences as readable JSON.</li>
+          <li>Superkeys&#x27; own Settings window snaps and arranges like any other window.</li>
+          <li>Menu bar logo that lights amber for ✦ and indigo for ☾ while held.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <a href="index.html">superkeys.space</a> · <a href="install.html">First launch</a> ·
+        <a href="changelog.html">Changelog</a> · <a href="privacy.html">Privacy</a>
+      </div>
+    </footer>
+  </body>
+</html>

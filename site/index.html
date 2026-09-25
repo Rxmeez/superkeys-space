@@ -271,6 +271,59 @@
         color: var(--faint);
       }
 
+      /* ---------- hero loop ---------- */
+      .hero-loop {
+        position: relative;
+        max-width: 780px;
+        margin: 44px auto 0;
+      }
+      .hero-loop::before {
+        content: "";
+        position: absolute;
+        inset: 10% 6%;
+        background: radial-gradient(50% 60% at 50% 50%, rgba(255, 184, 77, 0.12), transparent 70%);
+        filter: blur(40px);
+        pointer-events: none;
+      }
+      .hero-loop video {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: auto;
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+        mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+      }
+
+      /* ---------- compare ---------- */
+      .compare {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 44px;
+      }
+      .compare .card h3 {
+        margin-top: 0;
+      }
+      .compare .them {
+        margin: 0 0 12px;
+        color: var(--faint);
+        font-size: 15px;
+      }
+      .compare .us {
+        margin: 0;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+        font-size: 15px;
+      }
+      footer .links a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+      footer .links a:hover {
+        color: var(--text);
+      }
+
       /* ---------- film ---------- */
       /* The film's own background is the page colour, so with no frame and
          softly faded edges it reads as part of the page. */
@@ -597,6 +650,9 @@
         .promise {
           grid-template-columns: 1fr 1fr;
         }
+        .compare {
+          grid-template-columns: 1fr;
+        }
         .feature {
           grid-template-columns: 1fr;
           gap: 32px;
@@ -729,19 +785,11 @@
           <p class="meta">First time with this tap? Run <code class="inline">brew trust --tap rxmeez/tap</code> once.</p>
           <p class="meta" style="margin-top: 6px">macOS asks you to approve it the first time: <a href="install.html" style="color: var(--muted)">here's how</a>.</p>
           <p class="meta" style="margin-top: 6px">macOS 14 or later · Native Swift</p>
+          <div class="hero-loop">
+            <video src="assets/hero-arrange.mp4" poster="assets/hero-arrange.jpg" autoplay muted loop playsinline preload="auto" width="1120" height="808" aria-label="Three overlapping windows snap into a layout when ✦ ↑ is pressed, then one swaps into the large slot"></video>
+          </div>
         </div>
       </header>
-
-      <div class="wrap" id="film" style="scroll-margin-top: 80px">
-        <div class="film">
-          <video id="film-video" src="assets/superkeys.mp4" poster="assets/film-start.jpg" autoplay muted loop playsinline preload="auto" aria-label="Superkeys launch film: opening apps, snapping and arranging windows, and switching desktops"></video>
-          <button type="button" class="sound" id="film-sound" aria-pressed="false" aria-label="Sound">
-            <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="m22 9-6 6M16 9l6 6" /></svg>
-            <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></svg>
-            <span class="off">Sound off</span><span class="on">Sound on</span>
-          </button>
-        </div>
-      </div>
 
       <!-- ================= keys ================= -->
       <section class="block">
@@ -861,11 +909,58 @@
         </div>
       </section>
 
+      <!-- ================= film ================= -->
+      <section class="block">
+        <div class="wrap">
+          <span class="eyebrow">The tour</span>
+          <h2>25 seconds of Superkeys.</h2>
+          <p class="sub">Apps, snapping, arranging and desktops, start to finish.</p>
+        </div>
+      <div class="wrap" id="film" style="scroll-margin-top: 80px; margin-top: 40px">
+        <div class="film">
+          <video id="film-video" src="assets/superkeys.mp4" poster="assets/film-start.jpg" autoplay muted loop playsinline preload="auto" aria-label="Superkeys launch film: opening apps, snapping and arranging windows, and switching desktops"></video>
+          <button type="button" class="sound" id="film-sound" aria-pressed="false" aria-label="Sound">
+            <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="m22 9-6 6M16 9l6 6" /></svg>
+            <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></svg>
+            <span class="off">Sound off</span><span class="on">Sound on</span>
+          </button>
+        </div>
+      </div>
+
+      </section>
+
+      <!-- ================= compare ================= -->
+      <section class="block" id="compare">
+        <div class="wrap">
+          <span class="eyebrow">Fair question</span>
+          <h2>Why not Rectangle, Raycast or Karabiner?</h2>
+          <p class="sub">They're all excellent, and Superkeys gets along with them. It's for a narrower job: one key you hold, that never leaks into your apps.</p>
+          <div class="compare">
+            <div class="card">
+              <h3>Rectangle</h3>
+              <p class="them">Keyboard window snapping, on multi-key shortcuts like ⌃⌥←.</p>
+              <p class="us">Superkeys snaps and arranges from a single held key, and also opens apps and moves between desktops, per display.</p>
+            </div>
+            <div class="card">
+              <h3>Raycast</h3>
+              <p class="them">A launcher and command palette, with hotkeys you can bind to apps and window layouts.</p>
+              <p class="us">Superkeys is no launcher: nothing to type, no search box. Hold ✦ and press a key, and the app is there.</p>
+            </div>
+            <div class="card">
+              <h3>Karabiner-Elements</h3>
+              <p class="them">Remaps anything, including a Hyper key that sends ⌃⌥⇧⌘ to apps, set up in JSON with a system driver.</p>
+              <p class="us">Superkeys' keys are private, so no app ever sees or reacts to them. No driver and no config files: a settings window and one Accessibility switch.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= privacy ================= -->
       <section class="block" id="privacy">
         <div class="wrap">
           <span class="eyebrow">Quiet by design</span>
           <h2>It stays out of the way.</h2>
+          <p class="sub">Exactly what it can see, stores and sends: <a href="privacy.html" style="color: var(--indigo)">the privacy page</a>.</p>
           <div class="promise">
             <div class="card">
               <div class="num">0</div>
@@ -878,9 +973,9 @@
               <p>A check of superkeys.space for updates, sending nothing but the version. No analytics, no accounts. Turn it off in Settings.</p>
             </div>
             <div class="card">
-              <div class="num">0%</div>
+              <div class="num">~0%</div>
               <h3>Idle CPU</h3>
-              <p>No timers or polling. It wakes only when you press a key.</p>
+              <p>Superkeys wakes only when you press a key. A tiny helper checks every two seconds that it's still running, so Caps Lock is never left stuck.</p>
             </div>
             <div class="card">
               <div class="num">&lt;60ms</div>
@@ -904,7 +999,7 @@
     <footer>
       <div class="wrap">
         <span>© 2026 Superkeys</span>
-        <span>superkeys.space</span>
+        <span class="links"><a href="install.html">First launch</a> · <a href="changelog.html">Changelog</a> · <a href="privacy.html">Privacy</a></span>
         <span class="credit">Music in the film by Sascha Ende at <a href="https://ende.app/en">ende.app</a> (CC BY 4.0).</span>
       </div>
     </footer>

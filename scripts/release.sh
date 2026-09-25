@@ -115,6 +115,8 @@ if in_list: out.append("</ul>")
 print("\n".join(out))
 PY
 
+python3 scripts/build_pages.py   # site/changelog.html gains this release
+
 say "Signing the update feed"
 op read "op://$VAULT/Sparkle update key/credential" | "$BIN/generate_appcast" --ed-key-file - \
   --download-url-prefix "$SITE_URL/download/" --embed-release-notes --maximum-deltas 0 \
@@ -124,7 +126,7 @@ SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 
 if [[ "$DRY_RUN" == "--dry-run" ]]; then
   say "Dry run: built and signed $ZIP ($SHA). Nothing published; reverting version files."
-  git checkout -- scripts/generate_project.py Superkeys.xcodeproj
+  git checkout -- scripts/generate_project.py Superkeys.xcodeproj site/changelog.html site/privacy.html
   git ls-files --error-unmatch site/appcast.xml >/dev/null 2>&1 && git checkout -- site/appcast.xml || rm -f site/appcast.xml
   rm -f "$ZIP" "site/download/Superkeys-$VERSION.html"
   exit 0
@@ -132,7 +134,7 @@ fi
 
 # --- Publish ------------------------------------------------------------------------
 say "Committing and tagging v$VERSION"
-git add scripts/generate_project.py Superkeys.xcodeproj "$ZIP" "site/download/Superkeys-$VERSION.html" site/appcast.xml
+git add scripts/generate_project.py Superkeys.xcodeproj "$ZIP" "site/download/Superkeys-$VERSION.html" site/appcast.xml site/changelog.html site/privacy.html
 git commit -q -m "Release $VERSION"
 git tag -a "v$VERSION" -m "Superkeys $VERSION"
 git push -q && git push -q origin "v$VERSION"
