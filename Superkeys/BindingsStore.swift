@@ -195,6 +195,20 @@ final class BindingsStore: ObservableObject {
     }
 
     /// Returns a reason the key cannot be used, or nil when it is free.
+    /// Keys ✦ can never use, whatever follows them.
+    func reservedReason(_ keyCode: Int) -> String? {
+        switch Int64(keyCode) {
+        case let code where KeyCodes.windowKeys.contains(code):
+            return "\(Glyph.hyper) with the arrows and Return moves windows."
+        case KeyCodes.capsLock, KeyCodes.hyperF18:
+            return "That's the Hyper Key itself."
+        case KeyCodes.mehF19:
+            return "That's the Meh Key."
+        default:
+            return nil
+        }
+    }
+
     func validate(keyCode: Int, then second: Int? = nil, replacing id: String?) -> String? {
         switch Int64(keyCode) {
         case let code where KeyCodes.windowKeys.contains(code):

@@ -145,6 +145,8 @@ private struct KeyRecorder: View {
     @State private var recordingSecond = false
     @State private var monitor: Any?
     @State private var error: String?
+    /// The first key is taken on its own but can still start a group.
+    @State private var note: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -169,6 +171,9 @@ private struct KeyRecorder: View {
                         Button {
                             keyCode2.wrappedValue = nil
                             label2.wrappedValue = ""
+                            if let first = keyCode, let conflict = validate(first, nil) {
+                                note = conflict + " Add a second key to make a group."
+                            }
                         } label: {
                             Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
                         }
@@ -187,6 +192,11 @@ private struct KeyRecorder: View {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let note, keyCode2.wrappedValue == nil {
+                Text(note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -248,15 +258,31 @@ private struct KeyRecorder: View {
                 label2.wrappedValue = name
                 recordingSecond = false
             } else {
-                if let failure = validate(code, keyCode2.wrappedValue) {
-                    error = failure
+                // Only keys ✦ can never use are refused outright. One that's
+                // taken on its own can still start a group, so take it and
+                // ask for the second key.
+                if let reserved = BindingsStore.shared.reservedReason(code) {
+                    error = reserved
                     return nil
                 }
+                let conflict = validate(code, keyCode2.wrappedValue)
                 keyCode = code
                 label = name
                 isRecording = false
+                error = nil
+                note = nil
+                if let conflict {
+                    if allowsSecond, keyCode2.wrappedValue == nil {
+                        note = conflict + " Add a second key to make a group."
+                        recordingSecond = true
+                    } else {
+                        error = conflict
+                    }
+                }
+                return nil
             }
             error = nil
+            note = nil
             return nil
         }
     }
@@ -487,7 +513,7 @@ private struct NewShortcutSheet: View {
                             ForEach(results) { app in
                                 AppRow(app: app,
                                        selected: selected?.bundleID == app.bundleID,
-                                       existingKey: store.bindings.first { $0.bundleID == app.bundleID }?.label) {
+                                       existingKey: store.bindings.first { $0.bundleID == app.bundleID }) {
                                     choose(app)
                                 }
                                 .id(app.bundleID)
@@ -514,7 +540,8 @@ private struct NewShortcutSheet: View {
                         .keyboardShortcut(.cancelAction)
                     Button("Add", action: add)
                         .keyboardShortcut(.defaultAction)
-                        .disabled(selected == nil || keyCode == nil)
+                        .disabled(selected == nil || keyCode == nil
+                                  || store.validate(keyCode: keyCode ?? 0, then: keyCode2, replacing: nil) != nil)
                 }
             }
             .padding(16)
@@ -559,7 +586,7 @@ private struct NewShortcutSheet: View {
 private struct AppRow: View {
     let app: InstalledApp
     let selected: Bool
-    let existingKey: String?
+    let existingKey: BoundApp?
     let select: () -> Void
 
     var body: some View {
@@ -569,7 +596,7 @@ private struct AppRow: View {
                 .foregroundStyle(selected ? Color.white : Color.primary)
             Spacer()
             if let existingKey {
-                KeyCombo(keys: [Glyph.hyper, existingKey])
+                SequenceCombo(label: existingKey.label, then: existingKey.label2)
                     .opacity(selected ? 0.9 : 0.5)
             }
         }
@@ -621,7 +648,8 @@ private struct RebindSheet: View {
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(keyCode == nil || (keyCode == app.keyCode && keyCode2 == app.keyCode2))
+                .disabled(keyCode == nil || (keyCode == app.keyCode && keyCode2 == app.keyCode2)
+                          || BindingsStore.shared.validate(keyCode: keyCode ?? 0, then: keyCode2, replacing: app.id) != nil)
             }
         }
         .padding(18)
@@ -707,7 +735,8 @@ private struct NewKeystrokeSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Add", action: add)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(keyCode == nil || send == nil)
+                    .disabled(keyCode == nil || send == nil
+                              || BindingsStore.shared.validate(keyCode: keyCode ?? 0, then: keyCode2, replacing: nil) != nil)
             }
         }
         .padding(18)
