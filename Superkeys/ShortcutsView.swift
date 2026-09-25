@@ -912,27 +912,27 @@ private struct KeyColumn: View {
     /// Sits under its group's first key in the list.
     let linked: Bool
 
-    static let width: CGFloat = 104
+    static let width: CGFloat = 124
 
     var body: some View {
         Group {
             if linked, let then {
-                // ↳ and + share the slot under ✦, so the second key lines up
-                // under the first, as in KeyCombo.
+                // ↳ under ✦, + under the first key, and the second key where
+                // it would sit after the first on one line.
                 HStack(spacing: 3) {
                     KeyCap(text: Glyph.hyper)
                         .hidden()
                         .overlay {
-                            HStack(spacing: 0) {
-                                Image(systemName: "arrow.turn.down.right")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(.tertiary)
-                                Spacer(minLength: 0)
-                                Text("+")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.trailing, 4)
-                            }
+                            Image(systemName: "arrow.turn.down.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    KeyCap(text: label)
+                        .hidden()
+                        .overlay {
+                            Text("+")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
                         }
                     KeyCap(text: then)
                 }
