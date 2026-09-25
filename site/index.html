@@ -623,6 +623,7 @@
         order: 2;
       }
       .feature > *,
+      .feature .copy > *,
       .grid > *,
       .promise > * {
         min-width: 0;
@@ -657,6 +658,80 @@
         display: block;
         max-width: 100%;
         height: auto;
+      }
+
+      /* keystrokes: a terminal with the chord that just went in */
+      .term {
+        width: 100%;
+        border-radius: 14px;
+        background: #0b0b0d;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 14px;
+        line-height: 1.75;
+        overflow: hidden;
+      }
+      .term .bar {
+        display: flex;
+        gap: 7px;
+        padding: 11px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .term .bar i {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .term .body {
+        padding: 14px 18px 18px;
+        color: rgba(255, 255, 255, 0.78);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .term .p {
+        color: var(--indigo);
+      }
+      .term .dim {
+        color: var(--faint);
+      }
+      .term .hit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 2px 0;
+      }
+      .term .hit .note {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--amber);
+      }
+      .term .hit .combo .kc {
+        transform: scale(0.8);
+        margin: -4px -3px;
+      }
+      .toml {
+        margin: 18px 0 0;
+        padding: 14px 18px;
+        border-radius: 12px;
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 13.5px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.8);
+        white-space: pre;
+        overflow-x: auto;
+        max-width: 100%;
+      }
+      .toml .c {
+        color: var(--faint);
+      }
+      .toml .k {
+        color: var(--amber);
+      }
+      .toml .s {
+        color: #9fe0a8;
       }
       .layouts {
         display: grid;
@@ -766,6 +841,12 @@
         .shot {
           padding: 16px;
         }
+        .term {
+          font-size: 12.5px;
+        }
+        .term .hit .note {
+          display: none;
+        }
         .brew {
           gap: 10px;
           padding-left: 14px;
@@ -823,6 +904,7 @@
           <a href="#windows">Windows</a>
           <a href="#desktops">Desktops</a>
           <a href="#displays">Displays</a>
+          <a href="#keystrokes">Keystrokes</a>
           <a href="#privacy">Privacy</a>
         </div>
       </div>
@@ -992,6 +1074,45 @@
         </div>
       </section>
 
+      <!-- ================= keystrokes ================= -->
+      <section class="block" id="keystrokes">
+        <div class="wrap feature flip">
+          <div class="copy">
+            <span class="eyebrow amber">✦ Keystrokes · for power users</span>
+            <h2>Caps Lock as Control.<br />Or any shortcut.</h2>
+            <p class="sub">
+              ✦ plus a key can send any key combination to the app in front. Live in a terminal? Stop, exit and search
+              without reaching for ⌃. Hold the key and it repeats, so ✦ R keeps stepping back through your history.
+            </p>
+            <ul class="chords">
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">C</span></span>⌃ C: stop a running command</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">D</span></span>⌃ D: end input, or close the shell</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">R</span></span>⌃ R: search your command history</li>
+            </ul>
+            <pre class="toml" aria-label="Keystrokes in the config file"><span class="c"># ~/.config/superkeys/config.toml</span>
+<span class="k">[keys]</span>
+C = <span class="s">"ctrl+c"</span>
+D = <span class="s">"ctrl+d"</span>
+R = <span class="s">"ctrl+r"</span>
+W = <span class="s">"cmd+shift+t"</span>  <span class="c"># reopen a closed tab</span></pre>
+            <p class="sub" style="font-size: 16px">
+              Set them up in the welcome tour, in Settings, or in a plain config file that lives happily in your
+              dotfiles and applies the moment you save it.
+            </p>
+          </div>
+          <div class="shot" style="display: block">
+            <div class="term" role="img" aria-label="A terminal: a dev server stopped with ✦ C, then a history search opened with ✦ R">
+              <div class="bar"><i></i><i></i><i></i></div>
+              <div class="body"><span class="p">~/superkeys</span> npm run dev
+<span class="dim">  ▲ Ready on http://localhost:3000
+  ○ Compiling / ...</span>
+<div class="hit"><span>^C</span><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">C</span></span><span class="note">stopped with ✦ C</span></div><span class="p">~/superkeys</span>
+<div class="hit"><span class="dim">(reverse-i-search)`rel':</span><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">R</span></span><span class="note">✦ R</span></div>scripts/release.sh 0.2.4</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= cheat sheet ================= -->
       <section class="block">
         <div class="wrap feature flip">
@@ -1049,7 +1170,7 @@
             <div class="card">
               <h3>Karabiner-Elements</h3>
               <p class="them">Remaps anything, including a Hyper key that sends ⌃⌥⇧⌘ to apps, set up in JSON with a system driver.</p>
-              <p class="us">Superkeys' keys are private, so no app ever sees or reacts to them. No driver and no config files: a settings window and one Accessibility switch.</p>
+              <p class="us">Superkeys' keys are private, so no app ever sees or reacts to them, unless you choose to send a keystroke. No driver and no JSON to write: a settings window and one Accessibility switch, plus a plain config file if you want one.</p>
             </div>
           </div>
         </div>
