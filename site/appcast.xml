@@ -3,6 +3,22 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.6</title>
+            <pubDate>Fri, 25 Sep 2026 19:30:07 +0100</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.2.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Changed</h3>
+<ul>
+<li>Single-letter keycaps use the system font, so ✦ O no longer looks like ✦ 0.</li>
+<li>The welcome tour opens with &quot;Caps Lock and right ⌘, finally useful.&quot;</li>
+<li>Config files written before keystrokes existed gain a commented <code>[keys]</code> section, so a keystroke added by hand lands in the right place.</li>
+<li><code>brew uninstall --zap superkeys</code> also removes <code>~/.config/superkeys</code>.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.6.zip" length="3026966" type="application/octet-stream" sparkle:edSignature="PCdXQM40YY5dyHZeDCN1+uCI4ZXZEDYzmSeU8OFViecvjXHLKQ5PWglbwTpNfJa1oen5Wk6UCq3ykzOaREz8BA=="/>
+        </item>
+        <item>
             <title>0.2.5</title>
             <pubDate>Fri, 25 Sep 2026 17:48:00 +0100</pubDate>
             <sparkle:version>9</sparkle:version>
