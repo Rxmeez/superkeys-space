@@ -66,7 +66,7 @@ brew trust --tap rxmeez/tap
 brew install --cask rxmeez/tap/superkeys
 ```
 
-Superkeys isn't notarised by Apple, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. That's the only prompt: after that Superkeys updates itself in the background (Settings → General → Keep Superkeys up to date), and because every release is signed with the same certificate, updates keep both the approval and the Accessibility grant. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
+Superkeys isn't notarised by Apple, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. [superkeys.space/install](https://superkeys.space/install) walks through it with screenshots. That's the only prompt: after that Superkeys updates itself in the background (Settings → General → Keep Superkeys up to date), and because every release is signed with the same certificate, updates keep both the approval and the Accessibility grant. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
 
 Or build it yourself:
 
