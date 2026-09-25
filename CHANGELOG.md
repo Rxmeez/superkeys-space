@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-25
+
 ### Added
 
 - **Welcome tour for new users.** A short, hands-on setup on first launch: grant Accessibility, hold Caps Lock and watch it light up, pick keys for the apps you use most (each suggested on its first letter, or a number when that letter is taken), and try ☾ for desktops. Move through it with the buttons or with ✦ ← / →, which is also how it teaches the chord; keyboard drawings show exactly where Caps Lock and the right ⌘ are, and light up when you press them. Take it again any time from the menu bar (Welcome Tour…) or Settings → General.
@@ -74,7 +76,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...v0.1.2
