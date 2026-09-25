@@ -321,7 +321,9 @@ private struct KeyboardRow: View {
         var light = false
     }
 
-    let keys: [Key]
+    /// Top to bottom. With one row the pointer sits under the key; with
+    /// several it sits beside the key's row.
+    let rows: [[Key]]
     let accent: Color
     /// Shown on the target key while it's down.
     let litSymbol: String
@@ -332,14 +334,19 @@ private struct KeyboardRow: View {
     @State private var pressed = false
 
     static func capsLock(held: Bool) -> KeyboardRow {
-        KeyboardRow(keys: [Key(id: 0, word: "caps lock", width: 1.8, target: true, light: true)]
-                        + "ASDFGHJ".enumerated().map { Key(id: $0.offset + 1, symbol: String($0.element)) },
-                    accent: Accent.hyper, litSymbol: "sparkle", held: held,
-                    description: "Caps Lock, at the left end of the A row")
+        func letters(_ text: String) -> [Key] {
+            text.enumerated().map { Key(id: $0.offset + 1, symbol: String($0.element)) }
+        }
+        return KeyboardRow(rows: [
+            [Key(id: 0, symbol: "⇥", word: "tab", width: 1.5)] + letters("QWE"),
+            [Key(id: 0, word: "caps lock", width: 1.8, target: true, light: true)] + letters("ASD"),
+            [Key(id: 0, symbol: "⇧", word: "shift", width: 2.35)] + letters("ZXC"),
+        ], accent: Accent.hyper, litSymbol: "sparkle", held: held,
+           description: "Caps Lock, between Tab and Shift at the left of the keyboard")
     }
 
     static func rightCommand(held: Bool) -> KeyboardRow {
-        KeyboardRow(keys: [
+        KeyboardRow(rows: [[
             Key(id: 0, word: "fn"),
             Key(id: 1, symbol: "⌃", word: "control"),
             Key(id: 2, symbol: "⌥", word: "option"),
@@ -347,24 +354,50 @@ private struct KeyboardRow: View {
             Key(id: 4, width: 4.4),
             Key(id: 5, symbol: "⌘", word: "command", width: 1.35, target: true),
             Key(id: 6, symbol: "⌥", word: "option"),
-        ], accent: Accent.meh, litSymbol: "moon.fill", held: held,
+        ]], accent: Accent.meh, litSymbol: "moon.fill", held: held,
            description: "The right-hand Command key, beside the space bar")
     }
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 5) {
-                ForEach(keys) { key in cap(key, down: key.target && (pressed || held)) }
+        Group {
+            if rows.count == 1 { singleRow(rows[0]) } else { block }
+        }
+        // Press quickly, hold, let go, rest; until the step goes away.
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(0.9))
+                withAnimation(.easeOut(duration: 0.14)) { pressed = true }
+                try? await Task.sleep(for: .seconds(0.7))
+                withAnimation(.easeInOut(duration: 0.3)) { pressed = false }
             }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(description)
+    }
+
+    private var pointer: some View {
+        Label("this one", systemImage: "arrow.up")
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(accent)
+            .fixedSize()
+    }
+
+    private func keys(_ row: [Key]) -> some View {
+        HStack(spacing: 5) {
+            ForEach(row) { key in cap(key, down: key.target && (pressed || held)) }
+        }
+    }
+
+    /// One row, pointer and notes underneath.
+    private func singleRow(_ row: [Key]) -> some View {
+        VStack(spacing: 6) {
+            keys(row)
             HStack(spacing: 5) {
-                ForEach(keys) { key in
+                ForEach(row) { key in
                     Group {
                         if key.target {
-                            Label("this one", systemImage: "arrow.up")
-                                .labelStyle(.titleAndIcon)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(accent)
-                                .fixedSize()
+                            pointer
                         } else if let decoy = key.decoy {
                             Text(decoy)
                                 .font(.system(size: 10))
@@ -378,17 +411,34 @@ private struct KeyboardRow: View {
                 }
             }
         }
-        // Press quickly, hold, let go, rest; until the step goes away.
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(0.9))
-                withAnimation(.easeOut(duration: 0.14)) { pressed = true }
-                try? await Task.sleep(for: .seconds(0.7))
-                withAnimation(.easeInOut(duration: 0.3)) { pressed = false }
+    }
+
+    /// Several rows, left-aligned like the edge of a keyboard and fading out
+    /// to the right; the pointer sits beside the row with the key.
+    private var block: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .trailing, spacing: 5) {
+                ForEach(rows.indices, id: \.self) { i in
+                    Group {
+                        if rows[i].contains(where: \.target) {
+                            Label("this one", systemImage: "arrow.right")
+                                .labelStyle(.titleAndIcon)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(accent)
+                                .fixedSize()
+                        } else {
+                            Color.clear.frame(width: 0)
+                        }
+                    }
+                    .frame(height: unit)
+                }
             }
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(rows.indices, id: \.self) { i in keys(rows[i]) }
+            }
+            .mask(LinearGradient(stops: [.init(color: .black, location: 0.55), .init(color: .clear, location: 1)],
+                                 startPoint: .leading, endPoint: .trailing))
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(description)
     }
 
     private func cap(_ key: Key, down: Bool) -> some View {
