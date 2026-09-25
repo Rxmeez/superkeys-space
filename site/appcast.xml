@@ -3,6 +3,24 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.7</title>
+            <pubDate>Fri, 25 Sep 2026 20:02:49 +0100</pubDate>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>0.2.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Added</h3>
+<ul>
+<li>Suggest a Feature and Report a Problem in Settings → General open a short form on GitHub. A problem report fills in your Superkeys and macOS versions and your Mac&#x27;s model.</li>
+<li>Superkeys is open source under the GNU GPL v3. View Source in Settings → General, next to Sponsor.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>The welcome tour opens with &quot;Your whole Mac, one key away.&quot;</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.7.zip" length="3036029" type="application/octet-stream" sparkle:edSignature="Qe/l8qVg862wmNo/XMYoFtMaI3beGJZnEkOO+HgC/8xvTTLO/RXECdng/jGE0DwA1GlFowEjrJH14LUupACTAw=="/>
+        </item>
+        <item>
             <title>0.2.6</title>
             <pubDate>Fri, 25 Sep 2026 19:30:07 +0100</pubDate>
             <sparkle:version>10</sparkle:version>
