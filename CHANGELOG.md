@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-25
+
 ### Added
 
 - **Updates install themselves.** Superkeys checks superkeys.space once a day and installs new versions in the background, with no Gatekeeper prompt and without losing Accessibility access. Turn it off, or check now, in Settings → General; "Check for Updates…" is also in the menu bar menu. Every update is verified against a signing key before it's installed.
@@ -28,5 +30,6 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Rxmeez/superkeys-space/releases/tag/v0.1.0
