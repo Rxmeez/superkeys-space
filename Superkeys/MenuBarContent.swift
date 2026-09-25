@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Kept short: the on/off switch, a fix when something's wrong, and the way
 /// into Settings, which has everything else (version and updates, the tour,
-/// Reset Access).
+/// Reset Access, What's New).
 struct MenuBarContent: View {
     @EnvironmentObject private var state: AppState
 
@@ -24,9 +24,6 @@ struct MenuBarContent: View {
             set: { state.setPaused(!$0) }
         ))
         Divider()
-        if let version = WhatsNew.pending {
-            Button("What's New in \(version)") { WhatsNew.show() }
-        }
         Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",")
         Button("Quit Superkeys") {

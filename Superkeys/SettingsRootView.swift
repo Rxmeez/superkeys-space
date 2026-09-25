@@ -150,8 +150,11 @@ private struct UpdatesRow: View {
     var body: some View {
         if Updater.isEnabled {
             LabeledContent("Version \(Updater.version)") {
-                Button("Check for Updates") { updater.checkForUpdates() }
-                    .disabled(!updater.canCheckForUpdates)
+                HStack {
+                    WhatsNewButton()
+                    Button("Check for Updates") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                }
             }
             Toggle(isOn: $updater.checksAutomatically) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -164,8 +167,27 @@ private struct UpdatesRow: View {
             .toggleStyle(.switch)
             .accessibilityLabel("Install updates automatically")
         } else {
-            LabeledContent("Version", value: Updater.version)
+            LabeledContent("Version \(Updater.version)") { WhatsNewButton() }
         }
+    }
+}
+
+/// The notes for this version, with a dot after an update until they're read.
+private struct WhatsNewButton: View {
+    @EnvironmentObject private var state: AppState
+
+    var body: some View {
+        Button {
+            WhatsNew.show()
+        } label: {
+            HStack(spacing: 5) {
+                if WhatsNew.pending != nil {
+                    Circle().fill(Color.accentColor).frame(width: 6, height: 6)
+                }
+                Text("What's New")
+            }
+        }
+        .accessibilityValue(WhatsNew.pending != nil ? "Unread" : "")
     }
 }
 

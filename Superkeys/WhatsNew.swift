@@ -29,8 +29,9 @@ enum WhatsNew {
         defaults.set(version, forKey: lastLaunchedKey)
     }
 
+    /// The notes for the version that's running; marks them as seen.
     static func show() {
-        guard let version = pending else { return }
+        let version = currentVersion
         UserDefaults.standard.removeObject(forKey: pendingKey)
         AppState.shared.objectWillChange.send()
         let url = URL(string: "https://superkeys.space/download/Superkeys-\(version).html")!
