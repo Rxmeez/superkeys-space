@@ -690,34 +690,28 @@ private struct AppsStep: View {
 private struct FinishStep: View {
     @EnvironmentObject private var state: AppState
     @ObservedObject private var indicator = HyperIndicator.shared
+    @State private var tried = false
 
     var body: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 30) {
+            Spacer(minLength: 0)
             KeyboardRow.rightCommand(held: indicator.meh)
-            StepHeader(eyebrow: "Step 4 · Desktops",
-                       title: "And ☾ is for desktops.",
-                       detail: "Hold right ⌘ and press 2 to go to Desktop 2; it's created if you don't have one. Right ⌘ with right ⌥ flips back.")
-            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
-                chord([Glyph.hyper, "←", "→"], "Snap a window")
-                chord([Glyph.hyper, "↑"], "Arrange the windows on this screen")
-                chord([Glyph.meh, "1–9"], "Switch desktop")
-                chord([Glyph.meh, "⇧", "1–9"], "Send the window to a desktop")
-            }
-            .font(.system(size: 13))
+            StepHeader(eyebrow: "Step 4 · Try it",
+                       title: tried ? "That's ☾ Meh." : "Hold right ⌘.",
+                       detail: tried
+                           ? "☾ 1–9 switch desktops, adding any you don't have yet. ☾ ⇧ 1–9 takes the window with you, and hold ☾ for a moment to see the rest."
+                           : "The one to the right of the space bar, not the left. The key above lights up when Superkeys sees it.")
+            Spacer(minLength: 0)
             Toggle("Open Superkeys at login", isOn: Binding(
                 get: { state.launchAtLogin },
                 set: { state.setLaunchAtLogin($0) }
             ))
             .toggleStyle(.switch)
             .controlSize(.small)
-            Spacer(minLength: 0)
+            .foregroundStyle(.secondary)
         }
-    }
-
-    private func chord(_ keys: [String], _ text: String) -> some View {
-        GridRow {
-            KeyCombo(keys: keys)
-            Text(text).foregroundStyle(.secondary)
+        .onChange(of: indicator.meh) { _, held in
+            if held { tried = true }
         }
     }
 }
