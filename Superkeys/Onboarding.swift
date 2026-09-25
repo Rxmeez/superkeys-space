@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 /// A short, hands-on setup: five steps, each of which waits for you to do the
@@ -48,6 +49,16 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    private let tour = TourModel()
+
+    /// ✦ ← / → step through the tour while it's the window in front, instead
+    /// of snapping it; that's also how the tour teaches the chord.
+    static func handleHyperArrow(_ side: WindowManager.Side) -> Bool {
+        guard NSApp.isActive, let controller = current, controller.window?.isKeyWindow == true else { return false }
+        side == .left ? controller.tour.back() : controller.tour.next()
+        return true
+    }
+
     private init() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 520),
                               styleMask: [.titled, .closable, .fullSizeContentView],
@@ -59,9 +70,9 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
         window.title = "Welcome to Superkeys"
         super.init(window: window)
         window.delegate = self
-        window.contentViewController = NSHostingController(rootView: OnboardingView(finish: { [weak self] in
-            self?.close()
-        }).environmentObject(AppState.shared))
+        tour.finish = { [weak self] in self?.close() }
+        window.contentViewController = NSHostingController(rootView: OnboardingView(tour: tour)
+            .environmentObject(AppState.shared))
         window.setContentSize(NSSize(width: 620, height: 520))
     }
 
@@ -85,17 +96,51 @@ private enum Step: Int, CaseIterable {
     case welcome, access, tryHyper, apps, finish
 }
 
-private struct OnboardingView: View {
-    let finish: () -> Void
-    @EnvironmentObject private var state: AppState
-    @StateObject private var picks = AppPicks()
-    @State private var step: Step = {
+/// Where the tour is, and what its main button does on each step, shared by
+/// the buttons and ✦ ← / →.
+@MainActor
+private final class TourModel: ObservableObject {
+    @Published var step: Step = {
         #if DEBUG
         return Step(rawValue: OnboardingWindowController.debugStartStep) ?? .welcome
         #else
         return .welcome
         #endif
     }()
+    /// Which way the last move went, so steps slide in from the right side.
+    @Published var forward = true
+    let picks = AppPicks()
+    var finish: () -> Void = {}
+    private var picksChanged: AnyCancellable?
+
+    init() {
+        // The main button's title counts the ticked apps.
+        picksChanged = picks.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }
+    }
+
+    /// The main button: on the apps step it adds the ticked keys first.
+    func next() {
+        switch step {
+        case .apps: picks.add(); move(1)
+        case .finish: finish()
+        default: move(1)
+        }
+    }
+
+    func back() { move(-1) }
+
+    func move(_ delta: Int) {
+        guard let target = Step(rawValue: step.rawValue + delta) else { return }
+        forward = delta > 0
+        withAnimation(.easeInOut(duration: 0.28)) { step = target }
+    }
+}
+
+private struct OnboardingView: View {
+    @ObservedObject var tour: TourModel
+    @EnvironmentObject private var state: AppState
+
+    private var step: Step { tour.step }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -104,20 +149,22 @@ private struct OnboardingView: View {
                 case .welcome: WelcomeStep()
                 case .access: AccessStep()
                 case .tryHyper: TryHyperStep()
-                case .apps: AppsStep(picks: picks)
+                case .apps: AppsStep(picks: tour.picks)
                 case .finish: FinishStep()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 48)
             .padding(.top, 44)
-            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
-                                    removal: .move(edge: .leading).combined(with: .opacity)))
+            .transition(.asymmetric(
+                insertion: .move(edge: tour.forward ? .trailing : .leading).combined(with: .opacity),
+                removal: .move(edge: tour.forward ? .leading : .trailing).combined(with: .opacity)))
             .id(step)
 
             footer
         }
         .frame(width: 620, height: 520)
+        .clipped()
         .background(
             ZStack {
                 Color(nsColor: .windowBackgroundColor)
@@ -129,28 +176,39 @@ private struct OnboardingView: View {
         // Access granted while on that step: move on by itself.
         .onChange(of: state.accessibilityTrusted) { _, trusted in
             if trusted, step == .access {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { advance() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { tour.move(1) }
             }
         }
     }
 
     private var footer: some View {
-        HStack {
-            HStack(spacing: 7) {
-                ForEach(Step.allCases, id: \.self) { s in
-                    Capsule()
-                        .fill(s == step ? Accent.hyper : Color.secondary.opacity(0.3))
-                        .frame(width: s == step ? 18 : 7, height: 7)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 7) {
+                    ForEach(Step.allCases, id: \.self) { s in
+                        Capsule()
+                            .fill(s == step ? Accent.hyper : Color.secondary.opacity(0.3))
+                            .frame(width: s == step ? 18 : 7, height: 7)
+                    }
+                }
+                .animation(.easeOut(duration: 0.2), value: step)
+                .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
+                // Only once the keys work; before that the chord does nothing.
+                if state.accessibilityTrusted {
+                    HStack(spacing: 6) {
+                        KeyCombo(keys: [Glyph.hyper, "←", "→"])
+                            .scaleEffect(0.85, anchor: .leading)
+                        Text("to move through the tour")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .offset(x: -10)
+                    }
                 }
             }
-            .animation(.easeOut(duration: 0.2), value: step)
-            .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
             Spacer()
-            if step != .welcome && step != .finish {
-                Button("Back") { move(-1) }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    .padding(.trailing, 12)
+            if step != .welcome {
+                Button("Back") { tour.back() }
+                    .controlSize(.large)
             }
             primaryButton
         }
@@ -158,33 +216,22 @@ private struct OnboardingView: View {
         .padding(.vertical, 20)
     }
 
-    @ViewBuilder private var primaryButton: some View {
+    private var primaryTitle: String {
         switch step {
-        case .welcome:
-            Button("Get Started") { advance() }.keyboardShortcut(.defaultAction).controlSize(.large)
-        case .access:
-            Button(state.accessibilityTrusted ? "Continue" : "Skip for Now") { advance() }
-                .keyboardShortcut(state.accessibilityTrusted ? .defaultAction : nil)
-                .controlSize(.large)
-        case .tryHyper:
-            Button("Continue") { advance() }.keyboardShortcut(.defaultAction).controlSize(.large)
+        case .welcome: return "Get Started"
+        case .access: return state.accessibilityTrusted ? "Continue" : "Skip for Now"
+        case .tryHyper: return "Continue"
         case .apps:
-            Button(picks.chosen.isEmpty ? "Skip" : "Add \(picks.chosen.count) \(picks.chosen.count == 1 ? "Key" : "Keys")") {
-                picks.add()
-                advance()
-            }
-            .keyboardShortcut(.defaultAction)
-            .controlSize(.large)
-        case .finish:
-            Button("Done") { finish() }.keyboardShortcut(.defaultAction).controlSize(.large)
+            let n = tour.picks.chosen.count
+            return n == 0 ? "Skip" : "Add \(n) \(n == 1 ? "Key" : "Keys")"
+        case .finish: return "Done"
         }
     }
 
-    private func advance() { move(1) }
-
-    private func move(_ delta: Int) {
-        guard let next = Step(rawValue: step.rawValue + delta) else { return }
-        withAnimation(.easeInOut(duration: 0.25)) { step = next }
+    private var primaryButton: some View {
+        Button(primaryTitle) { tour.next() }
+            .keyboardShortcut(step == .access && !state.accessibilityTrusted ? nil : .defaultAction)
+            .controlSize(.large)
     }
 }
 
@@ -245,6 +292,101 @@ private struct BigKey: View {
         .shadow(color: accent.opacity(lit ? 0.55 : 0.15), radius: lit ? 22 : 12)
         .scaleEffect(lit ? 0.96 : 1)
         .animation(.easeOut(duration: 0.12), value: lit)
+    }
+}
+
+/// The bottom row of a Mac keyboard with the right ⌘ pressing itself in a
+/// loop, because most people reach for the left one. Holding the real key
+/// keeps it lit.
+private struct ModifierRow: View {
+    let held: Bool
+    private let unit: CGFloat = 40
+    @State private var pressed = false
+
+    private struct Key: Identifiable {
+        let id: Int
+        let symbol: String
+        let word: String
+        let width: CGFloat
+        var target = false
+        var left = false
+    }
+
+    private let keys: [Key] = [
+        Key(id: 0, symbol: "", word: "fn", width: 1),
+        Key(id: 1, symbol: "⌃", word: "control", width: 1),
+        Key(id: 2, symbol: "⌥", word: "option", width: 1),
+        Key(id: 3, symbol: "⌘", word: "command", width: 1.35, left: true),
+        Key(id: 4, symbol: "", word: "", width: 4.4),
+        Key(id: 5, symbol: "⌘", word: "command", width: 1.35, target: true),
+        Key(id: 6, symbol: "⌥", word: "option", width: 1),
+    ]
+
+    var body: some View {
+        VStack(spacing: 6) {
+                HStack(spacing: 5) {
+                    ForEach(keys) { key in cap(key, down: key.target && (pressed || held)) }
+                }
+                HStack(spacing: 5) {
+                    ForEach(keys) { key in
+                        Group {
+                            if key.target {
+                                Label("this one", systemImage: "arrow.up")
+                                    .labelStyle(.titleAndIcon)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(Accent.meh)
+                                    .fixedSize()
+                            } else if key.left {
+                                Text("not this")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.tertiary)
+                            } else {
+                                Color.clear
+                            }
+                        }
+                        .frame(width: key.width * unit, height: 14)
+                    }
+                }
+        }
+        // Press quickly, hold, let go, rest; until the step goes away.
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(0.9))
+                withAnimation(.easeOut(duration: 0.14)) { pressed = true }
+                try? await Task.sleep(for: .seconds(0.7))
+                withAnimation(.easeInOut(duration: 0.3)) { pressed = false }
+            }
+        }
+        .accessibilityLabel("The right-hand Command key, beside the space bar")
+    }
+
+    private func cap(_ key: Key, down: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        return ZStack {
+            shape.fill(Color.primary.opacity(0.07))
+            shape.fill(Accent.gradient(Accent.meh)).opacity(down ? 1 : 0)
+            shape.stroke(key.target ? Accent.meh.opacity(down ? 0 : 0.6) : Color.primary.opacity(0.1), lineWidth: 1)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Spacer()
+                    if key.target && down {
+                        Image(systemName: "moon.fill").font(.system(size: 9))
+                    } else {
+                        Text(key.symbol).font(.system(size: 11))
+                    }
+                }
+                Spacer()
+                Text(key.word).font(.system(size: 8.5))
+            }
+            .foregroundStyle(down ? Color.white : (key.target ? Color.primary : Color.secondary))
+            .padding(.horizontal, 5)
+            .padding(.vertical, 4)
+        }
+        .frame(width: key.width * unit, height: unit)
+        .opacity(key.left ? 0.45 : 1)
+        .shadow(color: key.target ? Accent.meh.opacity(down ? 0.6 : 0.2) : .clear, radius: down ? 14 : 6)
+        .offset(y: down ? 1.5 : 0)
+        .scaleEffect(down ? 0.96 : 1)
     }
 }
 
@@ -434,7 +576,7 @@ private struct FinishStep: View {
 
     var body: some View {
         VStack(spacing: 22) {
-            BigKey(symbol: "moon.fill", legend: "right ⌘", accent: Accent.meh, lit: indicator.meh, size: 96)
+            ModifierRow(held: indicator.meh)
             StepHeader(eyebrow: "Step 4 · Desktops",
                        title: "And ☾ is for desktops.",
                        detail: "Hold right ⌘ and press 2 to go to Desktop 2; it's created if you don't have one. Right ⌘ with right ⌥ flips back.")

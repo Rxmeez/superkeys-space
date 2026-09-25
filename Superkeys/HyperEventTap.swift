@@ -231,9 +231,15 @@ final class HyperEventTap: @unchecked Sendable {
         case KeyCodes.downArrow:
             return
         case KeyCodes.leftArrow:
-            Task { @MainActor in WindowManager.shared.snap(.left) }
+            Task { @MainActor in
+                if OnboardingWindowController.handleHyperArrow(.left) { return }
+                WindowManager.shared.snap(.left)
+            }
         case KeyCodes.rightArrow:
-            Task { @MainActor in WindowManager.shared.snap(.right) }
+            Task { @MainActor in
+                if OnboardingWindowController.handleHyperArrow(.right) { return }
+                WindowManager.shared.snap(.right)
+            }
         case KeyCodes.returnKey, KeyCodes.keypadEnter:
             Task { @MainActor in WindowManager.shared.snap(.full) }
         default:

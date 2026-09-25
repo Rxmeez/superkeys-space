@@ -6,7 +6,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Added
 
-- **Welcome tour for new users.** A short, hands-on setup on first launch: grant Accessibility, hold Caps Lock and watch it light up, pick keys for the apps you use most, and try ☾ for desktops. Take it again any time from the menu bar (Welcome Tour…) or Settings → General.
+- **Welcome tour for new users.** A short, hands-on setup on first launch: grant Accessibility, hold Caps Lock and watch it light up, pick keys for the apps you use most, and try ☾ for desktops. Move through it with the buttons or with ✦ ← / →, which is also how it teaches the chord; the desktops step shows exactly which ⌘ is the ☾ key. Take it again any time from the menu bar (Welcome Tour…) or Settings → General.
 
 ## [0.2.1] - 2026-09-25
 

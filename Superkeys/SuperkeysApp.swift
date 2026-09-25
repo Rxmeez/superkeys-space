@@ -204,8 +204,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "right": WindowArranger.shared.swap(.right)
                 case "up": WindowArranger.shared.swap(.up)
                 case "down": WindowArranger.shared.swap(.down)
-                case "snap-left": WindowManager.shared.snap(.left)
-                case "snap-right": WindowManager.shared.snap(.right)
+                case "snap-left": if !OnboardingWindowController.handleHyperArrow(.left) { WindowManager.shared.snap(.left) }
+                case "snap-right": if !OnboardingWindowController.handleHyperArrow(.right) { WindowManager.shared.snap(.right) }
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
                 case let s? where s.hasPrefix("onboarding"):
