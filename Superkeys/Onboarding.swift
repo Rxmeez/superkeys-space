@@ -512,7 +512,7 @@ private struct WelcomeStep: View {
                 BigKey(symbol: "moon.fill", legend: "right ⌘", accent: Accent.meh, lit: false, size: 120)
             }
             StepHeader(eyebrow: "Welcome to Superkeys",
-                       title: "Two private keys for your Mac.",
+                       title: "Caps Lock and right ⌘, finally useful.",
                        detail: "Caps Lock becomes ✦ Hyper and right ⌘ becomes ☾ Meh. Hold one and the rest of your keyboard opens apps, arranges windows and switches desktops. Neither ever types a thing.")
             Spacer(minLength: 0)
         }

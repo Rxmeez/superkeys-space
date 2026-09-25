@@ -1,6 +1,6 @@
 # Superkeys
 
-**Two private keys for your Mac.** Caps Lock becomes ✦ Hyper and right ⌘ becomes ☾ Meh. Hold one and the rest of the keyboard becomes shortcuts for opening apps, arranging windows, and moving between desktops.
+**Caps Lock, finally useful.** Caps Lock becomes ✦ Hyper and right ⌘ becomes ☾ Meh. Hold one and the rest of the keyboard becomes shortcuts for opening apps, arranging windows, and moving between desktops.
 
 [superkeys.space](https://superkeys.space) · macOS 14 or later · native Swift; one dependency, [Sparkle](https://sparkle-project.org), for updates
 
@@ -57,6 +57,10 @@ Hold ✦ or ☾ for a moment without pressing anything and a panel shows what th
 Any key can open any app. Pick the app, press the key, done.
 
 ![App shortcuts](docs/images/settings-shortcuts.png)
+
+Out of letters? Make a group: ✦ O then P. Pause after the first key and a panel shows what the group holds.
+
+![Group panel](docs/images/chords-group.png)
 
 ## Install
 

@@ -341,7 +341,7 @@ struct ShortcutsTab: View {
                     .buttonStyle(.borderless)
                 }
             } footer: {
-                Text("Hold \(Glyph.hyper) Caps Lock and press the key. The app opens, or comes forward if it's already running. Out of letters? Group them: \(Glyph.hyper) O then P, \(Glyph.hyper) O then S.")
+                Text("Hold \(Glyph.hyper) Caps Lock and press the key. The app opens, or comes forward if it's already running. Out of letters? Make a group, like \(Glyph.hyper) O then P.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

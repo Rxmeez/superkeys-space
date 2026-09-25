@@ -77,8 +77,11 @@ extension KeyCap {
             Image(systemName: symbol)
                 .font(.system(size: 10, weight: .semibold))
         } else {
+            // Single keys in the system font, where O and 0 look different;
+            // longer labels like "1–9" keep the monospaced keycap look.
             Text(text)
-                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .font(text.count == 1 ? .system(size: 11.5, weight: .semibold)
+                                      : .system(size: 11, weight: .medium, design: .monospaced))
         }
     }
 }

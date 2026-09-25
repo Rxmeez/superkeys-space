@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Superkeys — two private keys for your Mac</title>
+    <title>Superkeys — Caps Lock, finally useful</title>
     <meta name="description" content="Caps Lock and right ⌘ become private keys for opening apps, snapping and arranging windows, and jumping between desktops. They never type a thing. Native macOS app." />
     <meta name="color-scheme" content="dark" />
-    <meta property="og:title" content="Superkeys — two private keys for your Mac" />
+    <meta property="og:title" content="Superkeys — Caps Lock, finally useful" />
     <meta property="og:description" content="Caps Lock opens your apps and arranges your windows. Right ⌘ jumps between desktops. Neither ever types a thing." />
     <meta property="og:image" content="https://superkeys.space/assets/superkeys-poster.jpg" />
     <meta property="og:url" content="https://superkeys.space/" />
@@ -113,8 +113,10 @@
         border-radius: 8px;
         background: var(--cap);
         border: 1px solid var(--edge);
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        /* System font, so O and 0 read differently on the keycaps. */
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         font-size: 14px;
+        font-weight: 600;
         line-height: 1;
         color: var(--text);
         vertical-align: middle;
@@ -668,32 +670,11 @@
         color: var(--text);
         font-weight: 600;
       }
-      .group-panel {
-        display: inline-grid;
-        gap: 10px;
-        padding: 18px 22px;
-        border-radius: 18px;
-        background: radial-gradient(260px 120px at 20% 0%, rgba(255, 184, 77, 0.12), transparent 70%), var(--surface);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        font-size: 15px;
-      }
-      .group-panel .gp-head,
-      .group-panel .gp-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .group-panel .gp-head {
-        font-weight: 600;
-        margin-bottom: 2px;
-      }
-      .group-panel .dim {
-        color: var(--faint);
-      }
-      .group-panel .gp-foot {
-        margin-top: 4px;
-        font-size: 13px;
-        color: var(--faint);
+      .group-shot {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin-left: -12px;
       }
 
       /* keystrokes: a terminal with the chord that just went in */
@@ -960,7 +941,7 @@
               <span class="legend">right ⌘</span>
             </div>
           </div>
-          <h1>Two private keys<br />for your Mac.</h1>
+          <h1>Caps Lock,<br />finally useful.</h1>
           <p class="lede">
             Caps Lock becomes <span class="amber">✦ Hyper</span> and right ⌘ becomes <span class="indigo">☾ Meh</span>.
             Hold one and the rest of your keyboard opens apps, arranges windows, and jumps between desktops.
@@ -1028,20 +1009,14 @@
             </p>
             <div class="group-demo">
               <p class="sub" style="font-size: 16px; margin: 0 0 14px">
-                <strong>Out of letters? Make a group.</strong> ✦ O then P opens 1Password, ✦ O then S opens Slack.
+                <strong>Out of letters? Make a group.</strong> ✦ O then P opens 1Password, ✦ O then M opens Mail.
                 ✦ O on its own still opens its app when you let go, and holding a moment shows what's in the group.
               </p>
-              <div class="group-panel" role="img" aria-label="The group panel: ✦ O then P for 1Password, S for Slack, K sends ⌘ K; let go of ✦ for Obsidian">
-                <div class="gp-head"><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">O</span></span><span>then…</span></div>
-                <div class="gp-row"><span class="kc">P</span><span>1Password</span></div>
-                <div class="gp-row"><span class="kc">S</span><span>Slack</span></div>
-                <div class="gp-row"><span class="kc">K</span><span class="dim">→</span><span class="combo"><span class="kc">⌘</span><span class="kc">K</span></span></div>
-                <div class="gp-foot">Let go of ✦: Obsidian · esc: cancel</div>
-              </div>
+              <img class="group-shot" src="assets/chords-group.png" width="346" height="211" alt="The group panel after ✦ O: M for Mail, P for 1Password, and let go of ✦ for Obsidian" loading="lazy" />
             </div>
           </div>
           <div class="shot">
-            <img src="assets/settings-shortcuts.png" width="700" height="368" alt="Superkeys Shortcuts settings with Zen on ✦ B, Ghostty on ✦ T and Notes on ✦ N" loading="lazy" />
+            <img src="assets/settings-shortcuts.png" width="700" height="720" alt="Superkeys Shortcuts settings: apps on ✦ keys, with Mail and 1Password grouped under ✦ O, and keystrokes such as ✦ C sending ⌃ C" loading="lazy" />
           </div>
         </div>
       </section>
@@ -1170,12 +1145,13 @@ W = <span class="s">"cmd+shift+t"</span>  <span class="c"># reopen a closed tab<
             <span class="eyebrow"><span class="amber">✦</span>&nbsp;Hold to see</span>
             <h2>Forgot a chord?<br />Just hold.</h2>
             <p class="sub">
-              Hold ✦ or ☾ for a moment and a glass panel shows everything that key does, including your own app keys.
+              Hold ✦ or ☾ for a moment and a glass panel shows everything that key does, including your own app keys,
+              groups and keystrokes.
               Let go and it's gone. It never takes focus.
             </p>
           </div>
           <div class="shot">
-            <img src="assets/chords-hyper.png" width="436" height="345" alt="The ✦ Hyper chord panel listing window chords and app keys" loading="lazy" />
+            <img src="assets/chords-hyper.png" width="436" height="597" alt="The ✦ Hyper chord panel listing window chords, app keys, a group under ✦ O, and keystrokes" loading="lazy" />
           </div>
         </div>
       </section>
@@ -1262,7 +1238,7 @@ W = <span class="s">"cmd+shift+t"</span>  <span class="c"># reopen a closed tab<
         <div class="closing">
           <svg class="logo" viewBox="0 0 120 120" style="color: var(--indigo)"><use href="#logo" /></svg>
           <h2 style="margin-top: 18px">Superkeys</h2>
-          <p class="sub" style="margin: 12px auto 0">Two private keys for your Mac. Free, for macOS 14 and later.</p>
+          <p class="sub" style="margin: 12px auto 0">Caps Lock, finally useful. Free, for macOS 14 and later.</p>
         </div>
       </div>
     </main>
