@@ -80,7 +80,10 @@ struct GeneralTab: View {
                     }
                 }
                 LabeledContent {
-                    Link("View Source", destination: Feedback.repository)
+                    HStack(spacing: 14) {
+                        Link("Sponsor", destination: Feedback.sponsor)
+                        Link("View Source", destination: Feedback.repository)
+                    }
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Open source")
@@ -102,6 +105,7 @@ enum Feedback {
     enum Kind { case feature, problem }
 
     static let repository = URL(string: "https://github.com/Rxmeez/superkeys-space")!
+    static let sponsor = URL(string: "https://github.com/sponsors/Rxmeez")!
 
     static func open(_ kind: Kind) {
         NSWorkspace.shared.open(url(kind))

@@ -162,6 +162,10 @@ Ideas, trade-offs, and what macOS does and doesn't allow are tracked in [FEATURE
 
 Pull requests are welcome. For anything bigger than a fix, open an issue first so we can agree on the shape before you build it. Keep to the style around you, run the tests, and note user-facing changes under `## [Unreleased]` in `CHANGELOG.md`.
 
+## Sponsor
+
+Superkeys is free and always will be. If it saves you time, you can [sponsor it](https://github.com/sponsors/Rxmeez).
+
 ## License
 
 Superkeys is free software under the [GNU General Public License v3.0](LICENSE): you can use, study, change and share it, and anything built from it must stay open under the same terms. It bundles [Sparkle](https://sparkle-project.org) (MIT).

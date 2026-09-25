@@ -7,7 +7,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 ### Added
 
 - Suggest a Feature and Report a Problem in Settings → General open a short form on GitHub. A problem report fills in your Superkeys and macOS versions and your Mac's model.
-- Superkeys is open source under the GNU GPL v3. View Source in Settings → General.
+- Superkeys is open source under the GNU GPL v3. View Source in Settings → General, next to Sponsor.
 
 ### Changed
 
