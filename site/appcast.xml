@@ -3,6 +3,19 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.4</title>
+            <pubDate>Fri, 25 Sep 2026 16:58:08 +0100</pubDate>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>0.2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Added</h3>
+<ul>
+<li><b>Keystrokes.</b> ✦ plus a key can now send another key combination to the app in front: ✦ C → ⌃ C to stop a command in the terminal, ✦ R → ⌃ R to search history, or anything like ⌘ ⇧ T. Holding the key repeats it. Add them in Settings → Shortcuts (the Apps tab is now Shortcuts again, with Apps and Keystrokes; <b>Add All Three</b> sets up ✦ C / D / R for the terminal in one click) or under <code>[keys]</code> in the config file. The welcome tour gains a fifth step that offers the same three.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.4.zip" length="2862016" type="application/octet-stream" sparkle:edSignature="S56x0LN9kEW4pyXgLF7rWa52lujxSO2PX4VUWse0aFLfPQh5aegLeBCuQlsT4xIkiP/kdOyanZMjTb8NKVlKDw=="/>
+        </item>
+        <item>
             <title>0.2.3</title>
             <pubDate>Fri, 25 Sep 2026 16:33:38 +0100</pubDate>
             <sparkle:version>7</sparkle:version>
