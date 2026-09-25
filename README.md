@@ -115,7 +115,7 @@ When editing by hand, `keyCode` and `name` are optional: give `key` as a letter,
 
 ## Privacy
 
-Superkeys never records or stores what you type. Keys pass straight through unless ✦ or ☾ is held, and nothing leaves your Mac: no analytics, no accounts, no network access.
+Superkeys never records or stores what you type. Keys pass straight through unless ✦ or ☾ is held, and nothing about you leaves your Mac: no analytics, no accounts. The only network request is a once-a-day check of superkeys.space for a new version (turn it off in Settings → General), which sends nothing but the app's version.
 
 ## How it works
 
