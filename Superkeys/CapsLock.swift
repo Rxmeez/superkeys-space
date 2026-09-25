@@ -99,6 +99,23 @@ enum HIDRemap {
     /// The user's own mappings, held while ours is installed.
     private static var saved: [Mapping]?
 
+    /// Whether Caps Lock and right ⌘ are remapped right now.
+    static var isInstalled: Bool { saved != nil }
+
+    /// The names of the connected keyboards, for diagnostics.
+    static func keyboardNames() -> [String] {
+        guard let client, let copyServices, let serviceProperty,
+              let services = copyServices(client)?.takeRetainedValue() as? [CFTypeRef] else { return [] }
+        let names = services.compactMap { service -> String? in
+            let page = serviceProperty(service, "PrimaryUsagePage" as CFString)?.takeRetainedValue() as? Int
+            let usage = serviceProperty(service, "PrimaryUsage" as CFString)?.takeRetainedValue() as? Int
+            // Generic Desktop (1) / Keyboard (6)
+            guard page == 1, usage == 6 else { return nil }
+            return serviceProperty(service, "Product" as CFString)?.takeRetainedValue() as? String ?? "Unnamed keyboard"
+        }
+        return Array(Set(names)).sorted()
+    }
+
     static func enable() {
         guard saved == nil else { return }
         let theirs = current().filter { !ours.contains($0) }

@@ -1,0 +1,9 @@
+# Keeps the GitHub Actions used by the workflows current. Sparkle lives in the
+# Xcode project, which Dependabot can't read; sparkle-check.yml covers it.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencies]

@@ -212,6 +212,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
                 case "settings": SettingsWindowController.shared.show()
+                case "settings-advanced":
+                    SettingsWindowController.shared.show()
+                    SettingsWindowController.shared.select(.advanced)
                 case let s? where s.hasPrefix("group-"):
                     if let code = Int(s.dropFirst(6)) { CheatSheet.shared.showGroup(code) }
                 case let s? where s.hasPrefix("selftest-groups-"):

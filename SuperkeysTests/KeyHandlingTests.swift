@@ -42,12 +42,21 @@ final class KeyHandlingTests: XCTestCase {
         XCTAssertEqual(log[1], "✦ first, let go: nothing")
     }
 
-    @MainActor func testProblemReportCarriesOnlyVersionsAndMac() throws {
+    @MainActor func testProblemReportFillsInTheForm() throws {
         let url = Feedback.url(.problem)
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
         XCTAssertEqual(url.path, "/Rxmeez/superkeys-space/issues/new")
-        XCTAssertEqual(items.map(\.name), ["template", "version", "macos", "mac"])
+        XCTAssertEqual(items.map(\.name), ["template", "version", "macos", "mac", "diagnostics"])
         XCTAssertEqual(items.first?.value, "bug.yml")
         XCTAssertFalse(try XCTUnwrap(items.last?.value).isEmpty)
+    }
+
+    @MainActor func testDiagnosticsLeaveOutBindings() {
+        let text = Feedback.diagnostics()
+        print(text)
+        XCTAssertTrue(text.hasPrefix("Superkeys "))
+        for app in BindingsStore.shared.bindings {
+            XCTAssertFalse(text.contains(app.bundleID), "diagnostics mention \(app.bundleID)")
+        }
     }
 }

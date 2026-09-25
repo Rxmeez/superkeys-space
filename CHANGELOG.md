@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Added
+
+- Copy Diagnostics in Settings → Advanced: versions, whether the keys are on, how many app keys you have and which keyboards are connected, for a problem report. Report a Problem fills it in for you. Never which keys you use or anything typed.
+
 ### Changed
 
 - What's New ends with a short thank-you to Superkeys' sponsors.

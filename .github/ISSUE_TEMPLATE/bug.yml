@@ -44,3 +44,9 @@ body:
       label: Mac and keyboard
       description: Your Mac, and the keyboard if it's not the built-in one.
       placeholder: MacBook Air (M2), Keychron K2 over Bluetooth
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Filled in by Report a Problem, or paste from Settings → Advanced → Copy Diagnostics. Versions, key state and counts only; edit anything you'd rather not share.
+      render: text
