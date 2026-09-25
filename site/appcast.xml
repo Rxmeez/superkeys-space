@@ -3,6 +3,19 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Fri, 25 Sep 2026 08:51:45 +0100</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Added</h3>
+<ul>
+<li>The menu bar menu shows which version of Superkeys is running.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.1.2.zip" length="2064852" type="application/octet-stream" sparkle:edSignature="LEf6R9S0sWpjrDgDeLIza3fnlG3N8A20x8wlMTDlhLuvzgP9FnjO/MfBvgHOQChGowACuriURcYVvJXUZ2ZaCg=="/>
+        </item>
+        <item>
             <title>0.1.1</title>
             <pubDate>Fri, 25 Sep 2026 08:36:17 +0100</pubDate>
             <sparkle:version>2</sparkle:version>
