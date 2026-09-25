@@ -3,8 +3,8 @@ import Combine
 import SwiftUI
 
 /// A short, hands-on setup: five steps, each of which waits for you to do the
-/// thing rather than describing it. Shown once to new users; "Welcome Tour…"
-/// in the menu and General bring it back.
+/// thing rather than describing it. Shown once to new users; "Take the Tour"
+/// in Settings → General brings it back.
 @MainActor
 final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
     private static let completedKey = "onboardingCompleted"

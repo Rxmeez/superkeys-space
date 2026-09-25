@@ -10,6 +10,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Changed
 
+- **A shorter menu.** The menu bar menu is down to the on/off switch, Settings and Quit, plus What's New after an update and a fix-it item when something needs attention. The version, Check for Updates and the welcome tour are in Settings → General; Reset Access is in Advanced.
 - **Tidier Settings.** General is down to the essentials; the list of chords moved to a new Keys tab, Shortcuts is now Apps, and a new Advanced tab holds the config file and Reset Access.
 
 ### Removed

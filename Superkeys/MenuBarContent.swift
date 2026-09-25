@@ -1,54 +1,38 @@
 import SwiftUI
 
+/// Kept short: the on/off switch, a fix when something's wrong, and the way
+/// into Settings, which has everything else (version and updates, the tour,
+/// Reset Access).
 struct MenuBarContent: View {
     @EnvironmentObject private var state: AppState
-    @ObservedObject private var updater = Updater.shared
 
     var body: some View {
-        Text("Superkeys \(Updater.version)")
-        if let version = WhatsNew.pending {
-            Button("What's New in \(version)") { WhatsNew.show() }
+        switch state.status {
+        case .needsAccess:
+            Text("Needs Accessibility access")
+            Button("Grant Accessibility Access…") { Permissions.openAccessibilitySettings() }
+            Divider()
+        case .unavailable:
+            Text("Hyper and Meh keys couldn't start")
+            Button("Restart Hyper and Meh Keys") { state.restart() }
+            Divider()
+        case .on, .paused:
+            EmptyView()
         }
-        Text(statusLine)
-        if !state.lastAction.isEmpty {
-            Text(state.lastAction)
-        }
-        Divider()
         Toggle("Hyper and Meh Keys", isOn: Binding(
             get: { !state.paused },
             set: { state.setPaused(!$0) }
         ))
-        switch state.status {
-        case .needsAccess:
-            Button("Grant Accessibility Access…") { Permissions.openAccessibilitySettings() }
-            Button("Reset Accessibility Access…") { Permissions.resetAccessibility() }
-        case .unavailable:
-            Button("Restart Hyper and Meh Keys") { state.restart() }
-        case .on, .paused:
-            EmptyView()
-        }
         Divider()
-        if Updater.isEnabled {
-            Button("Check for Updates…") { Updater.shared.checkForUpdates() }
-                .disabled(!updater.canCheckForUpdates)
+        if let version = WhatsNew.pending {
+            Button("What's New in \(version)") { WhatsNew.show() }
         }
-        Button("Welcome Tour…") { OnboardingWindowController.show() }
         Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",")
-        Divider()
         Button("Quit Superkeys") {
             state.shutdown()
             NSApp.terminate(nil)
         }
         .keyboardShortcut("q")
-    }
-
-    private var statusLine: String {
-        switch state.status {
-        case .on: "Hyper and Meh keys are on"
-        case .paused: "Paused. Caps Lock and right ⌘ work as normal"
-        case .needsAccess: "Needs Accessibility access"
-        case .unavailable: "Hyper and Meh keys couldn't start"
-        }
     }
 }
