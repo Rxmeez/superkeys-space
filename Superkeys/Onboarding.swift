@@ -55,7 +55,7 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
     /// of snapping it; that's also how the tour teaches the chord.
     static func handleHyperArrow(_ side: WindowManager.Side) -> Bool {
         guard NSApp.isActive, let controller = current, controller.window?.isKeyWindow == true else { return false }
-        side == .left ? controller.tour.back() : controller.tour.next()
+        side == .left ? controller.tour.back() : controller.tour.skipAhead()
         return true
     }
 
@@ -128,6 +128,12 @@ private final class TourModel: ObservableObject {
     }
 
     func back() { move(-1) }
+
+    /// ✦ →: onward without choosing anything; adding keys and finishing are
+    /// the buttons' job.
+    func skipAhead() {
+        if step != .finish { move(1) }
+    }
 
     func move(_ delta: Int) {
         guard let target = Step(rawValue: step.rawValue + delta) else { return }
@@ -208,6 +214,10 @@ private struct OnboardingView: View {
             Spacer()
             if step != .welcome {
                 Button("Back") { tour.back() }
+                    .controlSize(.large)
+            }
+            if step == .apps, !tour.picks.chosen.isEmpty {
+                Button("Skip") { tour.skipAhead() }
                     .controlSize(.large)
             }
             primaryButton
@@ -295,58 +305,78 @@ private struct BigKey: View {
     }
 }
 
-/// The bottom row of a Mac keyboard with the right ⌘ pressing itself in a
-/// loop, because most people reach for the left one. Holding the real key
-/// keeps it lit.
-private struct ModifierRow: View {
+/// A row of a Mac keyboard with the key to use pressing itself in a loop,
+/// for the two keys people wouldn't guess: Caps Lock, and the right ⌘ rather
+/// than the left one. Holding the real key keeps it lit.
+private struct KeyboardRow: View {
+    struct Key: Identifiable {
+        let id: Int
+        var symbol = ""
+        var word = ""
+        var width: CGFloat = 1
+        var target = false
+        /// A look-alike to steer away from, shown faded with this note.
+        var decoy: String?
+        /// Caps Lock's little light.
+        var light = false
+    }
+
+    let keys: [Key]
+    let accent: Color
+    /// Shown on the target key while it's down.
+    let litSymbol: String
     let held: Bool
+    let description: String
+
     private let unit: CGFloat = 40
     @State private var pressed = false
 
-    private struct Key: Identifiable {
-        let id: Int
-        let symbol: String
-        let word: String
-        let width: CGFloat
-        var target = false
-        var left = false
+    static func capsLock(held: Bool) -> KeyboardRow {
+        KeyboardRow(keys: [Key(id: 0, word: "caps lock", width: 1.8, target: true, light: true)]
+                        + "ASDFGHJ".enumerated().map { Key(id: $0.offset + 1, symbol: String($0.element)) },
+                    accent: Accent.hyper, litSymbol: "sparkle", held: held,
+                    description: "Caps Lock, at the left end of the A row")
     }
 
-    private let keys: [Key] = [
-        Key(id: 0, symbol: "", word: "fn", width: 1),
-        Key(id: 1, symbol: "⌃", word: "control", width: 1),
-        Key(id: 2, symbol: "⌥", word: "option", width: 1),
-        Key(id: 3, symbol: "⌘", word: "command", width: 1.35, left: true),
-        Key(id: 4, symbol: "", word: "", width: 4.4),
-        Key(id: 5, symbol: "⌘", word: "command", width: 1.35, target: true),
-        Key(id: 6, symbol: "⌥", word: "option", width: 1),
-    ]
+    static func rightCommand(held: Bool) -> KeyboardRow {
+        KeyboardRow(keys: [
+            Key(id: 0, word: "fn"),
+            Key(id: 1, symbol: "⌃", word: "control"),
+            Key(id: 2, symbol: "⌥", word: "option"),
+            Key(id: 3, symbol: "⌘", word: "command", width: 1.35, decoy: "not this"),
+            Key(id: 4, width: 4.4),
+            Key(id: 5, symbol: "⌘", word: "command", width: 1.35, target: true),
+            Key(id: 6, symbol: "⌥", word: "option"),
+        ], accent: Accent.meh, litSymbol: "moon.fill", held: held,
+           description: "The right-hand Command key, beside the space bar")
+    }
 
     var body: some View {
         VStack(spacing: 6) {
-                HStack(spacing: 5) {
-                    ForEach(keys) { key in cap(key, down: key.target && (pressed || held)) }
-                }
-                HStack(spacing: 5) {
-                    ForEach(keys) { key in
-                        Group {
-                            if key.target {
-                                Label("this one", systemImage: "arrow.up")
-                                    .labelStyle(.titleAndIcon)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(Accent.meh)
-                                    .fixedSize()
-                            } else if key.left {
-                                Text("not this")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.tertiary)
-                            } else {
-                                Color.clear
-                            }
+            HStack(spacing: 5) {
+                ForEach(keys) { key in cap(key, down: key.target && (pressed || held)) }
+            }
+            HStack(spacing: 5) {
+                ForEach(keys) { key in
+                    Group {
+                        if key.target {
+                            Label("this one", systemImage: "arrow.up")
+                                .labelStyle(.titleAndIcon)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(accent)
+                                .fixedSize()
+                        } else if let decoy = key.decoy {
+                            Text(decoy)
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                                .fixedSize()
+                        } else {
+                            Color.clear
                         }
-                        .frame(width: key.width * unit, height: 14)
                     }
+                    .frame(width: key.width * unit, height: 14)
                 }
+            }
         }
         // Press quickly, hold, let go, rest; until the step goes away.
         .task {
@@ -357,34 +387,45 @@ private struct ModifierRow: View {
                 withAnimation(.easeInOut(duration: 0.3)) { pressed = false }
             }
         }
-        .accessibilityLabel("The right-hand Command key, beside the space bar")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(description)
     }
 
     private func cap(_ key: Key, down: Bool) -> some View {
         let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let ink: Color = down ? .white : (key.target ? .primary : .secondary)
         return ZStack {
             shape.fill(Color.primary.opacity(0.07))
-            shape.fill(Accent.gradient(Accent.meh)).opacity(down ? 1 : 0)
-            shape.stroke(key.target ? Accent.meh.opacity(down ? 0 : 0.6) : Color.primary.opacity(0.1), lineWidth: 1)
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Spacer()
-                    if key.target && down {
-                        Image(systemName: "moon.fill").font(.system(size: 9))
-                    } else {
-                        Text(key.symbol).font(.system(size: 11))
+            shape.fill(Accent.gradient(accent)).opacity(down ? 1 : 0)
+            shape.stroke(key.target ? accent.opacity(down ? 0 : 0.6) : Color.primary.opacity(0.1), lineWidth: 1)
+            if key.word.isEmpty {
+                // Letter keys: one centred character.
+                Text(key.symbol).font(.system(size: 13)).foregroundStyle(ink)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        if key.light {
+                            Circle().fill(down ? Color.white.opacity(0.9) : Color.secondary.opacity(0.35))
+                                .frame(width: 4, height: 4)
+                        }
+                        Spacer()
+                        if key.target && down {
+                            Image(systemName: litSymbol).font(.system(size: 9))
+                        } else {
+                            Text(key.symbol).font(.system(size: 11))
+                        }
                     }
+                    Spacer()
+                    Text(key.word).font(.system(size: 8.5))
                 }
-                Spacer()
-                Text(key.word).font(.system(size: 8.5))
+                .foregroundStyle(ink)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 4)
             }
-            .foregroundStyle(down ? Color.white : (key.target ? Color.primary : Color.secondary))
-            .padding(.horizontal, 5)
-            .padding(.vertical, 4)
         }
         .frame(width: key.width * unit, height: unit)
-        .opacity(key.left ? 0.45 : 1)
-        .shadow(color: key.target ? Accent.meh.opacity(down ? 0.6 : 0.2) : .clear, radius: down ? 14 : 6)
+        .opacity(key.decoy != nil ? 0.45 : 1)
+        .shadow(color: key.target ? accent.opacity(down ? 0.6 : 0.2) : .clear, radius: down ? 14 : 6)
         .offset(y: down ? 1.5 : 0)
         .scaleEffect(down ? 0.96 : 1)
     }
@@ -458,12 +499,12 @@ private struct TryHyperStep: View {
     var body: some View {
         VStack(spacing: 30) {
             Spacer(minLength: 0)
-            BigKey(symbol: "sparkle", legend: "caps lock", accent: Accent.hyper, lit: indicator.held, size: 130)
+            KeyboardRow.capsLock(held: indicator.held)
             StepHeader(eyebrow: "Step 2 · Try it",
                        title: tried ? "That's ✦ Hyper." : "Hold Caps Lock.",
                        detail: tried
                            ? "Keep holding for a moment and a panel lists everything ✦ does. ✦ ← and ✦ → snap a window; ✦ ↑ arranges them all."
-                           : "Press and hold it now. The key above lights up when Superkeys sees it.")
+                           : "Press and hold it now, on the left of your keyboard. The key above lights up when Superkeys sees it.")
             Spacer(minLength: 0)
         }
         .onChange(of: indicator.held) { _, held in
@@ -652,7 +693,7 @@ private struct FinishStep: View {
 
     var body: some View {
         VStack(spacing: 22) {
-            ModifierRow(held: indicator.meh)
+            KeyboardRow.rightCommand(held: indicator.meh)
             StepHeader(eyebrow: "Step 4 · Desktops",
                        title: "And ☾ is for desktops.",
                        detail: "Hold right ⌘ and press 2 to go to Desktop 2; it's created if you don't have one. Right ⌘ with right ⌥ flips back.")
