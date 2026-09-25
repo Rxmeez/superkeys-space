@@ -107,10 +107,12 @@ enum HIDRemap {
         let kept = theirs.filter { !ourSources.contains($0[source] ?? 0) }
         if write(kept + ours) {
             saved = theirs
+            Watchdog.start(restoring: theirs)
         }
     }
 
     static func disable() {
+        Watchdog.stop()
         if let saved {
             if write(saved) { self.saved = nil }
         } else {
@@ -137,6 +139,50 @@ enum HIDRemap {
             }
         }
         return []
+    }
+
+    /// If Superkeys is force-quit or crashes, nothing would take its
+    /// mappings back out, and Caps Lock would stay dead until the next launch.
+    /// A tiny shell process outlives it, notices within two seconds that it's
+    /// gone, and restores the user's own mappings with hidutil.
+    private enum Watchdog {
+        private static let pidKey = "remapWatchdogPID"
+        private static var process: Process?
+
+        static func start(restoring mappings: [Mapping]) {
+            stop()
+            let json = mappings.map { m in
+                "{\"\(source)\":\(m[source] ?? 0),\"\(destination)\":\(m[destination] ?? 0)}"
+            }.joined(separator: ",")
+            let script = """
+            while /bin/kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do /bin/sleep 2; done
+            /usr/bin/hidutil property --set '{"UserKeyMapping":[\(json)]}' >/dev/null
+            """
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/bin/sh")
+            task.arguments = ["-c", script]
+            task.standardOutput = FileHandle.nullDevice
+            task.standardError = FileHandle.nullDevice
+            guard (try? task.run()) != nil else { return }
+            process = task
+            UserDefaults.standard.set(Int(task.processIdentifier), forKey: pidKey)
+        }
+
+        /// Stops this run's watcher, and one left over from a run that
+        /// crashed, before it could undo the mapping about to be installed.
+        static func stop() {
+            process?.terminate()
+            process = nil
+            let stale = UserDefaults.standard.integer(forKey: pidKey)
+            if stale > 0, isWatchdog(pid_t(stale)) { kill(pid_t(stale), SIGTERM) }
+            UserDefaults.standard.removeObject(forKey: pidKey)
+        }
+
+        private static func isWatchdog(_ pid: pid_t) -> Bool {
+            var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
+            guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return false }
+            return String(cString: buffer) == "/bin/sh"
+        }
     }
 
     private static func write(_ mappings: [Mapping]) -> Bool {
