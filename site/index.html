@@ -274,7 +274,7 @@
       /* ---------- hero loop ---------- */
       .hero-loop {
         position: relative;
-        max-width: 780px;
+        max-width: 960px;
         margin: 44px auto 0;
       }
       .hero-loop::before {
@@ -320,6 +320,49 @@
       .displays-chords {
         max-width: 760px;
         margin: 28px auto 0;
+      }
+
+      .hero-chips {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .hero-chips button {
+        position: relative;
+        overflow: hidden;
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 17px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--faint);
+        font: 500 14px system-ui, -apple-system, sans-serif;
+        cursor: pointer;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+      }
+      .hero-chips button:hover {
+        color: var(--text);
+      }
+      .hero-chips button.on {
+        color: var(--text);
+        border-color: rgba(255, 184, 77, 0.55);
+        background: rgba(255, 184, 77, 0.1);
+      }
+      /* progress fill inside the active chip */
+      .hero-chips button::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        width: calc(var(--p, 0) * 100%);
+        background: var(--amber);
+      }
+      .hero-chips button:not(.on)::after {
+        width: 0;
       }
 
       /* ---------- compare ---------- */
@@ -815,7 +858,13 @@
           <p class="meta" style="margin-top: 6px">macOS asks you to approve it the first time: <a href="install.html" style="color: var(--muted)">here's how</a>.</p>
           <p class="meta" style="margin-top: 6px">macOS 14 or later · Native Swift</p>
           <div class="hero-loop">
-            <video src="assets/hero-arrange.mp4" poster="assets/hero-arrange.jpg" autoplay muted loop playsinline preload="auto" width="1120" height="808" aria-label="Three overlapping windows snap into a layout when ✦ ↑ is pressed, then one swaps into the large slot"></video>
+            <video id="hero-video" src="assets/hero-tour.mp4" poster="assets/hero-tour.jpg" autoplay muted loop playsinline preload="auto" width="1200" height="684" aria-label="Superkeys in use: opening apps with ✦ and a key, snapping and arranging windows, walking a window across two displays, and switching desktops on one display at a time"></video>
+          </div>
+          <div class="hero-chips" role="tablist" aria-label="Features">
+            <button type="button" data-start="0" data-end="4.05">Open apps</button>
+            <button type="button" data-start="4.05" data-end="8.25">Snap &amp; arrange</button>
+            <button type="button" data-start="8.25" data-end="12.85">Across displays</button>
+            <button type="button" data-start="12.85" data-end="99">Desktops per display</button>
           </div>
         </div>
       </header>
@@ -917,7 +966,7 @@
             <p class="sub" style="font-size: 16px">Desktops that don't exist yet are created for you.</p>
           </div>
           <div class="shot">
-            <img src="assets/chords-meh.png" width="438" height="258" alt="The ☾ Meh chord panel showing desktops 1 to 4" loading="lazy" />
+            <img src="assets/chords-meh.png" width="436" height="326" alt="The ☾ Meh chord panel with a row of desktops for each display" loading="lazy" />
           </div>
         </div>
       </section>
@@ -955,7 +1004,7 @@
             </p>
           </div>
           <div class="shot">
-            <img src="assets/chords-hyper.png" width="438" height="319" alt="The ✦ Hyper chord panel listing window chords and app keys" loading="lazy" />
+            <img src="assets/chords-hyper.png" width="436" height="345" alt="The ✦ Hyper chord panel listing window chords and app keys" loading="lazy" />
           </div>
         </div>
       </section>
@@ -1082,6 +1131,35 @@
           video.pause();
         }
       }, { threshold: 0.25 }).observe(video);
+
+      // The hero cycles through four features; the chip for the one playing
+      // lights up and fills, and clicking a chip jumps to it.
+      const heroVideo = document.getElementById("hero-video");
+      const chips = [...document.querySelectorAll(".hero-chips button")];
+      function syncChips() {
+        const t = heroVideo.currentTime;
+        for (const chip of chips) {
+          const start = +chip.dataset.start, end = Math.min(+chip.dataset.end, heroVideo.duration || 99);
+          const on = t >= start && t < end;
+          chip.classList.toggle("on", on);
+          chip.setAttribute("aria-selected", String(on));
+          if (on) chip.style.setProperty("--p", ((t - start) / (end - start)).toFixed(3));
+        }
+        if (!heroVideo.paused) requestAnimationFrame(syncChips);
+      }
+      heroVideo.addEventListener("play", () => requestAnimationFrame(syncChips));
+      heroVideo.addEventListener("seeked", syncChips);
+      for (const chip of chips) {
+        chip.addEventListener("click", () => {
+          heroVideo.currentTime = +chip.dataset.start + 0.01;
+          heroVideo.play().catch(() => {});
+        });
+      }
+      if (reduceMotion.matches) {
+        heroVideo.removeAttribute("autoplay");
+        heroVideo.pause();
+      }
+      syncChips();
 
       // Copy the install command; the button shows a tick for a moment.
       const copyButton = document.getElementById("brew-copy");
