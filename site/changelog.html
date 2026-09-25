@@ -238,6 +238,31 @@
         <h1>Changelog</h1>
         <p class="lede">Every release of Superkeys. Installed copies update themselves; this is what changed.</p>
       </header>
+      <section class="release" id="v0.2.0">
+        <h2>0.2.0 <time datetime="2026-09-25">2026-09-25</time></h2>
+        <h3>Added</h3>
+        <ul>
+          <li><strong>Multiple displays.</strong> ✦ ← / → snap to a half, and pressed again at the edge walk the window onto the neighbouring display&#x27;s facing half. ✦ ⌥ ← / → move the window to the next display as it is. ✦ ↩&#x27;s restore works across displays.</li>
+          <li><strong>Desktops per display.</strong> ☾ 1–9 switch the display under the pointer, ☾ ⇧ 1–9 move a window within its own display, and ☾ right ⌥ remembers the previous desktop separately for each display. The chord panel shows one row of desktops per display. Settings → Permissions checks that &quot;Displays have separate Spaces&quot; is on when more than one display is connected.</li>
+          <li><strong>Caps Lock is never left dead.</strong> If Superkeys crashes or is force-quit, Caps Lock and right ⌘ go back to normal within two seconds instead of staying remapped until the next launch.</li>
+          <li><strong>&quot;Keys aren&#x27;t working&quot; is visible and fixable.</strong> The menu bar logo shows an orange dot when the keys should be on but aren&#x27;t, and Settings and the menu offer Reset Access for the case where the Accessibility switch looks on but macOS is holding an old entry.</li>
+          <li><strong>What&#x27;s New after an update</strong>, in the menu until you&#x27;ve read it once.</li>
+          <li><strong>Try it</strong>: right after setup, General asks you to hold Caps Lock and confirms it works.</li>
+          <li>Superkeys and Superkeys Dev (a development build) no longer run at the same time; launching one offers to quit the other.</li>
+        </ul>
+        <h3>Fixed</h3>
+        <ul>
+          <li><strong>☾ ⇧ 1–9 moves windows again.</strong> A recent macOS change made it ignore the drag Superkeys uses to carry a window to another desktop; 0.1.x switched desktops but left the window behind.</li>
+          <li>Moving a wide window no longer grabs a toolbar button instead of the title bar.</li>
+          <li>New desktops are always added to the right display, and never more than needed.</li>
+        </ul>
+        <h3>Changed</h3>
+        <ul>
+          <li><strong>New app icon</strong>: the moon-and-stars mark on a dark keycap, matching the menu bar and superkeys.space. Development builds get an indigo &quot;DEV&quot; version.</li>
+          <li>The privacy note now mentions the once-a-day update check, which sends nothing but the app&#x27;s version.</li>
+          <li>Pressing ✦ ← or ✦ → again no longer restores the window&#x27;s previous frame; ✦ ↩ still does.</li>
+        </ul>
+      </section>
       <section class="release" id="v0.1.2">
         <h2>0.1.2 <time datetime="2026-09-25">2026-09-25</time></h2>
         <h3>Added</h3>
