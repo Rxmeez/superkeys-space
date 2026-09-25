@@ -74,6 +74,7 @@ final class AppState: ObservableObject {
 
     func bootstrap() {
         _ = BindingsStore.shared
+        ConfigSync.shared.start()
         MissionControlShortcuts.enable()
         WhatsNew.noteLaunch()
         SpaceManager.shared.trackDesktops()

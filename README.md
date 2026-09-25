@@ -97,21 +97,21 @@ Releases are signed with a self-signed "Superkeys" certificate and a Sparkle upd
 - The Xcode project is generated: edit `scripts/generate_project.py`, not the `.pbxproj`.
 - Debug builds are "Superkeys Dev" (`space.superkeys.dev`) with their own Accessibility entry and preferences, so they never get mixed up with an installed release. Quit one before running the other: both remap the same keys.
 
-## Settings file
+## Config file
 
-Settings → General → **Export…** saves your app keys and preferences as JSON, to back up, edit, or move to another Mac. **Import…** shows what it will replace, and anything it had to skip, before changing anything.
+Your app keys and preferences live in `~/.config/superkeys/config.toml` (or under `$XDG_CONFIG_HOME`). It's kept in step both ways: change something in Settings and the file is rewritten; save the file in any editor and Superkeys applies it straight away. Keep it in your dotfiles to carry your setup to another Mac. Settings → Advanced shows the path, opens it, and lists any line it couldn't use.
 
-```json
-{
-  "version": 1,
-  "showChordsWhileHeld": true,
-  "apps": [
-    { "key": "B", "keyCode": 11, "bundleID": "app.zen-browser.zen", "name": "Zen" }
-  ]
-}
+```toml
+show_chords_while_held = true
+desktop_numbering = "global"   # or "per-display"
+
+[apps]
+B = "app.zen-browser.zen"  # Zen
+T = "com.mitchellh.ghostty"
+";" = "com.apple.Safari"
 ```
 
-When editing by hand, `keyCode` and `name` are optional: give `key` as a letter, digit, punctuation mark, or a name such as `F5`, `Space`, or `Tab`. Arrow keys and Return can't be assigned because ✦ uses them for windows.
+Keys are written as you'd type them: a letter, digit, punctuation mark (quoted), or a name such as `F5`, `Space`, or `Tab`; `"code:50"` pins a raw key code. Apps are bundle IDs (`osascript -e 'id of app "Safari"'`). Arrow keys and Return can't be assigned because ✦ uses them for windows. A file with a syntax error isn't applied at all, and Superkeys won't overwrite it until it's fixed, so a typo never wipes your setup. Development builds use `~/.config/superkeys-dev/`.
 
 ## Privacy
 

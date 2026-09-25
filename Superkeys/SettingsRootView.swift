@@ -4,7 +4,6 @@ import SwiftUI
 
 struct GeneralTab: View {
     @EnvironmentObject private var state: AppState
-    let showShortcuts: () -> Void
 
     var body: some View {
         Form {
@@ -17,12 +16,13 @@ struct GeneralTab: View {
                         Text("Hyper and Meh keys")
                         Text(state.paused
                              ? "Paused. Caps Lock and right ⌘ work as normal."
-                             : "Neither key types, locks, or reaches other apps.")
+                             : "✦ Caps Lock and ☾ right ⌘. Neither types, locks, or reaches other apps.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
                 .toggleStyle(.switch)
+                .accessibilityLabel("Hyper and Meh keys")
 
                 if state.status == .needsAccess || state.status == .unavailable {
                     SetupNotice()
@@ -30,39 +30,6 @@ struct GeneralTab: View {
                 if state.status == .on {
                     TryItRow()
                 }
-            } footer: {
-                if !state.lastAction.isEmpty {
-                    Text("Last action: \(state.lastAction)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Section {
-                LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock")
-                ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half. Again to move to the next display")
-                ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
-                ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen. Press again to restore")
-                ChordRow(keys: [Glyph.hyper, "↑"], detail: "Arrange up to 4 windows on this screen. Again to undo")
-                ChordRow(keys: [Glyph.hyper, "⇧", "←↑↓→"], detail: "Swap the window with the one next to it")
-                LabeledContent("Open an app you've assigned") {
-                    HStack(spacing: 10) {
-                        Button("Edit Apps…", action: showShortcuts)
-                            .buttonStyle(.link)
-                        KeyCombo(keys: [Glyph.hyper, "key"])
-                    }
-                }
-            }
-
-            Section {
-                LayerKeyRow(layer: .meh, title: "Meh Key", detail: "Hold right ⌘")
-                ChordRow(keys: [Glyph.meh, "1–9"], detail: "Switch to that desktop on the display under the pointer")
-                ChordRow(keys: [Glyph.meh, "⇧", "1–9"], detail: "Move the window there and follow it")
-                ChordRow(keys: [Glyph.meh, "right ⌥"], detail: "Flip back to the previous desktop")
-            } footer: {
-                Text("Desktops that don't exist yet are created for you.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -75,34 +42,64 @@ struct GeneralTab: View {
                     }
                 }
                 .toggleStyle(.switch)
+                .accessibilityLabel("Show chords while a key is held")
                 Toggle("Open at login", isOn: Binding(
                     get: { state.launchAtLogin },
                     set: { state.setLaunchAtLogin($0) }
                 ))
+                .toggleStyle(.switch)
+            }
+
+            Section {
                 UpdatesRow()
+            }
+
+            Section {
                 LabeledContent {
                     Button("Take the Tour") { OnboardingWindowController.show() }
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Welcome tour")
-                        Text("A two-minute, hands-on walk through the keys.")
+                        Text("A short, hands-on walk through the two keys.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
-                LabeledContent {
-                    HStack {
-                        Button("Import…") { SettingsTransfer.importFile() }
-                        Button("Export…") { SettingsTransfer.export() }
-                    }
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Settings file")
-                        Text("Your app shortcuts and preferences as JSON, to back up, edit, or move to another Mac.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+// MARK: - Keys
+
+/// Everything the two keys do, for reference.
+struct KeysTab: View {
+    let showApps: () -> Void
+
+    var body: some View {
+        Form {
+            Section {
+                LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock. Apps and windows.")
+                ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app, or bring it forward") {
+                    Button("Edit Apps…", action: showApps).buttonStyle(.link)
                 }
+                ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half; again for the next display")
+                ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
+                ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen; again to restore")
+                ChordRow(keys: [Glyph.hyper, "↑"], detail: "Arrange up to 4 windows on this screen; again to undo")
+                ChordRow(keys: [Glyph.hyper, "⇧", "←↑↓→"], detail: "Swap the window with the one next to it")
+            }
+
+            Section {
+                LayerKeyRow(layer: .meh, title: "Meh Key", detail: "Hold right ⌘. Desktops.")
+                ChordRow(keys: [Glyph.meh, "1–9"], detail: "Switch to that desktop, adding it if needed")
+                ChordRow(keys: [Glyph.meh, "⇧", "1–9"], detail: "Move the window there and follow it")
+                ChordRow(keys: [Glyph.meh, "right ⌥"], detail: "Flip back to the previous desktop")
+            } footer: {
+                Text("With more than one display, ☾ acts on the display under the pointer.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -145,25 +142,26 @@ private struct TryItRow: View {
     }
 }
 
-/// Version, automatic update checks, and a manual check.
+/// Version, with a manual check beside it, and automatic updates.
 private struct UpdatesRow: View {
     @ObservedObject private var updater = Updater.shared
 
     var body: some View {
         if Updater.isEnabled {
+            LabeledContent("Version \(Updater.version)") {
+                Button("Check for Updates") { updater.checkForUpdates() }
+                    .disabled(!updater.canCheckForUpdates)
+            }
             Toggle(isOn: $updater.checksAutomatically) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Keep Superkeys up to date")
-                    Text("Version \(Updater.version). New versions install in the background, and your keys keep working.")
+                    Text("Install updates automatically")
+                    Text("Checked once a day. Your keys keep working through updates.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .toggleStyle(.switch)
-            LabeledContent("Check for a new version now") {
-                Button("Check Now") { updater.checkForUpdates() }
-                    .disabled(!updater.canCheckForUpdates)
-            }
+            .accessibilityLabel("Install updates automatically")
         } else {
             LabeledContent("Version", value: Updater.version)
         }
@@ -263,13 +261,23 @@ private struct SetupNotice: View {
     }
 }
 
-private struct ChordRow: View {
+private struct ChordRow<Accessory: View>: View {
     let keys: [String]
     let detail: String
+    let accessory: Accessory
+
+    init(keys: [String], detail: String, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
+        self.keys = keys
+        self.detail = detail
+        self.accessory = accessory()
+    }
 
     var body: some View {
         LabeledContent(detail) {
-            KeyCombo(keys: keys)
+            HStack(spacing: 10) {
+                accessory
+                KeyCombo(keys: keys)
+            }
         }
     }
 }
@@ -367,5 +375,84 @@ private struct PermissionRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Advanced
+
+struct AdvancedTab: View {
+    @ObservedObject private var config = ConfigSync.shared
+    @EnvironmentObject private var state: AppState
+
+    var body: some View {
+        Form {
+            Section {
+                LabeledContent {
+                    HStack {
+                        Button("Show in Finder") { config.revealInFinder() }
+                        Button("Open") { config.open() }
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Config file")
+                        Text(config.displayPath)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    }
+                }
+                if config.problems.isEmpty {
+                    Label("In step with Settings", systemImage: "checkmark.circle")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                } else {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label(config.notApplied ? "Not applied: fix the file and save it again"
+                                                : "Applied, except for these lines",
+                              systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                        ForEach(config.problems.prefix(6)) { problem in
+                            Text("Line \(problem.line): \(problem.message)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+            } footer: {
+                Text("Your app keys and preferences as a text file. Edit it in any editor and Superkeys applies it when you save; changes made here are written back. Keep it in your dotfiles to carry your setup to another Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section {
+                Picker(selection: Binding(
+                    get: { SpaceManager.numbering },
+                    set: { config.setDesktopNumbering($0) }
+                )) {
+                    Text("Across all displays").tag(SpaceManager.Numbering.global)
+                    Text("Per display").tag(SpaceManager.Numbering.perDisplay)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Desktop numbers")
+                        Text("With several displays, which desktop ☾ 1–9 mean. macOS counts across all of them.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                LabeledContent {
+                    Button("Reset Access…") { Permissions.resetAccessibility() }
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Accessibility looks on but the keys don't work")
+                        Text("Clears the old entry macOS keeps, so you can switch Superkeys on again.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
     }
 }

@@ -4,6 +4,18 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Config file.** Your app keys and preferences now live in `~/.config/superkeys/config.toml` as well, kept in step both ways: change something in Settings and the file is updated; edit and save the file and Superkeys applies it right away. Keep it in your dotfiles to carry your setup to another Mac. Settings → Advanced opens it and points out any line it couldn't use; a file with a mistake in it is never half-applied or overwritten.
+
+### Changed
+
+- **Tidier Settings.** General is down to the essentials; the list of chords moved to a new Keys tab, Shortcuts is now Apps, and a new Advanced tab holds the config file, desktop numbering and Reset Access.
+
+### Removed
+
+- Import and Export in Settings, replaced by the config file.
+
 ## [0.2.2] - 2026-09-25
 
 ### Added

@@ -28,7 +28,7 @@
 		9F08EA61E3158D52386CFE84 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E745D1F8BCE779B268F0C1F /* Components.swift */; };
 		10FC7CA0D8C3DA53135DAFE1 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A234E8085102C07AA1EF2A19 /* SettingsWindowController.swift */; };
 		65C0FB6E66C8C0EC5F5642C1 /* CheatSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8065CDD7F20D478498D855C9 /* CheatSheet.swift */; };
-		BF7551CB9899E096E5EC3F3F /* SettingsFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BB6637E4C90A219090F156 /* SettingsFile.swift */; };
+		135D798CC19CA3A7417FE9D6 /* ConfigFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EE40042F7E2B0A37531966 /* ConfigFile.swift */; };
 		6BAD044250C223CFFFF63133 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CFE65D9FC43ED57FF3F139C /* MenuBarContent.swift */; };
 		6EEEE39B1AB4355FA617C29C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 926215B008EBBA578C8620F6 /* Assets.xcassets */; };
 		1729184AAC930945DD8FD3C5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E257411060E62DB471F2482 /* AppKit.framework */; };
@@ -65,7 +65,7 @@
 		3E745D1F8BCE779B268F0C1F /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		A234E8085102C07AA1EF2A19 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		8065CDD7F20D478498D855C9 /* CheatSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheatSheet.swift; sourceTree = "<group>"; };
-		43BB6637E4C90A219090F156 /* SettingsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFile.swift; sourceTree = "<group>"; };
+		33EE40042F7E2B0A37531966 /* ConfigFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigFile.swift; sourceTree = "<group>"; };
 		8CFE65D9FC43ED57FF3F139C /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		926215B008EBBA578C8620F6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BD69E47D82E914B1416E824A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -135,7 +135,7 @@
 				3E745D1F8BCE779B268F0C1F /* Components.swift */,
 				A234E8085102C07AA1EF2A19 /* SettingsWindowController.swift */,
 				8065CDD7F20D478498D855C9 /* CheatSheet.swift */,
-				43BB6637E4C90A219090F156 /* SettingsFile.swift */,
+				33EE40042F7E2B0A37531966 /* ConfigFile.swift */,
 				8CFE65D9FC43ED57FF3F139C /* MenuBarContent.swift */,
 				926215B008EBBA578C8620F6 /* Assets.xcassets */,
 				BD69E47D82E914B1416E824A /* Info.plist */,
@@ -258,7 +258,7 @@
 				9F08EA61E3158D52386CFE84 /* Components.swift in Sources */,
 				10FC7CA0D8C3DA53135DAFE1 /* SettingsWindowController.swift in Sources */,
 				65C0FB6E66C8C0EC5F5642C1 /* CheatSheet.swift in Sources */,
-				BF7551CB9899E096E5EC3F3F /* SettingsFile.swift in Sources */,
+				135D798CC19CA3A7417FE9D6 /* ConfigFile.swift in Sources */,
 				6BAD044250C223CFFFF63133 /* MenuBarContent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

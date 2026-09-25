@@ -20,7 +20,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     static var isOpen: Bool { current?.window?.isVisible == true }
 
     enum Pane: Int {
-        case general, shortcuts, permissions
+        case general, keys, apps, permissions, advanced
     }
 
     private let tabs = NSTabViewController()
@@ -39,12 +39,15 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
         // Each pane gets the height its content needs; the window resizes as
         // you switch, like other macOS settings windows.
-        tabs.addTabViewItem(Self.item("General", symbol: "slider.horizontal.3", height: Self.generalHeight,
-                                      GeneralTab(showShortcuts: { [weak self] in self?.select(.shortcuts) })))
-        let shortcuts = Self.item("Shortcuts", symbol: "keyboard", height: 440, ShortcutsTab())
+        tabs.addTabViewItem(Self.item("General", symbol: "gearshape", height: Self.generalHeight, GeneralTab()))
+        tabs.addTabViewItem(Self.item("Keys", symbol: "command", height: Self.keysHeight,
+                                      KeysTab(showApps: { [weak self] in self?.select(.apps) })))
+        let shortcuts = Self.item("Apps", symbol: "square.grid.2x2", height: 440, ShortcutsTab())
         tabs.addTabViewItem(shortcuts)
         let permissions = Self.item("Permissions", symbol: "lock.shield", height: 260, PermissionsTab())
         tabs.addTabViewItem(permissions)
+        tabs.addTabViewItem(Self.item("Advanced", symbol: "wrench.and.screwdriver", height: Self.advancedHeight,
+                                      AdvancedTab()))
         window.delegate = self
         window.center()
 
@@ -68,7 +71,9 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private static let paneWidth: CGFloat = 700
-    private static let generalHeight: CGFloat = 790
+    private static let generalHeight: CGFloat = 380
+    private static let keysHeight: CGFloat = 560
+    private static let advancedHeight: CGFloat = 380
 
     private static func shortcutsHeight(rows: Int) -> CGFloat {
         rows == 0 ? 300 : min(620, max(240, 162 + CGFloat(rows) * 42))
@@ -126,9 +131,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         NSApp.setActivationPolicy(.accessory)
         // Next time it opens, each tab fits its content again.
         fitsContent = true
-        let heights: [CGFloat] = [Self.generalHeight,
+        let heights: [CGFloat] = [Self.generalHeight, Self.keysHeight,
                                   Self.shortcutsHeight(rows: BindingsStore.shared.bindings.count),
-                                  AppState.shared.status == .unavailable ? 330 : 260]
+                                  AppState.shared.status == .unavailable ? 330 : 260,
+                                  Self.advancedHeight]
         for (item, height) in zip(tabs.tabViewItems, heights) {
             item.viewController?.preferredContentSize = NSSize(width: Self.paneWidth, height: height)
         }
