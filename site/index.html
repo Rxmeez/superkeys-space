@@ -660,6 +660,42 @@
         height: auto;
       }
 
+      /* groups: ✦ O then P */
+      .group-demo {
+        margin-top: 30px;
+      }
+      .group-demo strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .group-panel {
+        display: inline-grid;
+        gap: 10px;
+        padding: 18px 22px;
+        border-radius: 18px;
+        background: radial-gradient(260px 120px at 20% 0%, rgba(255, 184, 77, 0.12), transparent 70%), var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 15px;
+      }
+      .group-panel .gp-head,
+      .group-panel .gp-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .group-panel .gp-head {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .group-panel .dim {
+        color: var(--faint);
+      }
+      .group-panel .gp-foot {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--faint);
+      }
+
       /* keystrokes: a terminal with the chord that just went in */
       .term {
         width: 100%;
@@ -990,6 +1026,19 @@
               ✦ B for your browser, ✦ T for your terminal, ✦ N for notes. Any key you like, set in a second: pick the
               app, press the key.
             </p>
+            <div class="group-demo">
+              <p class="sub" style="font-size: 16px; margin: 0 0 14px">
+                <strong>Out of letters? Make a group.</strong> ✦ O then P opens 1Password, ✦ O then S opens Slack.
+                ✦ O on its own still opens its app when you let go, and holding a moment shows what's in the group.
+              </p>
+              <div class="group-panel" role="img" aria-label="The group panel: ✦ O then P for 1Password, S for Slack, K sends ⌘ K; let go of ✦ for Obsidian">
+                <div class="gp-head"><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">O</span></span><span>then…</span></div>
+                <div class="gp-row"><span class="kc">P</span><span>1Password</span></div>
+                <div class="gp-row"><span class="kc">S</span><span>Slack</span></div>
+                <div class="gp-row"><span class="kc">K</span><span class="dim">→</span><span class="combo"><span class="kc">⌘</span><span class="kc">K</span></span></div>
+                <div class="gp-foot">Let go of ✦: Obsidian · esc: cancel</div>
+              </div>
+            </div>
           </div>
           <div class="shot">
             <img src="assets/settings-shortcuts.png" width="700" height="368" alt="Superkeys Shortcuts settings with Zen on ✦ B, Ghostty on ✦ T and Notes on ✦ N" loading="lazy" />
@@ -1094,7 +1143,8 @@
 C = <span class="s">"ctrl+c"</span>
 D = <span class="s">"ctrl+d"</span>
 R = <span class="s">"ctrl+r"</span>
-W = <span class="s">"cmd+shift+t"</span>  <span class="c"># reopen a closed tab</span></pre>
+W = <span class="s">"cmd+shift+t"</span>  <span class="c"># reopen a closed tab</span>
+<span class="s">"O K"</span> = <span class="s">"cmd+k"</span>        <span class="c"># a group: ✦ O then K</span></pre>
             <p class="sub" style="font-size: 16px">
               Set them up in the welcome tour, in Settings, or in a plain config file that lives happily in your
               dotfiles and applies the moment you save it.

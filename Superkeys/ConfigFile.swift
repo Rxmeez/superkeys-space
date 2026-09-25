@@ -59,8 +59,9 @@ struct ConfigFile {
         desktop_numbering = "\(desktopNumbering == .global ? "global" : "per-display")"
 
         # ✦ plus a key opens an app, or brings it forward. Write keys as you'd type
-        # them ("B", "5", "F5", ";") and apps by bundle ID. To find an app's ID:
-        #   osascript -e 'id of app "Safari"'
+        # them ("B", "5", "F5", ";") and apps by bundle ID. Two keys make a group:
+        # "O P" is ✦ O then P, and ✦ O alone still works when you let go of ✦.
+        # To find an app's ID:  osascript -e 'id of app "Safari"'
         [apps]
 
         """
@@ -78,7 +79,7 @@ struct ConfigFile {
         [keys]
 
         """
-        let strokes = keystrokes.map { (key: Self.tomlKey(keyCode: $0.keyCode, label: $0.label), stroke: $0) }
+        let strokes = keystrokes.map { (key: Self.tomlKey(keyCode: $0.keyCode, label: $0.label, keyCode2: $0.keyCode2, label2: $0.label2), stroke: $0) }
         let strokeWidth = strokes.map(\.key.count).max() ?? 0
         for entry in strokes {
             let padding = String(repeating: " ", count: strokeWidth - entry.key.count)
@@ -90,13 +91,19 @@ struct ConfigFile {
     /// The key as written in the file: its label when that reads back as the
     /// same physical key, otherwise the raw key code, e.g. "code:50".
     private static func tomlKey(for app: BoundApp) -> String {
-        tomlKey(keyCode: app.keyCode, label: app.label)
+        tomlKey(keyCode: app.keyCode, label: app.label, keyCode2: app.keyCode2, label2: app.label2)
     }
 
-    private static func tomlKey(keyCode: Int, label appLabel: String) -> String {
-        let label = KeyCodes.keyCode(forLabel: appLabel) == keyCode ? appLabel : "code:\(keyCode)"
-        let bare = label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_" || $0 == "-") }
-        return bare ? label : quoted(label)
+    /// "O", or "O P" for a group; a key whose label wouldn't read back as the
+    /// same physical key is written by code, e.g. "code:50".
+    private static func tomlKey(keyCode: Int, label: String, keyCode2: Int? = nil, label2: String? = nil) -> String {
+        func part(_ code: Int, _ label: String) -> String {
+            KeyCodes.keyCode(forLabel: label) == code ? label : "code:\(code)"
+        }
+        var text = part(keyCode, label)
+        if let keyCode2, let label2 { text += " " + part(keyCode2, label2) }
+        let bare = text.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_" || $0 == "-") }
+        return bare ? text : quoted(text)
     }
 
     private static func quoted(_ s: String) -> String {
@@ -110,7 +117,7 @@ struct ConfigFile {
         var problems: [Problem] = []
         var syntaxError = false
         var section = ""
-        var seenKeys = Set<Int>()
+        var seenKeys = Set<String>()
 
         for (index, raw) in text.components(separatedBy: .newlines).enumerated() {
             let number = index + 1
@@ -154,21 +161,10 @@ struct ConfigFile {
                     problems.append(Problem(line: number, message: "✦ \(key): write what to send like \"ctrl+c\" or \"cmd+shift+t\"."))
                     continue
                 }
-                guard let keyCode = keyCode(for: key) else {
-                    problems.append(Problem(line: number, message: "“\(key)” isn't a key Superkeys recognises."))
-                    continue
-                }
-                if let reason = reservedReason(keyCode) {
-                    problems.append(Problem(line: number, message: "✦ \(key): \(reason)"))
-                    continue
-                }
-                guard seenKeys.insert(keyCode).inserted else {
-                    problems.append(Problem(line: number, message: "✦ \(key) is used twice; the first one is kept."))
-                    continue
-                }
-                let label = key.hasPrefix("code:") ? KeyCodes.label(forKeyCode: keyCode, characters: nil) : key.uppercased()
-                config.keystrokes.append(Keystroke(keyCode: keyCode, label: label, sendKeyCode: sent.keyCode,
-                                                   sendModifiers: sent.modifiers, sendLabel: sent.label))
+                guard let chord = chord(key, line: number, seen: &seenKeys, problems: &problems) else { continue }
+                config.keystrokes.append(Keystroke(keyCode: chord.first, label: chord.label, sendKeyCode: sent.keyCode,
+                                                   sendModifiers: sent.modifiers, sendLabel: sent.label,
+                                                   keyCode2: chord.second, label2: chord.label2))
             case ("apps", _):
                 guard case .string(let bundleID) = value, !bundleID.isEmpty else {
                     problems.append(Problem(line: number, message: "✦ \(key): the app goes in quotes, as its bundle ID."))
@@ -179,21 +175,10 @@ struct ConfigFile {
                     problems.append(Problem(line: number, message: "✦ \(key): “\(bundleID)” isn't an app's bundle ID. Key combinations go under [keys]."))
                     continue
                 }
-                guard let keyCode = keyCode(for: key) else {
-                    problems.append(Problem(line: number, message: "“\(key)” isn't a key Superkeys recognises."))
-                    continue
-                }
-                if let reason = reservedReason(keyCode) {
-                    problems.append(Problem(line: number, message: "✦ \(key): \(reason)"))
-                    continue
-                }
-                guard seenKeys.insert(keyCode).inserted else {
-                    problems.append(Problem(line: number, message: "✦ \(key) is used twice; the first one is kept."))
-                    continue
-                }
-                let label = key.hasPrefix("code:") ? KeyCodes.label(forKeyCode: keyCode, characters: nil) : key.uppercased()
-                config.apps.append(BoundApp(keyCode: keyCode, label: label, bundleID: bundleID,
-                                            name: installedName(bundleID) ?? bundleID))
+                guard let chord = chord(key, line: number, seen: &seenKeys, problems: &problems) else { continue }
+                config.apps.append(BoundApp(keyCode: chord.first, label: chord.label, bundleID: bundleID,
+                                            name: installedName(bundleID) ?? bundleID,
+                                            keyCode2: chord.second, label2: chord.label2))
             default:
                 problems.append(Problem(line: number, message: "Superkeys doesn't know “\(key)”; it's ignored."))
             }
@@ -266,6 +251,41 @@ struct ConfigFile {
             index = text.index(after: index)
         }
         return nil
+    }
+
+    /// "O", or a group written "O P": the first key, then the second.
+    private static func chord(_ key: String, line: Int, seen: inout Set<String>, problems: inout [Problem])
+        -> (first: Int, label: String, second: Int?, label2: String?)? {
+        let parts = key.split(whereSeparator: \.isWhitespace).map(String.init)
+        guard (1...2).contains(parts.count) else {
+            problems.append(Problem(line: line, message: "✦ \(key): a group is two keys at most, like \"O P\"."))
+            return nil
+        }
+        var codes: [Int] = []
+        for part in parts {
+            guard let code = keyCode(for: part) else {
+                problems.append(Problem(line: line, message: "“\(part)” isn't a key Superkeys recognises."))
+                return nil
+            }
+            codes.append(code)
+        }
+        if let reason = reservedReason(codes[0]) {
+            problems.append(Problem(line: line, message: "✦ \(key): \(reason)"))
+            return nil
+        }
+        if codes.count == 2, codes[1] == Int(KeyCodes.escape) {
+            problems.append(Problem(line: line, message: "✦ \(key): Escape cancels a group, so it can't be the second key."))
+            return nil
+        }
+        guard seen.insert(KeySequence.id(codes[0], codes.count == 2 ? codes[1] : nil)).inserted else {
+            problems.append(Problem(line: line, message: "✦ \(key) is used twice; the first one is kept."))
+            return nil
+        }
+        func label(_ part: String, _ code: Int) -> String {
+            part.hasPrefix("code:") ? KeyCodes.label(forKeyCode: code, characters: nil) : part.uppercased()
+        }
+        return (codes[0], label(parts[0], codes[0]),
+                codes.count == 2 ? codes[1] : nil, codes.count == 2 ? label(parts[1], codes[1]) : nil)
     }
 
     private static func keyCode(for key: String) -> Int? {
@@ -390,10 +410,11 @@ final class ConfigSync: ObservableObject {
         }
         let store = BindingsStore.shared
         let sameApps = store.bindings.count == config.apps.count && zip(store.bindings, config.apps).allSatisfy {
-            $0.keyCode == $1.keyCode && $0.bundleID == $1.bundleID
+            $0.keyCode == $1.keyCode && $0.keyCode2 == $1.keyCode2 && $0.bundleID == $1.bundleID
         }
         let sameKeys = store.keystrokes.count == config.keystrokes.count && zip(store.keystrokes, config.keystrokes).allSatisfy {
-            $0.keyCode == $1.keyCode && $0.sendKeyCode == $1.sendKeyCode && $0.sendModifiers == $1.sendModifiers
+            $0.keyCode == $1.keyCode && $0.keyCode2 == $1.keyCode2 && $0.sendKeyCode == $1.sendKeyCode
+                && $0.sendModifiers == $1.sendModifiers
         }
         if !sameApps || !sameKeys { store.replaceAll(apps: config.apps, keystrokes: config.keystrokes) }
         AppState.shared.lastAction = "Applied config.toml"

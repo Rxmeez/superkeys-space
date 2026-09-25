@@ -2,8 +2,8 @@ import AppKit
 
 @MainActor
 enum AppLauncher {
-    static func launch(keyCode: Int) {
-        guard let app = BindingsStore.shared.app(forKeyCode: keyCode) else { return }
+    static func launch(keyCode: Int, then second: Int? = nil) {
+        guard let app = BindingsStore.shared.app(forKeyCode: keyCode, then: second) else { return }
         launch(app)
     }
 

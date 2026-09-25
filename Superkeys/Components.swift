@@ -83,6 +83,26 @@ extension KeyCap {
     }
 }
 
+/// ✦ O, or a group: ✦ O then P.
+struct SequenceCombo: View {
+    let label: String
+    let then: String?
+
+    var body: some View {
+        HStack(spacing: 5) {
+            KeyCombo(keys: [Glyph.hyper, label])
+            if let then {
+                Text("then")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                KeyCap(text: then)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(then.map { "Hyper \(label), then \($0)" } ?? "Hyper \(label)")
+    }
+}
+
 struct KeyCombo: View {
     let keys: [String]
 

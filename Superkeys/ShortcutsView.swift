@@ -131,55 +131,100 @@ private struct AppIcon: View {
 // MARK: - Key recorder
 
 /// Captures one key press while `isRecording` is on. Escape stops recording.
+/// Records ✦'s key, and optionally a second key to make a group
+/// (✦ O then P). Only the key is recorded; ✦ is implied.
 private struct KeyRecorder: View {
     @Binding var keyCode: Int?
     @Binding var label: String
     @Binding var isRecording: Bool
-    let validate: (Int) -> String?
+    var keyCode2: Binding<Int?> = .constant(nil)
+    var label2: Binding<String> = .constant("")
+    var allowsSecond = true
+    let validate: (Int, Int?) -> String?
 
+    @State private var recordingSecond = false
     @State private var monitor: Any?
     @State private var error: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Button { isRecording.toggle() } label: {
-                Group {
-                    if isRecording {
-                        Text("Press a key…")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                    } else if keyCode != nil {
+            HStack(spacing: 8) {
+                Button { recordingSecond = false; isRecording.toggle() } label: {
+                    field(recording: isRecording, placeholder: "Click to record") {
                         KeyCombo(keys: [Glyph.hyper, label])
-                    } else {
-                        Text("Click to record")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.secondary)
                     }
                 }
-                .frame(minWidth: 108, minHeight: 24)
-                .padding(.horizontal, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(isRecording ? Color.accentColor.opacity(0.12) : Color(nsColor: .controlBackgroundColor))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(isRecording ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: 1)
-                )
+                .buttonStyle(.plain)
+
+                if allowsSecond, keyCode != nil {
+                    if recordingSecond {
+                        Text("then").font(.caption).foregroundStyle(.secondary)
+                        field(recording: true, placeholder: "") { EmptyView() }
+                    } else if let _ = keyCode2.wrappedValue {
+                        Text("then").font(.caption).foregroundStyle(.secondary)
+                        Button { isRecording = false; recordingSecond = true } label: {
+                            field(recording: false, placeholder: "") { KeyCap(text: label2.wrappedValue) }
+                        }
+                        .buttonStyle(.plain)
+                        Button {
+                            keyCode2.wrappedValue = nil
+                            label2.wrappedValue = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Make it a single key")
+                    } else {
+                        Button("+ then…") { isRecording = false; recordingSecond = true }
+                            .buttonStyle(.link)
+                            .font(.caption)
+                            .help("Add a second key to make a group, like \(Glyph.hyper) O then P")
+                    }
+                }
             }
-            .buttonStyle(.plain)
 
             if let error {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .onChange(of: isRecording) { _, recording in
-            if recording { install() } else { remove() }
-        }
-        .onAppear { if isRecording { install() } }
+        .onChange(of: isRecording) { _, _ in sync() }
+        .onChange(of: recordingSecond) { _, _ in sync() }
+        .onAppear(perform: sync)
         .onDisappear(perform: remove)
+    }
+
+    private func field<Content: View>(recording: Bool, placeholder: String,
+                                      @ViewBuilder content: () -> Content) -> some View {
+        Group {
+            if recording {
+                Text("Press a key…")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            } else if !placeholder.isEmpty, keyCode == nil {
+                Text(placeholder)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            } else {
+                content()
+            }
+        }
+        .frame(minWidth: recording || keyCode == nil ? 108 : 0, minHeight: 24)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(recording ? Color.accentColor.opacity(0.12) : Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(recording ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: 1)
+        )
+    }
+
+    private func sync() {
+        if isRecording || recordingSecond { install() } else { remove() }
     }
 
     private func install() {
@@ -188,19 +233,30 @@ private struct KeyRecorder: View {
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == UInt16(KeyCodes.escape) {
                 isRecording = false
+                recordingSecond = false
                 return nil
             }
             let code = Int(event.keyCode)
             let name = KeyCodes.label(forKeyCode: code, characters: event.charactersIgnoringModifiers)
             guard !name.isEmpty else { return nil }
-            if let failure = validate(code) {
-                error = failure
-                return nil
+            if recordingSecond, let first = keyCode {
+                if let failure = validate(first, code) {
+                    error = failure
+                    return nil
+                }
+                keyCode2.wrappedValue = code
+                label2.wrappedValue = name
+                recordingSecond = false
+            } else {
+                if let failure = validate(code, keyCode2.wrappedValue) {
+                    error = failure
+                    return nil
+                }
+                keyCode = code
+                label = name
+                isRecording = false
             }
-            keyCode = code
-            label = name
             error = nil
-            isRecording = false
             return nil
         }
     }
@@ -241,7 +297,7 @@ struct ShortcutsTab: View {
                     .buttonStyle(.borderless)
                 }
             } footer: {
-                Text("Hold \(Glyph.hyper) Caps Lock and press the key. The app opens, or comes forward if it's already running.")
+                Text("Hold \(Glyph.hyper) Caps Lock and press the key. The app opens, or comes forward if it's already running. Out of letters? Group them: \(Glyph.hyper) O then P, \(Glyph.hyper) O then S.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -338,7 +394,7 @@ private struct ShortcutRow: View {
                 }
             }
             Spacer()
-            Button(action: rebind) { KeyCombo(keys: [Glyph.hyper, app.label]) }
+            Button(action: rebind) { SequenceCombo(label: app.label, then: app.label2) }
                 .buttonStyle(.plain)
                 .help("Change key")
             Button {
@@ -372,6 +428,8 @@ private struct NewShortcutSheet: View {
     @State private var selected: InstalledApp?
     @State private var keyCode: Int?
     @State private var label = ""
+    @State private var keyCode2: Int?
+    @State private var label2 = ""
     @State private var recording = false
 
     /// Names that start with the query rank first, closest match first, so
@@ -446,8 +504,9 @@ private struct NewShortcutSheet: View {
             Divider()
 
             HStack(alignment: .top) {
-                KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recording) {
-                    store.validate(keyCode: $0, replacing: nil)
+                KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recording,
+                            keyCode2: $keyCode2, label2: $label2) {
+                    store.validate(keyCode: $0, then: $1, replacing: nil)
                 }
                 Spacer()
                 HStack(spacing: 8) {
@@ -490,7 +549,8 @@ private struct NewShortcutSheet: View {
 
     private func add() {
         guard let selected, let keyCode else { return }
-        if store.add(keyCode: keyCode, label: label, bundleID: selected.bundleID, name: selected.name) == nil {
+        if store.add(keyCode: keyCode, label: label, bundleID: selected.bundleID, name: selected.name,
+                     then: keyCode2, label2: keyCode2 == nil ? nil : label2) == nil {
             dismiss()
         }
     }
@@ -527,6 +587,8 @@ private struct RebindSheet: View {
 
     @State private var keyCode: Int?
     @State private var label = ""
+    @State private var keyCode2: Int?
+    @State private var label2 = ""
     // The sheet exists to take a new key, so it listens straight away.
     @State private var recording = true
 
@@ -536,14 +598,15 @@ private struct RebindSheet: View {
                 AppIcon(bundleID: app.bundleID, size: 26)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(app.name).font(.headline)
-                    Text("Press the new key alone.")
+                    Text("Press the new key alone, and a second one to make a group.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recording) {
-                BindingsStore.shared.validate(keyCode: $0, replacing: app.id)
+            KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recording,
+                        keyCode2: $keyCode2, label2: $label2) {
+                BindingsStore.shared.validate(keyCode: $0, then: $1, replacing: app.id)
             }
 
             HStack {
@@ -552,19 +615,22 @@ private struct RebindSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Save") {
                     guard let keyCode else { return }
-                    if BindingsStore.shared.setKey(of: app, keyCode: keyCode, label: label) == nil {
+                    if BindingsStore.shared.setKey(of: app, keyCode: keyCode, label: label,
+                                                   then: keyCode2, label2: keyCode2 == nil ? nil : label2) == nil {
                         dismiss()
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(keyCode == nil || keyCode == app.keyCode)
+                .disabled(keyCode == nil || (keyCode == app.keyCode && keyCode2 == app.keyCode2))
             }
         }
         .padding(18)
-        .frame(width: 320)
+        .frame(width: 360)
         .onAppear {
             keyCode = app.keyCode
             label = app.label
+            keyCode2 = app.keyCode2
+            label2 = app.label2 ?? ""
         }
     }
 }
@@ -577,7 +643,7 @@ private struct KeystrokeRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            KeyCombo(keys: [Glyph.hyper, stroke.label])
+            SequenceCombo(label: stroke.label, then: stroke.label2)
             Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
             KeyCombo(keys: stroke.sendKeys)
             Spacer()
@@ -594,7 +660,7 @@ private struct KeystrokeRow: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Hyper \(stroke.label) sends \(stroke.sendText)")
+        .accessibilityLabel("Hyper \(KeySequence.text(stroke.label, stroke.label2)) sends \(stroke.sendText)")
         .contextMenu {
             Button("Remove") { BindingsStore.shared.remove(stroke) }
         }
@@ -606,6 +672,8 @@ private struct NewKeystrokeSheet: View {
 
     @State private var keyCode: Int?
     @State private var label = ""
+    @State private var keyCode2: Int?
+    @State private var label2 = ""
     @State private var recordingKey = true
     @State private var send: (keyCode: Int, modifiers: Keystroke.Modifiers, label: String)?
     @State private var recordingSend = false
@@ -622,8 +690,9 @@ private struct NewKeystrokeSheet: View {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14, verticalSpacing: 12) {
                 GridRow {
                     Text("Key").foregroundStyle(.secondary)
-                    KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recordingKey) {
-                        BindingsStore.shared.validate(keyCode: $0, replacing: nil)
+                    KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recordingKey,
+                                keyCode2: $keyCode2, label2: $label2) {
+                        BindingsStore.shared.validate(keyCode: $0, then: $1, replacing: nil)
                     }
                 }
                 GridRow {
@@ -642,7 +711,7 @@ private struct NewKeystrokeSheet: View {
             }
         }
         .padding(18)
-        .frame(width: 380)
+        .frame(width: 420)
         // Once the key is in, listen for what it sends.
         .onChange(of: keyCode) { _, code in
             if code != nil, send == nil { recordingSend = true }
@@ -654,7 +723,8 @@ private struct NewKeystrokeSheet: View {
     private func add() {
         guard let keyCode, let send else { return }
         let stroke = Keystroke(keyCode: keyCode, label: label, sendKeyCode: send.keyCode,
-                               sendModifiers: send.modifiers, sendLabel: send.label)
+                               sendModifiers: send.modifiers, sendLabel: send.label,
+                               keyCode2: keyCode2, label2: keyCode2 == nil ? nil : label2)
         if BindingsStore.shared.add(stroke) == nil { dismiss() }
     }
 }

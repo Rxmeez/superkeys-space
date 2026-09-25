@@ -108,13 +108,14 @@ show_chords_while_held = true
 B = "app.zen-browser.zen"  # Zen
 T = "com.mitchellh.ghostty"
 ";" = "com.apple.Safari"
+"O P" = "com.1password.1password"   # a group: ✦ O then P
 
 [keys]
 C = "ctrl+c"   # ✦ C sends ⌃ C to the app in front
 R = "ctrl+r"
 ```
 
-Keys are written as you'd type them: a letter, digit, punctuation mark (quoted), or a name such as `F5`, `Space`, or `Tab`; `"code:50"` pins a raw key code. Apps are bundle IDs (`osascript -e 'id of app "Safari"'`). Keystrokes are combinations like `"ctrl+c"` or `"cmd+shift+t"` (modifiers `ctrl`, `opt`, `shift`, `cmd`); holding the ✦ key repeats them. Arrow keys and Return can't be assigned because ✦ uses them for windows. A file with a syntax error isn't applied at all, and Superkeys won't overwrite it until it's fixed, so a typo never wipes your setup. Development builds use `~/.config/superkeys-dev/`.
+Keys are written as you'd type them: a letter, digit, punctuation mark (quoted), or a name such as `F5`, `Space`, or `Tab`; `"code:50"` pins a raw key code. Apps are bundle IDs (`osascript -e 'id of app "Safari"'`). Keystrokes are combinations like `"ctrl+c"` or `"cmd+shift+t"` (modifiers `ctrl`, `opt`, `shift`, `cmd`); holding the ✦ key repeats them. Two keys separated by a space make a **group**: `"O P"` is ✦ O then P. ✦ O can still have its own app or keystroke, which runs when you let go of ✦ without a second key; Esc cancels a group, and holding a moment shows what it contains. Arrow keys and Return can't be assigned because ✦ uses them for windows. A file with a syntax error isn't applied at all, and Superkeys won't overwrite it until it's fixed, so a typo never wipes your setup. Development builds use `~/.config/superkeys-dev/`.
 
 ## Privacy
 

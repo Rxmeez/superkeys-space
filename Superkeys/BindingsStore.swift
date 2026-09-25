@@ -1,11 +1,27 @@
 import AppKit
 
+/// ✦ plus one key, or ✦ plus a key then a second key: a group, such as
+/// ✦ O then P. The first key of a group can still have its own binding,
+/// which runs when ✦ is released without a second key.
 struct BoundApp: Codable, Equatable, Identifiable {
     var keyCode: Int
     var label: String
     var bundleID: String
     var name: String
-    var id: String { String(keyCode) }
+    var keyCode2: Int?
+    var label2: String?
+    var id: String { KeySequence.id(keyCode, keyCode2) }
+}
+
+enum KeySequence {
+    static func id(_ first: Int, _ second: Int?) -> String {
+        second.map { "\(first)-\($0)" } ?? String(first)
+    }
+
+    /// "O" or "O then P", for messages.
+    static func text(_ label: String, _ label2: String?) -> String {
+        label2.map { "\(label) then \($0)" } ?? label
+    }
 }
 
 /// ✦ plus a key sends another key combination to the app in front, e.g.
@@ -17,7 +33,10 @@ struct Keystroke: Codable, Equatable, Identifiable {
     var sendKeyCode: Int
     var sendModifiers: Modifiers
     var sendLabel: String
-    var id: String { String(keyCode) }
+    /// The second key of a group, as for apps.
+    var keyCode2: Int?
+    var label2: String?
+    var id: String { KeySequence.id(keyCode, keyCode2) }
 
     struct Modifiers: OptionSet, Codable, Hashable {
         let rawValue: Int
@@ -119,21 +138,32 @@ final class BindingsStore: ObservableObject {
         syncTap()
     }
 
-    func app(forKeyCode keyCode: Int) -> BoundApp? {
-        bindings.first { $0.keyCode == keyCode }
+    func app(forKeyCode keyCode: Int, then second: Int? = nil) -> BoundApp? {
+        bindings.first { $0.keyCode == keyCode && $0.keyCode2 == second }
+    }
+
+    /// Everything bound to a second key after this one, for the group panel.
+    func group(_ first: Int) -> (apps: [BoundApp], keystrokes: [Keystroke]) {
+        (bindings.filter { $0.keyCode == first && $0.keyCode2 != nil },
+         keystrokes.filter { $0.keyCode == first && $0.keyCode2 != nil })
     }
 
     /// Returns an error message, or nil on success.
-    func add(keyCode: Int, label: String, bundleID: String, name: String) -> String? {
-        if let error = validate(keyCode: keyCode, replacing: nil) { return error }
-        bindings.append(BoundApp(keyCode: keyCode, label: label, bundleID: bundleID, name: name))
+    func add(keyCode: Int, label: String, bundleID: String, name: String,
+             then keyCode2: Int? = nil, label2: String? = nil) -> String? {
+        if let error = validate(keyCode: keyCode, then: keyCode2, replacing: nil) { return error }
+        bindings.append(BoundApp(keyCode: keyCode, label: label, bundleID: bundleID, name: name,
+                                 keyCode2: keyCode2, label2: label2))
         commit()
         return nil
     }
 
-    func setKey(of app: BoundApp, keyCode: Int, label: String) -> String? {
-        if let error = validate(keyCode: keyCode, replacing: app.id) { return error }
+    func setKey(of app: BoundApp, keyCode: Int, label: String,
+                then keyCode2: Int? = nil, label2: String? = nil) -> String? {
+        if let error = validate(keyCode: keyCode, then: keyCode2, replacing: app.id) { return error }
         guard let index = bindings.firstIndex(where: { $0.id == app.id }) else { return nil }
+        bindings[index].keyCode2 = keyCode2
+        bindings[index].label2 = label2
         bindings[index].keyCode = keyCode
         bindings[index].label = label
         commit()
@@ -147,7 +177,7 @@ final class BindingsStore: ObservableObject {
 
     /// Returns an error message, or nil on success.
     func add(_ keystroke: Keystroke) -> String? {
-        if let error = validate(keyCode: keystroke.keyCode, replacing: nil) { return error }
+        if let error = validate(keyCode: keystroke.keyCode, then: keystroke.keyCode2, replacing: nil) { return error }
         keystrokes.append(keystroke)
         commit()
         return nil
@@ -165,7 +195,7 @@ final class BindingsStore: ObservableObject {
     }
 
     /// Returns a reason the key cannot be used, or nil when it is free.
-    func validate(keyCode: Int, replacing id: String?) -> String? {
+    func validate(keyCode: Int, then second: Int? = nil, replacing id: String?) -> String? {
         switch Int64(keyCode) {
         case let code where KeyCodes.windowKeys.contains(code):
             return "\(Glyph.hyper) with the arrows and Return moves windows."
@@ -176,11 +206,14 @@ final class BindingsStore: ObservableObject {
         default:
             break
         }
-        if let existing = bindings.first(where: { $0.keyCode == keyCode && $0.id != id }) {
-            return "\(Glyph.hyper) \(existing.label) already opens \(existing.name)."
+        if let second, second == Int(KeyCodes.escape) {
+            return "Escape cancels a group, so it can't be the second key."
         }
-        if let existing = keystrokes.first(where: { $0.keyCode == keyCode && $0.id != id }) {
-            return "\(Glyph.hyper) \(existing.label) already sends \(existing.sendKeys.joined(separator: " "))."
+        if let existing = bindings.first(where: { $0.keyCode == keyCode && $0.keyCode2 == second && $0.id != id }) {
+            return "\(Glyph.hyper) \(KeySequence.text(existing.label, existing.label2)) already opens \(existing.name)."
+        }
+        if let existing = keystrokes.first(where: { $0.keyCode == keyCode && $0.keyCode2 == second && $0.id != id }) {
+            return "\(Glyph.hyper) \(KeySequence.text(existing.label, existing.label2)) already sends \(existing.sendKeys.joined(separator: " "))."
         }
         return nil
     }
@@ -196,9 +229,10 @@ final class BindingsStore: ObservableObject {
     }
 
     private func syncTap() {
-        HyperEventTap.shared.setAppKeyCodes(Set(bindings.map { Int64($0.keyCode) }))
-        HyperEventTap.shared.setKeystrokes(Dictionary(uniqueKeysWithValues: keystrokes.map {
-            (Int64($0.keyCode), (CGKeyCode($0.sendKeyCode), $0.sendModifiers.cgFlags))
-        }))
+        HyperEventTap.shared.setBindings(
+            apps: Set(bindings.map { HyperEventTap.Chord($0.keyCode, $0.keyCode2) }),
+            keystrokes: Dictionary(keystrokes.map {
+                (HyperEventTap.Chord($0.keyCode, $0.keyCode2), (CGKeyCode($0.sendKeyCode), $0.sendModifiers.cgFlags))
+            }, uniquingKeysWith: { first, _ in first }))
     }
 }

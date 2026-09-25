@@ -28,25 +28,44 @@ final class HyperEventTap: @unchecked Sendable {
 
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
-    private var appKeyCodes: Set<Int64> = []
+    /// ✦ plus one key, or a key then a second key (a group).
+    struct Chord: Hashable {
+        let first: Int64
+        let second: Int64?
+        init(_ first: Int, _ second: Int?) {
+            self.first = Int64(first)
+            self.second = second.map(Int64.init)
+        }
+        init(_ first: Int64, _ second: Int64?) {
+            self.first = first
+            self.second = second
+        }
+    }
+
+    private var apps: Set<Chord> = []
+    /// First keys of groups: pressing one waits for the second key.
+    private var groups: Set<Int64> = []
+    /// The group waiting for its second key; if ✦ is let go instead, the
+    /// first key's own binding runs.
+    private var pendingGroup: Int64?
     private var hyperHeld = false
     private var mehHeld = false
     /// Keys whose key-down was consumed; their repeats and key-up are consumed too.
     private var consumed: Set<Int64> = []
     private var posting = false
 
-    func setAppKeyCodes(_ codes: Set<Int64>) {
-        appKeyCodes = codes
-    }
-
-    /// ✦ key → the key combination it sends.
-    private var keystrokes: [Int64: (key: CGKeyCode, flags: CGEventFlags)] = [:]
+    /// ✦ chord → the key combination it sends.
+    private var keystrokes: [Chord: (key: CGKeyCode, flags: CGEventFlags)] = [:]
     /// Keys whose ✦ press went out as a keystroke: their repeats and release
     /// go out too, even if ✦ is let go first.
     private var sending: [Int64: (key: CGKeyCode, flags: CGEventFlags)] = [:]
 
-    func setKeystrokes(_ map: [Int64: (CGKeyCode, CGEventFlags)]) {
+    func setBindings(apps: Set<Chord>, keystrokes map: [Chord: (CGKeyCode, CGEventFlags)]) {
+        self.apps = apps
         keystrokes = map.mapValues { (key: $0.0, flags: $0.1) }
+        groups = Set(apps.compactMap { $0.second == nil ? nil : $0.first })
+            .union(map.keys.compactMap { $0.second == nil ? nil : $0.first })
+        pendingGroup = nil
     }
 
     var isRunning: Bool {
@@ -140,13 +159,44 @@ final class HyperEventTap: @unchecked Sendable {
             if type == .keyUp { send(sent, down: false); sending[keyCode] = nil }
             return nil
         }
-        if type == .keyDown, hyperHeld, !mehHeld, let sent = keystrokes[keyCode],
+        if type == .keyDown, hyperHeld, !mehHeld,
            event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
            event.flags.intersection([.maskShift, .maskControl, .maskAlternate, .maskCommand]).isEmpty {
-            sending[keyCode] = sent
-            Task { @MainActor in CheatSheet.shared.dismiss() }
-            send(sent, down: true)
-            return nil
+            // The second key of a group.
+            if let first = pendingGroup {
+                pendingGroup = nil
+                Task { @MainActor in CheatSheet.shared.dismiss() }
+                if keyCode == Int64(KeyCodes.escape) {
+                    consumed.insert(keyCode)
+                    return nil
+                }
+                let chord = Chord(first, keyCode)
+                if let sent = keystrokes[chord] {
+                    sending[keyCode] = sent
+                    send(sent, down: true)
+                    return nil
+                }
+                if apps.contains(chord) {
+                    consumed.insert(keyCode)
+                    open(first, keyCode)
+                    return nil
+                }
+                // Not in the group: carry on as if the group was never started.
+            }
+            // The first key of a group waits for the second.
+            if groups.contains(keyCode) {
+                pendingGroup = keyCode
+                consumed.insert(keyCode)
+                let code = Int(keyCode)
+                Task { @MainActor in CheatSheet.shared.showGroup(code) }
+                return nil
+            }
+            if let sent = keystrokes[Chord(keyCode, nil)] {
+                sending[keyCode] = sent
+                Task { @MainActor in CheatSheet.shared.dismiss() }
+                send(sent, down: true)
+                return nil
+            }
         }
 
         switch type {
@@ -205,10 +255,11 @@ final class HyperEventTap: @unchecked Sendable {
         case .keyDown:
             press()
         case .keyUp:
+            finishGroup()
             release()
         case .flagsChanged where keyCode == KeyCodes.capsLock:
             // Without the HID remap Caps Lock only reports flagsChanged.
-            if event.flags.contains(.maskAlphaShift) { press() } else { release() }
+            if event.flags.contains(.maskAlphaShift) { press() } else { finishGroup(); release() }
         default:
             break
         }
@@ -270,9 +321,8 @@ final class HyperEventTap: @unchecked Sendable {
         case KeyCodes.returnKey, KeyCodes.keypadEnter:
             Task { @MainActor in WindowManager.shared.snap(.full) }
         default:
-            guard appKeyCodes.contains(keyCode) else { return }
-            let code = Int(keyCode)
-            Task { @MainActor in AppLauncher.launch(keyCode: code) }
+            guard apps.contains(Chord(keyCode, nil)) else { return }
+            open(keyCode, nil)
         }
     }
 
@@ -283,16 +333,66 @@ final class HyperEventTap: @unchecked Sendable {
         Task { @MainActor in CheatSheet.shared.pressed(.hyper) }
     }
 
+    /// ✦ let go while a group waited for its second key: run the first key's
+    /// own binding, if it has one.
+    private func finishGroup() {
+        guard let first = pendingGroup else { return }
+        pendingGroup = nil
+        if let sent = keystrokes[Chord(first, nil)] {
+            send(sent, down: true)
+            send(sent, down: false)
+        } else if apps.contains(Chord(first, nil)) {
+            open(first, nil)
+        }
+    }
+
     private func release() {
+        pendingGroup = nil
         guard hyperHeld else { return }
         hyperHeld = false
         publish(false)
         Task { @MainActor in CheatSheet.shared.dismiss() }
     }
 
+    private func open(_ first: Int64, _ second: Int64?) {
+        #if DEBUG
+        if captured != nil {
+            captured?.append("open \(first)" + (second.map { " then \($0)" } ?? ""))
+            return
+        }
+        #endif
+        let (a, b) = (Int(first), second.map(Int.init))
+        Task { @MainActor in AppLauncher.launch(keyCode: a, then: b) }
+    }
+
     #if DEBUG
-    /// While set, keystrokes are recorded here instead of sent.
+    /// While set, keystrokes and app launches are recorded here instead.
     private var captured: [String]?
+
+    /// Runs made-up key sequences through the handler with ✦ held and
+    /// reports what each would do. Nothing is sent or opened.
+    func selfTestGroups(first: CGKeyCode, second: CGKeyCode, other: CGKeyCode) -> [String] {
+        func feed(_ key: CGKeyCode, _ type: CGEventType) {
+            let e = CGEvent(keyboardEventSource: nil, virtualKey: key, keyDown: type == .keyDown)!
+            _ = handle(type: type, event: e)
+        }
+        func tap(_ key: CGKeyCode) { feed(key, .keyDown); feed(key, .keyUp) }
+        func run(_ name: String, _ body: () -> Void) -> String {
+            captured = []
+            press()
+            body()
+            let log = "\(name): " + (captured!.isEmpty ? "nothing" : captured!.joined(separator: ", "))
+            captured = nil
+            return log
+        }
+        return [
+            run("✦ first then second") { tap(first); tap(second); finishGroup(); release() },
+            run("✦ first, let go") { tap(first); finishGroup(); release() },
+            run("✦ first, esc") { tap(first); tap(CGKeyCode(KeyCodes.escape)); finishGroup(); release() },
+            run("✦ first then a key outside the group") { tap(first); tap(other); finishGroup(); release() },
+            run("✦ other alone") { tap(other); finishGroup(); release() },
+        ]
+    }
 
     /// Feeds made-up key events through the handler with ✦ held and reports
     /// what would have been sent, without sending anything. Returns a log.
@@ -349,6 +449,7 @@ final class HyperEventTap: @unchecked Sendable {
     }
 
     private func pressMeh() {
+        pendingGroup = nil
         guard !mehHeld else { return }
         mehHeld = true
         Task { @MainActor in

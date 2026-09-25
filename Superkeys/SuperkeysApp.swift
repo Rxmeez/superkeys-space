@@ -209,6 +209,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
                 case "settings": SettingsWindowController.shared.show()
+                case let s? where s.hasPrefix("group-"):
+                    if let code = Int(s.dropFirst(6)) { CheatSheet.shared.showGroup(code) }
+                case let s? where s.hasPrefix("selftest-groups-"):
+                    let codes = s.dropFirst("selftest-groups-".count).split(separator: "-").compactMap { CGKeyCode($0) }
+                    let log = HyperEventTap.shared.selfTestGroups(first: codes[0], second: codes[1], other: codes[2])
+                    try? log.joined(separator: "\n").write(toFile: NSTemporaryDirectory() + "superkeys-selftest.txt",
+                                                           atomically: true, encoding: .utf8)
                 case let s? where s.hasPrefix("selftest-keystroke-"):
                     let code = CGKeyCode(s.dropFirst("selftest-keystroke-".count)) ?? 8
                     let log = HyperEventTap.shared.selfTestKeystrokes(keyCode: code).joined(separator: "\n")

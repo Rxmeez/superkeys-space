@@ -23,10 +23,34 @@ final class CheatSheet {
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.delay, execute: work)
     }
 
+    /// ✦ and the first key of a group: if no second key follows quickly, show
+    /// what the group holds. Quick typists never see it.
+    func showGroup(_ first: Int) {
+        pending?.cancel()
+        dismissPanel()
+        guard AppState.shared.showCheatSheet else { return }
+        let work = DispatchWorkItem { [weak self] in
+            let store = BindingsStore.shared
+            let group = store.group(first)
+            self?.present(GroupView(
+                label: group.apps.first?.label ?? group.keystrokes.first?.label ?? "",
+                apps: group.apps.sorted { ($0.label2 ?? "") < ($1.label2 ?? "") },
+                keystrokes: group.keystrokes.sorted { ($0.label2 ?? "") < ($1.label2 ?? "") },
+                own: store.app(forKeyCode: first)?.name
+                    ?? store.keystrokes.first { $0.keyCode == first && $0.keyCode2 == nil }?.sendKeys.joined(separator: " ")))
+        }
+        pending = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: work)
+    }
+
     /// A chord or a release both mean the key was used, not browsed.
     func dismiss() {
         pending?.cancel()
         pending = nil
+        dismissPanel()
+    }
+
+    private func dismissPanel() {
         guard let panel else { return }
         // Released rather than kept hidden: it's rebuilt in a few
         // milliseconds the next time a key is held.
@@ -36,11 +60,15 @@ final class CheatSheet {
     }
 
     private func show(_ layer: Layer) {
-        let content = CheatSheetView(
+        present(CheatSheetView(
             layer: layer,
-            apps: BindingsStore.shared.bindings.sorted { $0.label < $1.label },
+            apps: BindingsStore.shared.bindings.sorted { ($0.label, $0.label2 ?? "") < ($1.label, $1.label2 ?? "") },
+            keystrokes: BindingsStore.shared.keystrokes.sorted { ($0.label, $0.label2 ?? "") < ($1.label, $1.label2 ?? "") },
             desktops: SpaceManager.shared.desktopSummaries()
-        )
+        ))
+    }
+
+    private func present<Content: View>(_ content: Content) {
         let host = NSHostingView(rootView: content)
         let size = host.fittingSize
         let panel = self.panel ?? makePanel()
@@ -80,6 +108,7 @@ final class CheatSheet {
 private struct CheatSheetView: View {
     let layer: CheatSheet.Layer
     let apps: [BoundApp]
+    let keystrokes: [Keystroke]
     let desktops: [SpaceManager.Summary]
 
     private var accent: Color { layer == .hyper ? Accent.hyper : Accent.meh }
@@ -134,13 +163,22 @@ private struct CheatSheetView: View {
             } else {
                 ForEach(apps) { app in
                     GridRow {
-                        KeyCombo(keys: [Glyph.hyper, app.label])
+                        SequenceCombo(label: app.label, then: app.label2)
                         HStack(spacing: 8) {
                             if let icon = AppCatalog.shared.icon(for: app.bundleID) {
                                 Image(nsImage: icon).resizable().frame(width: 18, height: 18)
                             }
                             Text(app.name)
                         }
+                    }
+                }
+            }
+            ForEach(keystrokes) { stroke in
+                GridRow {
+                    SequenceCombo(label: stroke.label, then: stroke.label2)
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.right").font(.system(size: 10)).foregroundStyle(.secondary)
+                        KeyCombo(keys: stroke.sendKeys)
                     }
                 }
             }
@@ -197,5 +235,60 @@ private struct CheatSheetView: View {
             KeyCombo(keys: keys)
             Text(text)
         }
+    }
+}
+
+/// The second keys of a group, shown when ✦ and the first key are held.
+private struct GroupView: View {
+    let label: String
+    let apps: [BoundApp]
+    let keystrokes: [Keystroke]
+    /// What the first key does on its own, when ✦ is let go.
+    let own: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                KeyCombo(keys: [Glyph.hyper, label])
+                Text("then…").font(.headline)
+            }
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                ForEach(apps) { app in
+                    GridRow {
+                        KeyCap(text: app.label2 ?? "")
+                        HStack(spacing: 8) {
+                            if let icon = AppCatalog.shared.icon(for: app.bundleID) {
+                                Image(nsImage: icon).resizable().frame(width: 18, height: 18)
+                            }
+                            Text(app.name)
+                        }
+                    }
+                }
+                ForEach(keystrokes) { stroke in
+                    GridRow {
+                        KeyCap(text: stroke.label2 ?? "")
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.right").font(.system(size: 10)).foregroundStyle(.secondary)
+                            KeyCombo(keys: stroke.sendKeys)
+                        }
+                    }
+                }
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                if let own {
+                    Text("Let go of \(Glyph.hyper): \(own)")
+                }
+                Text("esc: cancel")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .frame(width: 300, alignment: .leading)
+        .background {
+            GlassBackground(tint: NSColor(Accent.hyper).withAlphaComponent(0.18), cornerRadius: 22)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .environment(\.colorScheme, .dark)
     }
 }

@@ -713,7 +713,7 @@ private struct AppsStep: View {
     private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
     var body: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 16) {
             StepHeader(eyebrow: "Step 3 · Your apps",
                        title: "One key per app.",
                        detail: "Hold ✦ and press the key: the app opens, or comes forward. These are the apps you use most, each on its first letter. Change them any time in Settings.")
@@ -726,6 +726,17 @@ private struct AppsStep: View {
                     ForEach(picks.suggestions) { app in tile(app) }
                 }
             }
+            // Groups: the answer to running out of letters.
+            HStack(spacing: 10) {
+                SequenceCombo(label: "O", then: "P")
+                Text("Out of letters? Make a group: \(Glyph.hyper) O then P for 1Password, \(Glyph.hyper) O then S for Slack. Set them up in Settings → Shortcuts.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.primary.opacity(0.1), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
             Spacer(minLength: 0)
         }
         .onAppear(perform: picks.load)
