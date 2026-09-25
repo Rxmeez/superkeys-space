@@ -18,6 +18,7 @@ struct MenuBarContent: View {
         switch state.status {
         case .needsAccess:
             Button("Grant Accessibility Access…") { Permissions.openAccessibilitySettings() }
+            Button("Reset Accessibility Access…") { Permissions.resetAccessibility() }
         case .unavailable:
             Button("Restart Hyper and Meh Keys") { state.restart() }
         case .on, .paused:

@@ -24,6 +24,23 @@ enum Permissions {
              fallback: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_ListenEvent")
     }
 
+    /// macOS sometimes keeps an Accessibility entry whose switch shows on
+    /// while the grant belongs to an older build (the signature changed). Wipe
+    /// Superkeys' entry, ask again so a fresh one appears, and open the list.
+    static func resetAccessibility() {
+        if let id = Bundle.main.bundleIdentifier {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+            task.arguments = ["reset", "Accessibility", id]
+            task.standardOutput = FileHandle.nullDevice
+            task.standardError = FileHandle.nullDevice
+            try? task.run()
+            task.waitUntilExit()
+        }
+        requestAccessibility()
+        openAccessibilitySettings()
+    }
+
     /// "Displays have separate Spaces" lives under Desktop & Dock → Mission Control.
     static func openDesktopAndDockSettings() {
         open(primary: "x-apple.systempreferences:com.apple.Desktop-Settings.extension",

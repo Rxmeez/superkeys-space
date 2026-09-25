@@ -23,6 +23,9 @@ struct SuperkeysApp: App {
         if let badge = hyper.alertBadge {
             return Self.alertImage(badge: badge, offset: hyper.shakeOffset)
         }
+        if hyper.needsAttention && !hyper.held && !hyper.meh {
+            return Self.attentionImage()
+        }
         let base = NSImage(systemSymbolName: "moon.stars", accessibilityDescription: "Superkeys") ?? NSImage()
         guard hyper.held || hyper.meh else {
             base.isTemplate = true
@@ -35,6 +38,32 @@ struct SuperkeysApp: App {
             .applying(.init(paletteColors: [moon, stars]))
         let image = base.withSymbolConfiguration(config) ?? base
         image.isTemplate = false
+        return image
+    }
+
+    /// The usual logo with a small orange dot: the keys should be on but
+    /// aren't. Drawn at display time so the logo follows the menu bar's
+    /// light or dark appearance.
+    private static func attentionImage() -> NSImage {
+        let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        guard let symbol = NSImage(systemSymbolName: "moon.stars", accessibilityDescription: nil)?
+            .withSymbolConfiguration(config) else { return NSImage() }
+        let dot: CGFloat = 6
+        let size = CGSize(width: symbol.size.width + 2, height: max(symbol.size.height, 16))
+        let image = NSImage(size: size, flipped: false) { _ in
+            let origin = CGPoint(x: 0, y: (size.height - symbol.size.height) / 2)
+            let tinted = symbol.copy() as! NSImage
+            tinted.lockFocus()
+            NSColor.labelColor.set()
+            CGRect(origin: .zero, size: tinted.size).fill(using: .sourceAtop)
+            tinted.unlockFocus()
+            tinted.draw(in: CGRect(origin: origin, size: symbol.size))
+            NSColor.systemOrange.setFill()
+            NSBezierPath(ovalIn: CGRect(x: size.width - dot, y: 0.5, width: dot, height: dot)).fill()
+            return true
+        }
+        image.isTemplate = false
+        image.accessibilityDescription = "Superkeys: needs attention"
         return image
     }
 
@@ -178,6 +207,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "snap-left": WindowManager.shared.snap(.left)
                 case "snap-right": WindowManager.shared.snap(.right)
                 case "fill": WindowManager.shared.snap(.full)
+                case "attention-on": HyperIndicator.shared.needsAttention = true
+                case "attention-off": HyperIndicator.shared.needsAttention = false
                 case "throw-left": WindowManager.shared.throwWindow(.left)
                 case "throw-right": WindowManager.shared.throwWindow(.right)
                 case "flip": SpaceManager.shared.flipToPreviousDesktop()

@@ -174,8 +174,20 @@ private struct SetupNotice: View {
     var body: some View {
         switch state.status {
         case .needsAccess:
-            notice("Superkeys needs Accessibility access before it can use Caps Lock.", symbol: "lock") {
-                Button("Open Settings…") { Permissions.openAccessibilitySettings() }
+            VStack(alignment: .leading, spacing: 8) {
+                notice("Superkeys needs Accessibility access before it can use Caps Lock.", symbol: "lock") {
+                    Button("Open Settings…") { Permissions.openAccessibilitySettings() }
+                }
+                HStack(spacing: 10) {
+                    Text("Switch already on? macOS is holding an old entry. Reset it, then switch Superkeys on again.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 12)
+                    Button("Reset Access…") { Permissions.resetAccessibility() }
+                        .controlSize(.small)
+                }
+                .padding(.leading, 26)
             }
         case .unavailable:
             notice("The Hyper Key couldn't start. Some Macs also need Input Monitoring.",

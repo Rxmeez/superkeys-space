@@ -9,6 +9,9 @@ final class HyperIndicator: ObservableObject {
     static let shared = HyperIndicator()
     @Published var held = false
     @Published var meh = false
+    /// The keys should be on but aren't (no Accessibility, or the tap
+    /// couldn't start); the menu bar icon shows an orange dot.
+    @Published var needsAttention = false
 
     /// A quiet "that didn't work" on the menu bar icon: it turns red, shakes
     /// once, and shows a number badge for a moment. Used when ✦ ↑ finds more
@@ -92,6 +95,8 @@ final class AppState: ObservableObject {
         update(\.tapRunning, HyperEventTap.shared.isRunning)
         update(\.desktopShortcutsEnabled, MissionControlShortcuts.allEnabled)
         update(\.multipleDisplays, NSScreen.screens.count > 1)
+        let attention = status == .needsAccess || status == .unavailable
+        if HyperIndicator.shared.needsAttention != attention { HyperIndicator.shared.needsAttention = attention }
         update(\.separateSpaces, SpaceManager.displaysHaveSeparateSpaces)
         scheduleRetry()
     }
