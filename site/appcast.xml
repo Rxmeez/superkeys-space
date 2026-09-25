@@ -3,6 +3,25 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.5</title>
+            <pubDate>Fri, 25 Sep 2026 17:48:00 +0100</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>0.2.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Added</h3>
+<ul>
+<li><b>Key groups.</b> Out of letters? ✦ O then P can open 1Password while ✦ O then S opens Slack, for apps and keystrokes alike. The first key keeps its own job: ✦ O on its own runs when you let go of ✦, so single keys stay instant and groups never need a timeout. Hold a moment after the first key and a panel shows what&#x27;s in the group; Esc cancels. Record the second key with &quot;+ then…&quot; in Settings (a first key that&#x27;s already taken, like ✦ G for your browser, can still start a group), or write <code>&quot;O P&quot;</code> in the config file. Settings lists each group together, its second keys indented under the first.</li>
+<li>The ✦ chord panel now lists your keystrokes too, not only your apps.</li>
+<li>The welcome tour&#x27;s app step mentions groups.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Tidier Shortcuts lists: apps line up on the left, keys on the right in one column, and keystrokes show what they send at the right edge. The Keys tab no longer links to Shortcuts.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.5.zip" length="3025301" type="application/octet-stream" sparkle:edSignature="m+qeKcS8k7U/RR7zs6panjp4xICEfhITISgGFqwd/MXKBzOfuvXO5nF6L8Q+n0DNNEodBpzU183DWP7DFVEnAw=="/>
+        </item>
+        <item>
             <title>0.2.4</title>
             <pubDate>Fri, 25 Sep 2026 16:58:08 +0100</pubDate>
             <sparkle:version>8</sparkle:version>
