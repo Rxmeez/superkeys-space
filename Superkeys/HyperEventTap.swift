@@ -39,6 +39,16 @@ final class HyperEventTap: @unchecked Sendable {
         appKeyCodes = codes
     }
 
+    /// ✦ key → the key combination it sends.
+    private var keystrokes: [Int64: (key: CGKeyCode, flags: CGEventFlags)] = [:]
+    /// Keys whose ✦ press went out as a keystroke: their repeats and release
+    /// go out too, even if ✦ is let go first.
+    private var sending: [Int64: (key: CGKeyCode, flags: CGEventFlags)] = [:]
+
+    func setKeystrokes(_ map: [Int64: (CGKeyCode, CGEventFlags)]) {
+        keystrokes = map.mapValues { (key: $0.0, flags: $0.1) }
+    }
+
     var isRunning: Bool {
         guard let tap else { return false }
         return CGEvent.tapIsEnabled(tap: tap)
@@ -91,6 +101,7 @@ final class HyperEventTap: @unchecked Sendable {
         tap = nil
         source = nil
         consumed.removeAll()
+        sending.removeAll()
         release()
         releaseMeh()
         HIDRemap.disable()
@@ -119,6 +130,22 @@ final class HyperEventTap: @unchecked Sendable {
             if event.getIntegerValueField(.keyboardEventAutorepeat) == 0 {
                 if type == .keyDown { pressMeh() } else if type == .keyUp { releaseMeh() }
             }
+            return nil
+        }
+
+        // ✦ plus a key that sends a keystroke: down, repeats and up all go out
+        // as that keystroke, so holding it repeats like the real thing.
+        if let sent = sending[keyCode] {
+            if type == .keyDown { send(sent, down: true, repeating: true) }
+            if type == .keyUp { send(sent, down: false); sending[keyCode] = nil }
+            return nil
+        }
+        if type == .keyDown, hyperHeld, !mehHeld, let sent = keystrokes[keyCode],
+           event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
+           event.flags.intersection([.maskShift, .maskControl, .maskAlternate, .maskCommand]).isEmpty {
+            sending[keyCode] = sent
+            Task { @MainActor in CheatSheet.shared.dismiss() }
+            send(sent, down: true)
             return nil
         }
 
@@ -261,6 +288,51 @@ final class HyperEventTap: @unchecked Sendable {
         hyperHeld = false
         publish(false)
         Task { @MainActor in CheatSheet.shared.dismiss() }
+    }
+
+    #if DEBUG
+    /// While set, keystrokes are recorded here instead of sent.
+    private var captured: [String]?
+
+    /// Feeds made-up key events through the handler with ✦ held and reports
+    /// what would have been sent, without sending anything. Returns a log.
+    func selfTestKeystrokes(keyCode: CGKeyCode) -> [String] {
+        captured = []
+        defer { captured = nil }
+        func feed(_ type: CGEventType, repeating: Bool = false) -> String {
+            let e = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: type == .keyDown)!
+            if repeating { e.setIntegerValueField(.keyboardEventAutorepeat, value: 1) }
+            return handle(type: type, event: e) == nil ? "consumed" : "passed"
+        }
+        var log: [String] = []
+        press()
+        log.append("✦ down, key down: \(feed(.keyDown))")
+        log.append("key repeat: \(feed(.keyDown, repeating: true))")
+        release()
+        log.append("✦ up first, then key up: \(feed(.keyUp))")
+        log.append("key down without ✦: \(feed(.keyDown))")
+        _ = feed(.keyUp)
+        return log + ["sent: " + (captured ?? []).joined(separator: ", ")]
+    }
+    #endif
+
+    private func send(_ stroke: (key: CGKeyCode, flags: CGEventFlags), down: Bool, repeating: Bool = false) {
+        #if DEBUG
+        if captured != nil {
+            let mods = [(CGEventFlags.maskControl, "ctrl"), (.maskAlternate, "opt"), (.maskShift, "shift"), (.maskCommand, "cmd")]
+                .filter { stroke.flags.contains($0.0) }.map(\.1)
+            captured?.append((mods + ["key\(stroke.key)"]).joined(separator: "+") + (down ? (repeating ? " repeat" : " down") : " up"))
+            return
+        }
+        #endif
+        posting = true
+        defer { posting = false }
+        guard let e = CGEvent(keyboardEventSource: CGEventSource(stateID: .hidSystemState),
+                              virtualKey: stroke.key, keyDown: down) else { return }
+        e.flags = stroke.flags
+        if repeating { e.setIntegerValueField(.keyboardEventAutorepeat, value: 1) }
+        e.setIntegerValueField(.eventSourceUserData, value: Self.syntheticMarker)
+        e.post(tap: .cghidEventTap)
     }
 
     func post(key: CGKeyCode, flags: CGEventFlags) {

@@ -37,7 +37,7 @@ enum KeyCodes {
         116: "PgUp", 121: "PgDn", 122: "F1", 120: "F2", 99: "F3", 118: "F4",
         96: "F5", 97: "F6", 98: "F7", 100: "F8", 101: "F9", 109: "F10",
         103: "F11", 111: "F12", 105: "F13", 107: "F14", 113: "F15", 106: "F16",
-        64: "F17", 90: "F20"
+        64: "F17", 90: "F20", 36: "Return", 53: "Escape", 123: "Left", 124: "Right", 125: "Down", 126: "Up"
     ]
 
     /// US ANSI positions for keys people write by hand in a settings file.

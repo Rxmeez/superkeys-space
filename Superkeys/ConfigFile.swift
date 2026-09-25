@@ -12,12 +12,16 @@ import Combine
 ///     [apps]
 ///     B = "app.zen-browser.zen"  # Zen
 ///
+///     [keys]
+///     C = "ctrl+c"
+///
 /// Only a small part of TOML is needed and understood: comments, `key = value`
-/// with strings, booleans and whole numbers, and the one `[apps]` table.
+/// with strings, booleans and whole numbers, and the `[apps]` and `[keys]` tables.
 struct ConfigFile {
     var showChordsWhileHeld = true
     var desktopNumbering = SpaceManager.Numbering.global
     var apps: [BoundApp] = []
+    var keystrokes: [Keystroke] = []
 
     /// Something in the file Superkeys couldn't use, by line.
     struct Problem: Equatable, Identifiable {
@@ -66,13 +70,31 @@ struct ConfigFile {
             let padding = String(repeating: " ", count: width - entry.key.count)
             out += "\(entry.key)\(padding) = \(Self.quoted(entry.app.bundleID))  # \(entry.app.name)\n"
         }
+        out += """
+
+        # ✦ plus a key sends another key combination to the app in front, e.g.
+        # C = "ctrl+c" to stop a command in the terminal. Modifiers: ctrl, opt,
+        # shift, cmd. Holding the key repeats it.
+        [keys]
+
+        """
+        let strokes = keystrokes.map { (key: Self.tomlKey(keyCode: $0.keyCode, label: $0.label), stroke: $0) }
+        let strokeWidth = strokes.map(\.key.count).max() ?? 0
+        for entry in strokes {
+            let padding = String(repeating: " ", count: strokeWidth - entry.key.count)
+            out += "\(entry.key)\(padding) = \(Self.quoted(entry.stroke.sendText))\n"
+        }
         return out
     }
 
     /// The key as written in the file: its label when that reads back as the
     /// same physical key, otherwise the raw key code, e.g. "code:50".
     private static func tomlKey(for app: BoundApp) -> String {
-        let label = KeyCodes.keyCode(forLabel: app.label) == app.keyCode ? app.label : "code:\(app.keyCode)"
+        tomlKey(keyCode: app.keyCode, label: app.label)
+    }
+
+    private static func tomlKey(keyCode: Int, label appLabel: String) -> String {
+        let label = KeyCodes.keyCode(forLabel: appLabel) == keyCode ? appLabel : "code:\(keyCode)"
         let bare = label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_" || $0 == "-") }
         return bare ? label : quoted(label)
     }
@@ -102,7 +124,7 @@ struct ConfigFile {
                     continue
                 }
                 section = String(line[line.index(after: line.startIndex)..<close]).trimmingCharacters(in: .whitespaces)
-                if section != "apps" {
+                if section != "apps" && section != "keys" {
                     problems.append(Problem(line: number, message: "Superkeys doesn't know a [\(section)] section; it's ignored."))
                 }
                 continue
@@ -127,9 +149,9 @@ struct ConfigFile {
                 case .string("per-display"): config.desktopNumbering = .perDisplay
                 default: problems.append(Problem(line: number, message: "desktop_numbering is \"global\" or \"per-display\"."))
                 }
-            case ("apps", _):
-                guard case .string(let bundleID) = value, !bundleID.isEmpty else {
-                    problems.append(Problem(line: number, message: "✦ \(key): the app goes in quotes, as its bundle ID."))
+            case ("keys", _):
+                guard case .string(let text) = value, let sent = Keystroke.parse(text) else {
+                    problems.append(Problem(line: number, message: "✦ \(key): write what to send like \"ctrl+c\" or \"cmd+shift+t\"."))
                     continue
                 }
                 guard let keyCode = keyCode(for: key) else {
@@ -141,7 +163,32 @@ struct ConfigFile {
                     continue
                 }
                 guard seenKeys.insert(keyCode).inserted else {
-                    problems.append(Problem(line: number, message: "✦ \(key) is listed twice; the first one is kept."))
+                    problems.append(Problem(line: number, message: "✦ \(key) is used twice; the first one is kept."))
+                    continue
+                }
+                let label = key.hasPrefix("code:") ? KeyCodes.label(forKeyCode: keyCode, characters: nil) : key.uppercased()
+                config.keystrokes.append(Keystroke(keyCode: keyCode, label: label, sendKeyCode: sent.keyCode,
+                                                   sendModifiers: sent.modifiers, sendLabel: sent.label))
+            case ("apps", _):
+                guard case .string(let bundleID) = value, !bundleID.isEmpty else {
+                    problems.append(Problem(line: number, message: "✦ \(key): the app goes in quotes, as its bundle ID."))
+                    continue
+                }
+                // Bundle IDs always have a dot; "ctrl+c" here belongs in [keys].
+                guard bundleID.contains(".") else {
+                    problems.append(Problem(line: number, message: "✦ \(key): “\(bundleID)” isn't an app's bundle ID. Key combinations go under [keys]."))
+                    continue
+                }
+                guard let keyCode = keyCode(for: key) else {
+                    problems.append(Problem(line: number, message: "“\(key)” isn't a key Superkeys recognises."))
+                    continue
+                }
+                if let reason = reservedReason(keyCode) {
+                    problems.append(Problem(line: number, message: "✦ \(key): \(reason)"))
+                    continue
+                }
+                guard seenKeys.insert(keyCode).inserted else {
+                    problems.append(Problem(line: number, message: "✦ \(key) is used twice; the first one is kept."))
                     continue
                 }
                 let label = key.hasPrefix("code:") ? KeyCodes.label(forKeyCode: keyCode, characters: nil) : key.uppercased()
@@ -292,6 +339,7 @@ final class ConfigSync: ObservableObject {
         }
         watch()
         BindingsStore.shared.$bindings.dropFirst().sink { [weak self] _ in self?.scheduleWrite() }.store(in: &observers)
+        BindingsStore.shared.$keystrokes.dropFirst().sink { [weak self] _ in self?.scheduleWrite() }.store(in: &observers)
         AppState.shared.$showCheatSheet.dropFirst().sink { [weak self] _ in self?.scheduleWrite() }.store(in: &observers)
     }
 
@@ -299,7 +347,8 @@ final class ConfigSync: ObservableObject {
     static func current() -> ConfigFile {
         ConfigFile(showChordsWhileHeld: AppState.shared.showCheatSheet,
                    desktopNumbering: SpaceManager.numbering,
-                   apps: BindingsStore.shared.bindings)
+                   apps: BindingsStore.shared.bindings,
+                   keystrokes: BindingsStore.shared.keystrokes)
     }
 
     func open() {
@@ -339,11 +388,14 @@ final class ConfigSync: ObservableObject {
         if SpaceManager.numbering != config.desktopNumbering {
             UserDefaults.standard.set(config.desktopNumbering.rawValue, forKey: "desktopNumbering")
         }
-        let current = BindingsStore.shared.bindings
-        let same = current.count == config.apps.count && zip(current, config.apps).allSatisfy {
+        let store = BindingsStore.shared
+        let sameApps = store.bindings.count == config.apps.count && zip(store.bindings, config.apps).allSatisfy {
             $0.keyCode == $1.keyCode && $0.bundleID == $1.bundleID
         }
-        if !same { BindingsStore.shared.replaceAll(with: config.apps) }
+        let sameKeys = store.keystrokes.count == config.keystrokes.count && zip(store.keystrokes, config.keystrokes).allSatisfy {
+            $0.keyCode == $1.keyCode && $0.sendKeyCode == $1.sendKeyCode && $0.sendModifiers == $1.sendModifiers
+        }
+        if !sameApps || !sameKeys { store.replaceAll(apps: config.apps, keystrokes: config.keystrokes) }
         AppState.shared.lastAction = "Applied config.toml"
     }
 

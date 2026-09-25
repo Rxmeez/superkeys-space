@@ -209,6 +209,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
                 case "settings": SettingsWindowController.shared.show()
+                case let s? where s.hasPrefix("selftest-keystroke-"):
+                    let code = CGKeyCode(s.dropFirst("selftest-keystroke-".count)) ?? 8
+                    let log = HyperEventTap.shared.selfTestKeystrokes(keyCode: code).joined(separator: "\n")
+                    try? log.write(toFile: NSTemporaryDirectory() + "superkeys-selftest.txt", atomically: true, encoding: .utf8)
                 case "untrusted": AppState.shared.debugUntrusted = true
                 case "trusted": AppState.shared.debugUntrusted = false
                 case "appearance-light": NSApp.appearance = NSAppearance(named: .aqua)

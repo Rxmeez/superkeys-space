@@ -216,6 +216,7 @@ private struct KeyRecorder: View {
 struct ShortcutsTab: View {
     @ObservedObject private var store = BindingsStore.shared
     @State private var adding = false
+    @State private var addingKeystroke = false
     @State private var rekeying: BoundApp?
 
     var body: some View {
@@ -244,6 +245,40 @@ struct ShortcutsTab: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                if store.keystrokes.isEmpty {
+                    HStack(spacing: 10) {
+                        KeyCombo(keys: [Glyph.hyper, "C"])
+                        Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
+                        KeyCombo(keys: ["⌃", "C"])
+                        Text("Use \(Glyph.hyper) as Control, or any other combination.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .opacity(0.8)
+                } else {
+                    ForEach(store.keystrokes) { stroke in
+                        KeystrokeRow(stroke: stroke)
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Keystrokes")
+                    Spacer()
+                    Button {
+                        addingKeystroke = true
+                    } label: {
+                        Label("Add Keystroke", systemImage: "plus")
+                    }
+                    .buttonStyle(.borderless)
+                }
+            } footer: {
+                Text("Sent to the app in front. Holding the key repeats it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .onAppear {
@@ -252,6 +287,9 @@ struct ShortcutsTab: View {
         }
         .sheet(isPresented: $adding) {
             NewShortcutSheet()
+        }
+        .sheet(isPresented: $addingKeystroke) {
+            NewKeystrokeSheet()
         }
         .sheet(item: $rekeying) { app in
             RebindSheet(app: app)
@@ -523,5 +561,161 @@ private struct RebindSheet: View {
             keyCode = app.keyCode
             label = app.label
         }
+    }
+}
+
+// MARK: - Keystrokes
+
+private struct KeystrokeRow: View {
+    let stroke: Keystroke
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            KeyCombo(keys: [Glyph.hyper, stroke.label])
+            Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
+            KeyCombo(keys: stroke.sendKeys)
+            Spacer()
+            Button {
+                BindingsStore.shared.remove(stroke)
+            } label: {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundStyle(.tertiary)
+            }
+            .buttonStyle(.plain)
+            .opacity(hovering ? 1 : 0)
+            .help("Remove")
+        }
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Hyper \(stroke.label) sends \(stroke.sendText)")
+        .contextMenu {
+            Button("Remove") { BindingsStore.shared.remove(stroke) }
+        }
+    }
+}
+
+private struct NewKeystrokeSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var keyCode: Int?
+    @State private var label = ""
+    @State private var recordingKey = true
+    @State private var send: (keyCode: Int, modifiers: Keystroke.Modifiers, label: String)?
+    @State private var recordingSend = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("New Keystroke").font(.headline)
+                Text("\(Glyph.hyper) plus a key sends another key combination to the app in front.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14, verticalSpacing: 12) {
+                GridRow {
+                    Text("Key").foregroundStyle(.secondary)
+                    KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recordingKey) {
+                        BindingsStore.shared.validate(keyCode: $0, replacing: nil)
+                    }
+                }
+                GridRow {
+                    Text("Sends").foregroundStyle(.secondary)
+                    ComboRecorder(combo: $send, isRecording: $recordingSend)
+                }
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Add", action: add)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(keyCode == nil || send == nil)
+            }
+        }
+        .padding(18)
+        .frame(width: 380)
+        // Once the key is in, listen for what it sends.
+        .onChange(of: keyCode) { _, code in
+            if code != nil, send == nil { recordingSend = true }
+        }
+        .onChange(of: recordingSend) { _, on in if on { recordingKey = false } }
+        .onChange(of: recordingKey) { _, on in if on { recordingSend = false } }
+    }
+
+    private func add() {
+        guard let keyCode, let send else { return }
+        let stroke = Keystroke(keyCode: keyCode, label: label, sendKeyCode: send.keyCode,
+                               sendModifiers: send.modifiers, sendLabel: send.label)
+        if BindingsStore.shared.add(stroke) == nil { dismiss() }
+    }
+}
+
+/// Records a whole key combination, modifiers included, e.g. ⌃ C.
+private struct ComboRecorder: View {
+    @Binding var combo: (keyCode: Int, modifiers: Keystroke.Modifiers, label: String)?
+    @Binding var isRecording: Bool
+    @State private var monitor: Any?
+
+    var body: some View {
+        Button { isRecording.toggle() } label: {
+            Group {
+                if isRecording {
+                    Text("Press the combination…")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                } else if let combo {
+                    KeyCombo(keys: Keystroke.Modifiers.ordered.filter { combo.modifiers.contains($0.0) }.map(\.symbol)
+                                 + [combo.label])
+                } else {
+                    Text("Click to record")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(minWidth: 108, minHeight: 24)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isRecording ? Color.accentColor.opacity(0.12) : Color(nsColor: .controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isRecording ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .onChange(of: isRecording) { _, recording in
+            if recording { install() } else { remove() }
+        }
+        .onAppear { if isRecording { install() } }
+        .onDisappear(perform: remove)
+    }
+
+    private func install() {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Escape alone cancels; with a modifier it's a combination to send.
+            let modifiers = Keystroke.Modifiers(event.modifierFlags)
+            if event.keyCode == UInt16(KeyCodes.escape), modifiers.isEmpty {
+                isRecording = false
+                return nil
+            }
+            let code = Int(event.keyCode)
+            var name = KeyCodes.label(forKeyCode: code, characters: event.charactersIgnoringModifiers)
+            if name.isEmpty { name = KeyCodes.label(forKeyCode: code, characters: nil) }
+            guard !name.isEmpty else { return nil }
+            combo = (code, modifiers, name)
+            isRecording = false
+            return nil
+        }
+    }
+
+    private func remove() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
     }
 }

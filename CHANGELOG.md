@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Keystrokes.** ✦ plus a key can now send another key combination to the app in front: ✦ C → ⌃ C to stop a command in the terminal, ✦ R → ⌃ R to search history, or anything like ⌘ ⇧ T. Holding the key repeats it. Add them in Settings → Shortcuts (the Apps tab is now Shortcuts again, with Apps and Keystrokes) or under `[keys]` in the config file.
+
 ## [0.2.3] - 2026-09-25
 
 ### Added

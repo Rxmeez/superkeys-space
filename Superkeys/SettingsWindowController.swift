@@ -20,7 +20,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     static var isOpen: Bool { current?.window?.isVisible == true }
 
     enum Pane: Int {
-        case general, keys, apps, permissions, advanced
+        case general, keys, shortcuts, permissions, advanced
     }
 
     private let tabs = NSTabViewController()
@@ -41,8 +41,8 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         // you switch, like other macOS settings windows.
         tabs.addTabViewItem(Self.item("General", symbol: "gearshape", height: Self.generalHeight, GeneralTab()))
         tabs.addTabViewItem(Self.item("Keys", symbol: "command", height: Self.keysHeight,
-                                      KeysTab(showApps: { [weak self] in self?.select(.apps) })))
-        let shortcuts = Self.item("Apps", symbol: "square.grid.2x2", height: 440, ShortcutsTab())
+                                      KeysTab(showApps: { [weak self] in self?.select(.shortcuts) })))
+        let shortcuts = Self.item("Shortcuts", symbol: "keyboard", height: 440, ShortcutsTab())
         tabs.addTabViewItem(shortcuts)
         let permissions = Self.item("Permissions", symbol: "lock.shield", height: 260, PermissionsTab())
         tabs.addTabViewItem(permissions)
@@ -53,10 +53,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
         // The app list grows with every shortcut, and Permissions gains a row
         // when the keys can't start, so those panes follow their content.
-        BindingsStore.shared.$bindings.sink { [weak self, weak shortcuts] bindings in
+        BindingsStore.shared.$bindings.combineLatest(BindingsStore.shared.$keystrokes).sink { [weak self, weak shortcuts] apps, strokes in
             guard self?.fitsContent != false else { return }
             shortcuts?.viewController?.preferredContentSize =
-                NSSize(width: Self.paneWidth, height: Self.shortcutsHeight(rows: bindings.count))
+                NSSize(width: Self.paneWidth, height: Self.shortcutsHeight(rows: apps.count + strokes.count))
         }.store(in: &sizing)
         AppState.shared.objectWillChange.receive(on: RunLoop.main).sink { [weak self, weak permissions] _ in
             guard self?.fitsContent != false else { return }
@@ -76,7 +76,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private static let advancedHeight: CGFloat = 320
 
     private static func shortcutsHeight(rows: Int) -> CGFloat {
-        rows == 0 ? 300 : min(620, max(240, 162 + CGFloat(rows) * 42))
+        min(640, 290 + CGFloat(max(rows, 1)) * 42)
     }
 
     private static func item<Content: View>(
@@ -132,7 +132,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         // Next time it opens, each tab fits its content again.
         fitsContent = true
         let heights: [CGFloat] = [Self.generalHeight, Self.keysHeight,
-                                  Self.shortcutsHeight(rows: BindingsStore.shared.bindings.count),
+                                  Self.shortcutsHeight(rows: BindingsStore.shared.bindings.count + BindingsStore.shared.keystrokes.count),
                                   AppState.shared.status == .unavailable ? 330 : 260,
                                   Self.advancedHeight]
         for (item, height) in zip(tabs.tabViewItems, heights) {

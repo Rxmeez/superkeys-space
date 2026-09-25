@@ -8,6 +8,83 @@ struct BoundApp: Codable, Equatable, Identifiable {
     var id: String { String(keyCode) }
 }
 
+/// ✦ plus a key sends another key combination to the app in front, e.g.
+/// ✦ C sends ⌃ C.
+struct Keystroke: Codable, Equatable, Identifiable {
+    var keyCode: Int
+    var label: String
+    /// What's sent.
+    var sendKeyCode: Int
+    var sendModifiers: Modifiers
+    var sendLabel: String
+    var id: String { String(keyCode) }
+
+    struct Modifiers: OptionSet, Codable, Hashable {
+        let rawValue: Int
+        static let control = Modifiers(rawValue: 1)
+        static let option = Modifiers(rawValue: 2)
+        static let shift = Modifiers(rawValue: 4)
+        static let command = Modifiers(rawValue: 8)
+
+        /// In macOS's order: ⌃ ⌥ ⇧ ⌘.
+        static let ordered: [(Modifiers, symbol: String, name: String)] = [
+            (.control, "⌃", "ctrl"), (.option, "⌥", "opt"), (.shift, "⇧", "shift"), (.command, "⌘", "cmd"),
+        ]
+
+        var cgFlags: CGEventFlags {
+            var flags: CGEventFlags = []
+            if contains(.control) { flags.insert(.maskControl) }
+            if contains(.option) { flags.insert(.maskAlternate) }
+            if contains(.shift) { flags.insert(.maskShift) }
+            if contains(.command) { flags.insert(.maskCommand) }
+            return flags
+        }
+
+        init(rawValue: Int) { self.rawValue = rawValue }
+
+        init(_ flags: NSEvent.ModifierFlags) {
+            var m: Modifiers = []
+            if flags.contains(.control) { m.insert(.control) }
+            if flags.contains(.option) { m.insert(.option) }
+            if flags.contains(.shift) { m.insert(.shift) }
+            if flags.contains(.command) { m.insert(.command) }
+            self = m
+        }
+    }
+
+    /// The combination as keycaps, e.g. ["⌃", "C"].
+    var sendKeys: [String] {
+        Modifiers.ordered.filter { sendModifiers.contains($0.0) }.map(\.symbol) + [sendLabel]
+    }
+
+    /// As written in the config file, e.g. "ctrl+c".
+    var sendText: String {
+        let key = sendLabel.count == 1 ? sendLabel.lowercased() : sendLabel
+        return (Modifiers.ordered.filter { sendModifiers.contains($0.0) }.map(\.name) + [key]).joined(separator: "+")
+    }
+
+    /// Reads a combination as written in the config file: "ctrl+c", "cmd+shift+t".
+    static func parse(_ text: String) -> (keyCode: Int, modifiers: Modifiers, label: String)? {
+        var parts = text.split(separator: "+", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespaces) }
+        // "ctrl++" means the + key.
+        if text.hasSuffix("++") { parts.removeLast(2); parts.append("+") }
+        guard let keyText = parts.popLast(), !keyText.isEmpty else { return nil }
+        var modifiers: Modifiers = []
+        for part in parts {
+            switch part.lowercased() {
+            case "ctrl", "control": modifiers.insert(.control)
+            case "opt", "option", "alt": modifiers.insert(.option)
+            case "shift": modifiers.insert(.shift)
+            case "cmd", "command": modifiers.insert(.command)
+            default: return nil
+            }
+        }
+        guard let code = KeyCodes.keyCode(forLabel: keyText) else { return nil }
+        let label = KeyCodes.label(forKeyCode: code, characters: keyText.count == 1 ? keyText : nil)
+        return (code, modifiers, label.isEmpty ? keyText.uppercased() : label)
+    }
+}
+
 @MainActor
 final class BindingsStore: ObservableObject {
     static let shared = BindingsStore()
@@ -15,6 +92,8 @@ final class BindingsStore: ObservableObject {
     private static let defaultsKey = "bindings.v2"
 
     @Published private(set) var bindings: [BoundApp]
+    private static let keystrokesKey = "keystrokes.v1"
+    @Published private(set) var keystrokes: [Keystroke]
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
@@ -22,6 +101,12 @@ final class BindingsStore: ObservableObject {
             bindings = decoded
         } else {
             bindings = []
+        }
+        if let data = UserDefaults.standard.data(forKey: Self.keystrokesKey),
+           let decoded = try? JSONDecoder().decode([Keystroke].self, from: data) {
+            keystrokes = decoded
+        } else {
+            keystrokes = []
         }
         syncTap()
     }
@@ -47,13 +132,27 @@ final class BindingsStore: ObservableObject {
         return nil
     }
 
-    func replaceAll(with apps: [BoundApp]) {
-        bindings = apps
+    func remove(_ app: BoundApp) {
+        bindings.removeAll { $0.id == app.id }
         commit()
     }
 
-    func remove(_ app: BoundApp) {
-        bindings.removeAll { $0.id == app.id }
+    /// Returns an error message, or nil on success.
+    func add(_ keystroke: Keystroke) -> String? {
+        if let error = validate(keyCode: keystroke.keyCode, replacing: nil) { return error }
+        keystrokes.append(keystroke)
+        commit()
+        return nil
+    }
+
+    func remove(_ keystroke: Keystroke) {
+        keystrokes.removeAll { $0.id == keystroke.id }
+        commit()
+    }
+
+    func replaceAll(apps: [BoundApp], keystrokes: [Keystroke]) {
+        bindings = apps
+        self.keystrokes = keystrokes
         commit()
     }
 
@@ -72,6 +171,9 @@ final class BindingsStore: ObservableObject {
         if let existing = bindings.first(where: { $0.keyCode == keyCode && $0.id != id }) {
             return "\(Glyph.hyper) \(existing.label) already opens \(existing.name)."
         }
+        if let existing = keystrokes.first(where: { $0.keyCode == keyCode && $0.id != id }) {
+            return "\(Glyph.hyper) \(existing.label) already sends \(existing.sendKeys.joined(separator: " "))."
+        }
         return nil
     }
 
@@ -79,10 +181,16 @@ final class BindingsStore: ObservableObject {
         if let data = try? JSONEncoder().encode(bindings) {
             UserDefaults.standard.set(data, forKey: Self.defaultsKey)
         }
+        if let data = try? JSONEncoder().encode(keystrokes) {
+            UserDefaults.standard.set(data, forKey: Self.keystrokesKey)
+        }
         syncTap()
     }
 
     private func syncTap() {
         HyperEventTap.shared.setAppKeyCodes(Set(bindings.map { Int64($0.keyCode) }))
+        HyperEventTap.shared.setKeystrokes(Dictionary(uniqueKeysWithValues: keystrokes.map {
+            (Int64($0.keyCode), (CGKeyCode($0.sendKeyCode), $0.sendModifiers.cgFlags))
+        }))
     }
 }
