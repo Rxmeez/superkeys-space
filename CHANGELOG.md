@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-25
+
 ### Added
 
 - **Keystrokes.** ✦ plus a key can now send another key combination to the app in front: ✦ C → ⌃ C to stop a command in the terminal, ✦ R → ⌃ R to search history, or anything like ⌘ ⇧ T. Holding the key repeats it. Add them in Settings → Shortcuts (the Apps tab is now Shortcuts again, with Apps and Keystrokes; **Add All Three** sets up ✦ C / D / R for the terminal in one click) or under `[keys]` in the config file. The welcome tour gains a fifth step that offers the same three.
@@ -95,7 +97,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...v0.2.1
