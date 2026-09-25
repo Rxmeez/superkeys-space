@@ -4,6 +4,12 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-25
+
+### Added
+
+- The menu bar menu shows which version of Superkeys is running.
+
 ## [0.1.1] - 2026-09-25
 
 ### Added
@@ -30,6 +36,7 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Rxmeez/superkeys-space/releases/tag/v0.1.0

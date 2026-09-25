@@ -5,6 +5,7 @@ struct MenuBarContent: View {
     @ObservedObject private var updater = Updater.shared
 
     var body: some View {
+        Text("Superkeys \(Updater.version)")
         Text(statusLine)
         if !state.lastAction.isEmpty {
             Text(state.lastAction)
