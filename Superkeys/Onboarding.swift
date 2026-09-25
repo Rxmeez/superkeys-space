@@ -60,7 +60,7 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private init() {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 520),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 520),
                               styleMask: [.titled, .closable, .fullSizeContentView],
                               backing: .buffered, defer: false)
         window.titlebarAppearsTransparent = true
@@ -73,7 +73,7 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
         tour.finish = { [weak self] in self?.close() }
         window.contentViewController = NSHostingController(rootView: OnboardingView(tour: tour)
             .environmentObject(AppState.shared))
-        window.setContentSize(NSSize(width: 620, height: 520))
+        window.setContentSize(NSSize(width: 680, height: 520))
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
@@ -154,7 +154,7 @@ private struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 48)
+            .padding(.horizontal, 40)
             .padding(.top, 44)
             .transition(.asymmetric(
                 insertion: .move(edge: tour.forward ? .trailing : .leading).combined(with: .opacity),
@@ -163,7 +163,7 @@ private struct OnboardingView: View {
 
             footer
         }
-        .frame(width: 620, height: 520)
+        .frame(width: 680, height: 520)
         .clipped()
         .background(
             ZStack {
@@ -474,97 +474,173 @@ private struct TryHyperStep: View {
 
 // MARK: 4. First app keys
 
-/// An app Superkeys found on this Mac and a key to suggest for it.
+/// An app this Mac uses a lot, offered a key in the tour.
 private struct Suggestion: Identifiable {
     let bundleID: String
     let name: String
     let url: URL
-    let label: String
-    let keyCode: Int
     var id: String { bundleID }
 }
 
 /// The suggestions, kept by the tour so its main button can add them.
+/// Each ticked app gets its first letter, or the next free number when the
+/// letter is taken; keys are handed out again whenever the ticks change, in
+/// order of use, so the most-used app keeps the letter.
 @MainActor
 private final class AppPicks: ObservableObject {
-    @Published var suggestions: [Suggestion] = []
-    @Published var chosen: Set<String> = []
+    @Published private(set) var suggestions: [Suggestion] = []
+    @Published var chosen: Set<String> = [] { didSet { assignKeys() } }
+    @Published private(set) var keys: [String: (label: String, keyCode: Int)] = [:]
     private var loaded = false
+
+    private static let maximum = 8
+    private static let preselected = 4
+    private static let numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 
     func load() {
         guard !loaded else { return }
         loaded = true
-        var found: [Suggestion] = []
-        let store = BindingsStore.shared
-        func consider(_ bundleIDs: [String], label: String, keyCode: Int) {
-            guard store.validate(keyCode: keyCode, replacing: nil) == nil else { return }
-            for id in bundleIDs where !store.bindings.contains(where: { $0.bundleID == id }) {
-                guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { continue }
-                var name = FileManager.default.displayName(atPath: url.path)
-                if name.hasSuffix(".app") { name = String(name.dropLast(4)) }
-                found.append(Suggestion(bundleID: id, name: name, url: url, label: label, keyCode: keyCode))
-                return
-            }
-        }
-        let browser = NSWorkspace.shared.urlForApplication(toOpen: URL(string: "https://superkeys.space")!)
-            .flatMap { Bundle(url: $0)?.bundleIdentifier }
-        consider([browser, "com.apple.Safari"].compactMap { $0 }, label: "B", keyCode: 11)
-        consider(["com.mitchellh.ghostty", "com.googlecode.iterm2", "dev.warp.Warp-Stable", "net.kovidgoyal.kitty",
-                  "com.github.wez.wezterm", "com.apple.Terminal"], label: "T", keyCode: 17)
-        consider(["com.apple.Notes"], label: "N", keyCode: 45)
-        consider(["com.microsoft.VSCode", "dev.zed.Zed", "com.todesktop.230313mzl4w4u92", "com.apple.dt.Xcode"],
-                 label: "E", keyCode: 14)
-        suggestions = found
-        chosen = Set(found.map(\.bundleID))
+        suggestions = Array(Self.mostUsedApps().prefix(Self.maximum))
+        chosen = Set(suggestions.prefix(Self.preselected).map(\.bundleID))
     }
+
+    func label(for app: Suggestion) -> String { keys[app.bundleID]?.label ?? "" }
 
     func add() {
         for app in suggestions where chosen.contains(app.bundleID) {
-            _ = BindingsStore.shared.add(keyCode: app.keyCode, label: app.label, bundleID: app.bundleID, name: app.name)
+            guard let key = keys[app.bundleID] else { continue }
+            _ = BindingsStore.shared.add(keyCode: key.keyCode, label: key.label, bundleID: app.bundleID, name: app.name)
         }
         // Added once; going Back shows what's left rather than adding twice.
         suggestions.removeAll { chosen.contains($0.bundleID) }
         chosen = []
     }
+
+    /// Ticked apps first, so they get the letters, then the rest, so an
+    /// unticked row shows the key it would get.
+    private func assignKeys() {
+        let store = BindingsStore.shared
+        var used = Set<Int>()
+        func free(_ label: String) -> Int? {
+            guard let code = KeyCodes.keyCode(forLabel: label), !used.contains(code),
+                  store.validate(keyCode: code, replacing: nil) == nil else { return nil }
+            return code
+        }
+        var result: [String: (label: String, keyCode: Int)] = [:]
+        let ordered = suggestions.filter { chosen.contains($0.bundleID) } + suggestions.filter { !chosen.contains($0.bundleID) }
+        for app in ordered {
+            let letter = app.name.uppercased().first(where: { ("A"..."Z").contains(String($0)) }).map(String.init)
+            let label = [letter].compactMap { $0 }.first(where: { free($0) != nil })
+                ?? Self.numbers.first(where: { free($0) != nil })
+            guard let label, let code = free(label) else { continue }
+            used.insert(code)
+            result[app.bundleID] = (label, code)
+        }
+        keys = result
+    }
+
+    /// Apps ranked by how often they've been opened (Spotlight keeps the
+    /// count), then the Dock and whatever is running, for a Mac with little
+    /// history. Skips apps that already have a key, menu-bar-only helpers,
+    /// System Settings and Superkeys itself.
+    private static func mostUsedApps() -> [Suggestion] {
+        var seen = Set(BindingsStore.shared.bindings.map(\.bundleID))
+        seen.formUnion(["com.apple.systempreferences", "com.apple.finder", Bundle.main.bundleIdentifier ?? "",
+                        "space.superkeys", "space.superkeys.dev"])
+        var result: [Suggestion] = []
+        func consider(_ bundleID: String?, url knownURL: URL? = nil) {
+            guard let bundleID, !seen.contains(bundleID) else { return }
+            seen.insert(bundleID)
+            guard let url = knownURL ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return }
+            let info = NSDictionary(contentsOf: url.appendingPathComponent("Contents/Info.plist"))
+            if (info?["LSUIElement"] as? Bool) == true || (info?["LSUIElement"] as? String) == "1" { return }
+            var name = FileManager.default.displayName(atPath: url.path)
+            if name.hasSuffix(".app") { name = String(name.dropLast(4)) }
+            result.append(Suggestion(bundleID: bundleID, name: name, url: url))
+        }
+        for (bundleID, url) in spotlightRanking() { consider(bundleID, url: url) }
+        let dock = UserDefaults(suiteName: "com.apple.dock")?.array(forKey: "persistent-apps") as? [[String: Any]] ?? []
+        for tile in dock { consider((tile["tile-data"] as? [String: Any])?["bundle-identifier"] as? String) }
+        for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
+            consider(app.bundleIdentifier, url: app.bundleURL)
+        }
+        return result
+    }
+
+    private static func spotlightRanking() -> [(String, URL)] {
+        let query = "kMDItemContentType == 'com.apple.application-bundle' && kMDItemUseCount > 0"
+        guard let q = MDQueryCreate(nil, query as CFString, nil, nil) else { return [] }
+        MDQuerySetSearchScope(q, ["/Applications", "/System/Applications",
+                                  NSHomeDirectory() + "/Applications"] as CFArray, 0)
+        guard MDQueryExecute(q, CFOptionFlags(kMDQuerySynchronous.rawValue)) else { return [] }
+        let recent = Date().addingTimeInterval(-60 * 24 * 3600)
+        var rows: [(count: Int, id: String, url: URL)] = []
+        for i in 0..<MDQueryGetResultCount(q) {
+            guard let raw = MDQueryGetResultAtIndex(q, i) else { continue }
+            let item = Unmanaged<MDItem>.fromOpaque(raw).takeUnretainedValue()
+            guard let path = MDItemCopyAttribute(item, kMDItemPath) as? String,
+                  let id = MDItemCopyAttribute(item, kMDItemCFBundleIdentifier) as? String,
+                  let last = MDItemCopyAttribute(item, kMDItemLastUsedDate) as? Date, last > recent
+            else { continue }
+            let count = MDItemCopyAttribute(item, "kMDItemUseCount" as CFString) as? Int ?? 0
+            rows.append((count, id, URL(fileURLWithPath: path)))
+        }
+        return rows.sorted { $0.count > $1.count }.map { ($0.id, $0.url) }
+    }
 }
 
 private struct AppsStep: View {
     @ObservedObject var picks: AppPicks
+    private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 22) {
             StepHeader(eyebrow: "Step 3 · Your apps",
                        title: "One key per app.",
-                       detail: "Hold ✦ and press a key: the app opens, or comes forward. Here are some to start with; change or add more any time in Settings.")
+                       detail: "Hold ✦ and press the key: the app opens, or comes forward. These are the apps you use most, each on its first letter. Change them any time in Settings.")
             if picks.suggestions.isEmpty {
-                Text("Add your own any time in Settings → Shortcuts.")
+                Text("Every app you use already has a key. Add more any time in Settings → Shortcuts.")
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             } else {
-                VStack(spacing: 8) {
-                    ForEach(picks.suggestions) { app in
-                        Toggle(isOn: Binding(
-                            get: { picks.chosen.contains(app.bundleID) },
-                            set: { on in if on { picks.chosen.insert(app.bundleID) } else { picks.chosen.remove(app.bundleID) } }
-                        )) {
-                            HStack(spacing: 12) {
-                                Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
-                                    .resizable().frame(width: 26, height: 26)
-                                Text(app.name).font(.system(size: 14))
-                                Spacer()
-                                KeyCombo(keys: [Glyph.hyper, app.label])
-                            }
-                        }
-                        .toggleStyle(.checkbox)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 9)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.05)))
-                    }
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(picks.suggestions) { app in tile(app) }
                 }
-                .frame(maxWidth: 400)
             }
             Spacer(minLength: 0)
         }
         .onAppear(perform: picks.load)
+    }
+
+    private func tile(_ app: Suggestion) -> some View {
+        let on = picks.chosen.contains(app.bundleID)
+        let shape = RoundedRectangle(cornerRadius: 11, style: .continuous)
+        return Button {
+            if on { picks.chosen.remove(app.bundleID) } else { picks.chosen.insert(app.bundleID) }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 15))
+                    .foregroundStyle(on ? Accent.hyper : Color.secondary.opacity(0.6))
+                Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                    .resizable().frame(width: 26, height: 26)
+                Text(app.name)
+                    .font(.system(size: 13))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 4)
+                KeyCombo(keys: [Glyph.hyper, picks.label(for: app)])
+                    .opacity(on ? 1 : 0.45)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 46)
+            .background(shape.fill(on ? Accent.hyper.opacity(0.1) : Color.primary.opacity(0.04)))
+            .overlay(shape.stroke(on ? Accent.hyper.opacity(0.45) : Color.primary.opacity(0.08), lineWidth: 1))
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(on ? "Selected" : "Not selected")
+        .accessibilityHint("Hyper \(picks.label(for: app)) opens \(app.name)")
     }
 }
 
