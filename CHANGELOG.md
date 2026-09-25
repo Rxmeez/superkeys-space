@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-25
+
 ### Added
 
 - **Config file.** Your app keys and preferences now live in `~/.config/superkeys/config.toml` as well, kept in step both ways: change something in Settings and the file is updated; edit and save the file and Superkeys applies it right away. Keep it in your dotfiles to carry your setup to another Mac. Settings → Advanced opens it and points out any line it couldn't use; a file with a mistake in it is never half-applied or overwritten.
@@ -89,7 +91,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Rxmeez/superkeys-space/compare/v0.1.2...v0.2.0
