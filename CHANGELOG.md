@@ -17,6 +17,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Changed
 
+- **New app icon**: the moon-and-stars mark on a dark keycap, matching the menu bar and superkeys.space. Development builds get an indigo "DEV" version.
 - The privacy note now mentions the once-a-day update check, which sends nothing but the app's version.
 - Pressing ✦ ← or ✦ → again no longer restores the window's previous frame; ✦ ↩ still does.
 

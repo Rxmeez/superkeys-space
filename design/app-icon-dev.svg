@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2640"/><stop offset="1" stop-color="#15121f"/></linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3358"/><stop offset="1" stop-color="#1f1a30"/></linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9c9ff"/><stop offset="1" stop-color="#8b8bff"/></linearGradient>
+    <linearGradient id="star" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd48a"/><stop offset="1" stop-color="#ffa62b"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity="0.45"/></filter>
+    <filter id="glowI" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="glowA" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <!-- keycap body on the macOS icon grid (824 px content, 100 px margin) -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#body)" filter="url(#shadow)"/>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="184" fill="none" stroke="rgba(163,163,255,0.30)" stroke-width="3"/>
+  <!-- the key's top face -->
+  <rect x="176" y="160" width="672" height="650" rx="140" fill="url(#face)"/>
+  <rect x="177" y="161" width="670" height="648" rx="139" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="2"/>
+  <!-- moon and stars, the same shapes as the site logo, scaled into the face -->
+  <g transform="translate(212 150) scale(5.2)">
+    <path d="M52 22 A40 40 0 1 0 98 74 A34 34 0 0 1 52 22 Z" fill="#a3a3ff" opacity="0.55" filter="url(#glowI)"/>
+    <path d="M52 22 A40 40 0 1 0 98 74 A34 34 0 0 1 52 22 Z" fill="url(#moon)"/>
+    <g filter="url(#glowA)" opacity="0.7">
+      <path d="M84 6 C85.5 18 90 22.5 102 24 C90 25.5 85.5 30 84 42 C82.5 30 78 25.5 66 24 C78 22.5 82.5 18 84 6Z" fill="#ffb84d"/>
+    </g>
+    <path d="M84 6 C85.5 18 90 22.5 102 24 C90 25.5 85.5 30 84 42 C82.5 30 78 25.5 66 24 C78 22.5 82.5 18 84 6Z" fill="url(#star)"/>
+    <path d="M106 40 C106.8 45 109 47.2 114 48 C109 48.8 106.8 51 106 56 C105.2 51 103 48.8 98 48 C103 47.2 105.2 45 106 40Z" fill="url(#star)"/>
+  </g>
+    <rect x="352" y="742" width="320" height="92" rx="46" fill="#ffb84d"/>
+    <text x="512" y="806" text-anchor="middle" font-family="-apple-system, system-ui" font-size="60" font-weight="800" letter-spacing="6" fill="#1a1400">DEV</text>
+</svg>
