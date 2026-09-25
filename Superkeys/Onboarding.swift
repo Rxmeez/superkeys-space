@@ -93,7 +93,7 @@ final class OnboardingWindowController: NSWindowController, NSWindowDelegate {
 // MARK: - Steps
 
 private enum Step: Int, CaseIterable {
-    case welcome, access, tryHyper, apps, finish
+    case welcome, access, tryHyper, apps, tryMeh, keystrokes
 }
 
 /// Where the tour is, and what its main button does on each step, shared by
@@ -110,19 +110,21 @@ private final class TourModel: ObservableObject {
     /// Which way the last move went, so steps slide in from the right side.
     @Published var forward = true
     let picks = AppPicks()
+    let strokes = KeystrokePicks()
     var finish: () -> Void = {}
-    private var picksChanged: AnyCancellable?
+    private var picksChanged: Set<AnyCancellable> = []
 
     init() {
-        // The main button's title counts the ticked apps.
-        picksChanged = picks.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }
+        // The main button's title counts what's ticked.
+        picks.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &picksChanged)
+        strokes.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &picksChanged)
     }
 
     /// The main button: on the apps step it adds the ticked keys first.
     func next() {
         switch step {
         case .apps: picks.add(); move(1)
-        case .finish: finish()
+        case .keystrokes: strokes.add(); finish()
         default: move(1)
         }
     }
@@ -132,7 +134,7 @@ private final class TourModel: ObservableObject {
     /// ✦ →: onward without choosing anything; adding keys and finishing are
     /// the buttons' job.
     func skipAhead() {
-        if step != .finish { move(1) }
+        if step != .keystrokes { move(1) }
     }
 
     func move(_ delta: Int) {
@@ -157,7 +159,8 @@ private struct OnboardingView: View {
                 case .access: AccessStep()
                 case .tryHyper: TryHyperStep()
                 case .apps: AppsStep(picks: tour.picks)
-                case .finish: FinishStep()
+                case .tryMeh: MehStep()
+                case .keystrokes: KeystrokesStep(picks: tour.strokes)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -221,6 +224,10 @@ private struct OnboardingView: View {
                 Button("Skip") { tour.skipAhead() }
                     .controlSize(.large)
             }
+            if step == .keystrokes, !tour.strokes.chosen.isEmpty {
+                Button("Skip") { tour.finish() }
+                    .controlSize(.large)
+            }
             primaryButton
         }
         .padding(.horizontal, 28)
@@ -235,7 +242,10 @@ private struct OnboardingView: View {
         case .apps:
             let n = tour.picks.chosen.count
             return n == 0 ? "Skip" : "Add \(n) \(n == 1 ? "Key" : "Keys")"
-        case .finish: return "Done"
+        case .tryMeh: return "Continue"
+        case .keystrokes:
+            let n = tour.strokes.chosen.count
+            return n == 0 ? "Done" : "Add \(n) & Finish"
         }
     }
 
@@ -753,9 +763,9 @@ private struct AppsStep: View {
     }
 }
 
-// MARK: 5. Try ☾ and finish
+// MARK: 5. Try ☾
 
-private struct FinishStep: View {
+private struct MehStep: View {
     @EnvironmentObject private var state: AppState
     @ObservedObject private var indicator = HyperIndicator.shared
     @State private var tried = false
@@ -777,6 +787,64 @@ private struct FinishStep: View {
                 NeedsAccess()
             }
             Spacer(minLength: 0)
+        }
+        .onChange(of: indicator.meh) { _, held in
+            if held { tried = true }
+        }
+    }
+}
+
+// MARK: 6. Keystrokes
+
+/// The terminal set, less any key the apps step just took.
+@MainActor
+private final class KeystrokePicks: ObservableObject {
+    struct Offer: Identifiable {
+        let stroke: Keystroke
+        let purpose: String
+        /// Why it can't be added, when the key is already used.
+        let taken: String?
+        var id: String { stroke.id }
+    }
+
+    @Published private(set) var offers: [Offer] = []
+    @Published var chosen: Set<String> = []
+
+    /// Called each time the step shows, since going Back to the apps step can
+    /// change which keys are free.
+    func refresh() {
+        offers = Keystroke.terminalSet.map { item in
+            Offer(stroke: item.stroke, purpose: item.purpose,
+                  taken: BindingsStore.shared.validate(keyCode: item.stroke.keyCode, replacing: nil))
+        }
+        chosen = Set(offers.filter { $0.taken == nil }.map(\.id))
+    }
+
+    func add() {
+        for offer in offers where chosen.contains(offer.id) {
+            _ = BindingsStore.shared.add(offer.stroke)
+        }
+        chosen = []
+    }
+}
+
+private struct KeystrokesStep: View {
+    @ObservedObject var picks: KeystrokePicks
+    @EnvironmentObject private var state: AppState
+
+    var body: some View {
+        VStack(spacing: 20) {
+            StepHeader(eyebrow: "Step 5 · Keystrokes",
+                       title: "✦ can be Control, too.",
+                       detail: "Hold ✦ and press a key to send a key combination to the app in front. Caps Lock is easier to reach than ⌃, which is handy in the terminal:")
+            VStack(spacing: 8) {
+                ForEach(picks.offers) { offer in row(offer) }
+            }
+            .frame(maxWidth: 480)
+            Text("Add any combination later in Settings → Shortcuts, such as ✦ W → ⌘ ⇧ T.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
             Toggle("Open Superkeys at login", isOn: Binding(
                 get: { state.launchAtLogin },
                 set: { state.setLaunchAtLogin($0) }
@@ -786,8 +854,40 @@ private struct FinishStep: View {
             .foregroundStyle(.secondary)
             .accessibilityLabel("Open Superkeys at login")
         }
-        .onChange(of: indicator.meh) { _, held in
-            if held { tried = true }
+        .onAppear(perform: picks.refresh)
+    }
+
+    private func row(_ offer: KeystrokePicks.Offer) -> some View {
+        let on = picks.chosen.contains(offer.id)
+        let shape = RoundedRectangle(cornerRadius: 11, style: .continuous)
+        return Button {
+            if on { picks.chosen.remove(offer.id) } else { picks.chosen.insert(offer.id) }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: offer.taken != nil ? "minus.circle" : on ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 15))
+                    .foregroundStyle(on ? Accent.hyper : Color.secondary.opacity(0.6))
+                KeyCombo(keys: [Glyph.hyper, offer.stroke.label])
+                Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
+                KeyCombo(keys: offer.stroke.sendKeys)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(offer.purpose).font(.system(size: 13))
+                    if let taken = offer.taken {
+                        Text(taken).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 46)
+            .background(shape.fill(on ? Accent.hyper.opacity(0.1) : Color.primary.opacity(0.04)))
+            .overlay(shape.stroke(on ? Accent.hyper.opacity(0.45) : Color.primary.opacity(0.08), lineWidth: 1))
+            .opacity(offer.taken != nil ? 0.55 : 1)
+            .contentShape(shape)
         }
+        .buttonStyle(.plain)
+        .disabled(offer.taken != nil)
+        .accessibilityValue(on ? "Selected" : "Not selected")
+        .accessibilityLabel("Hyper \(offer.stroke.label) sends Control \(offer.stroke.sendLabel): \(offer.purpose)")
     }
 }

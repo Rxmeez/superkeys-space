@@ -252,12 +252,17 @@ struct ShortcutsTab: View {
                         KeyCombo(keys: [Glyph.hyper, "C"])
                         Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
                         KeyCombo(keys: ["⌃", "C"])
-                        Text("Use \(Glyph.hyper) as Control, or any other combination.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Use \(Glyph.hyper) as Control in the terminal")
+                            Text("\(Glyph.hyper) C stops a command, \(Glyph.hyper) D ends input, \(Glyph.hyper) R searches history.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
+                        Button("Add All Three") {
+                            for item in Keystroke.terminalSet { _ = store.add(item.stroke) }
+                        }
                     }
-                    .opacity(0.8)
                 } else {
                     ForEach(store.keystrokes) { stroke in
                         KeystrokeRow(stroke: stroke)

@@ -52,6 +52,14 @@ struct Keystroke: Codable, Equatable, Identifiable {
         }
     }
 
+    /// ✦ as Control for the terminal: stop a command, end input, search
+    /// history. Offered in the tour and in an empty Keystrokes list.
+    static let terminalSet: [(stroke: Keystroke, purpose: String)] = [
+        (Keystroke(keyCode: 8, label: "C", sendKeyCode: 8, sendModifiers: .control, sendLabel: "C"), "Stop a running command"),
+        (Keystroke(keyCode: 2, label: "D", sendKeyCode: 2, sendModifiers: .control, sendLabel: "D"), "End input, or close the shell"),
+        (Keystroke(keyCode: 15, label: "R", sendKeyCode: 15, sendModifiers: .control, sendLabel: "R"), "Search your command history"),
+    ]
+
     /// The combination as keycaps, e.g. ["⌃", "C"].
     var sendKeys: [String] {
         Modifiers.ordered.filter { sendModifiers.contains($0.0) }.map(\.symbol) + [sendLabel]
