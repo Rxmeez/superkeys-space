@@ -94,6 +94,7 @@ Releases are signed with a self-signed "Superkeys" certificate and a Sparkle upd
 - One-time: `scripts/setup_signing_keys.sh` creates both keys, stores them in 1Password, and writes the public update key into `Info.plist`.
 - Each release: add a `## [x.y.z]` section to `CHANGELOG.md`, commit, then run `scripts/release.sh x.y.z` (`--dry-run` to build and sign without publishing). It builds a universal app, publishes it and the signed update feed (`site/appcast.xml`) to superkeys.space, tags the release, and bumps the Homebrew cask.
 - The Xcode project is generated: edit `scripts/generate_project.py`, not the `.pbxproj`.
+- Debug builds are "Superkeys Dev" (`space.superkeys.dev`) with their own Accessibility entry and preferences, so they never get mixed up with an installed release. Quit one before running the other: both remap the same keys.
 
 ## Settings file
 

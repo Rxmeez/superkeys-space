@@ -142,8 +142,12 @@ t="""\t\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 \t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = space.superkeys;
 \t\t\t\tPRODUCT_NAME = Superkeys;
 \t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "";"""
-for cfg,k in (("Debug","tdebug"),("Release","trelease")):
-    a(f"\t\t{uid(k)} /* {cfg} */ = {{\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbaseConfigurationReference = {uid('frxcconfig')} /* Signing.xcconfig */;\n\t\t\tbuildSettings = {{\n{t}\n\t\t\t}};\n\t\t\tname = {cfg};\n\t\t}};")
+# Development builds get their own identity, so macOS never mixes them up with
+# an installed release: separate Accessibility entry, preferences and name.
+dev=t.replace("PRODUCT_BUNDLE_IDENTIFIER = space.superkeys;","PRODUCT_BUNDLE_IDENTIFIER = space.superkeys.dev;").replace("PRODUCT_NAME = Superkeys;",'PRODUCT_NAME = "Superkeys Dev";')
+assert dev != t
+for cfg,k,settings in (("Debug","tdebug",dev),("Release","trelease",t)):
+    a(f"\t\t{uid(k)} /* {cfg} */ = {{\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbaseConfigurationReference = {uid('frxcconfig')} /* Signing.xcconfig */;\n\t\t\tbuildSettings = {{\n{settings}\n\t\t\t}};\n\t\t\tname = {cfg};\n\t\t}};")
 a("/* End XCBuildConfiguration section */\n")
 a(f"""/* Begin XCConfigurationList section */
 \t\t{uid('clproject')} /* Build configuration list for PBXProject "Superkeys" */ = {{
