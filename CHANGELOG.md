@@ -4,6 +4,15 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Multiple displays.** ✦ ← / → snap to a half, and pressed again at the edge walk the window onto the neighbouring display's facing half. ✦ ⌥ ← / → move the window to the next display as it is. ✦ ↩'s restore works across displays.
+- **Desktops per display.** ☾ 1–9 switch the display under the pointer, ☾ ⇧ 1–9 move a window within its own display, and ☾ right ⌥ remembers the previous desktop separately for each display. The chord panel shows one row of desktops per display. Settings → Permissions checks that "Displays have separate Spaces" is on when more than one display is connected.
+
+### Changed
+
+- Pressing ✦ ← or ✦ → again no longer restores the window's previous frame; ✦ ↩ still does.
+
 ## [0.1.2] - 2026-09-25
 
 ### Added

@@ -132,6 +132,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "snap-left": WindowManager.shared.snap(.left)
                 case "snap-right": WindowManager.shared.snap(.right)
                 case "fill": WindowManager.shared.snap(.full)
+                case "throw-left": WindowManager.shared.throwWindow(.left)
+                case "throw-right": WindowManager.shared.throwWindow(.right)
+                case "flip": SpaceManager.shared.flipToPreviousDesktop()
+                case let desk? where desk.hasPrefix("desktop-"):
+                    if let n = Int(desk.dropFirst(8)) { SpaceManager.shared.switchTo(space: n) }
+                case let move? where move.hasPrefix("move-"):
+                    if let n = Int(move.dropFirst(5)) { SpaceManager.shared.moveFocusedWindow(toSpace: n) }
+                case "displays":
+                    for d in SpaceManager.shared.displays() {
+                        Logger.debugHook.info("display \(d.uuid, privacy: .public) spaces=\(d.spaces.count) current=\(String(describing: d.current), privacy: .public)")
+                    }
                 default: break
                 }
                 Logger.debugHook.info("\(action ?? "", privacy: .public): \(AppState.shared.lastAction, privacy: .public)")

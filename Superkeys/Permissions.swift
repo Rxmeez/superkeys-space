@@ -24,6 +24,12 @@ enum Permissions {
              fallback: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_ListenEvent")
     }
 
+    /// "Displays have separate Spaces" lives under Desktop & Dock → Mission Control.
+    static func openDesktopAndDockSettings() {
+        open(primary: "x-apple.systempreferences:com.apple.Desktop-Settings.extension",
+             fallback: "x-apple.systempreferences:com.apple.preference.dock")
+    }
+
     private static func open(primary: String, fallback: String) {
         if let url = URL(string: primary), NSWorkspace.shared.open(url) { return }
         if let url = URL(string: fallback) { NSWorkspace.shared.open(url) }

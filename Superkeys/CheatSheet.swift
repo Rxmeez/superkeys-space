@@ -31,12 +31,10 @@ final class CheatSheet {
     }
 
     private func show(_ layer: Layer) {
-        let desktops = SpaceManager.shared.desktopSummary()
         let content = CheatSheetView(
             layer: layer,
             apps: BindingsStore.shared.bindings.sorted { $0.label < $1.label },
-            desktopCount: desktops.count,
-            currentDesktop: desktops.current
+            desktops: SpaceManager.shared.desktopSummaries()
         )
         let host = NSHostingView(rootView: content)
         let size = host.fittingSize
@@ -77,8 +75,7 @@ final class CheatSheet {
 private struct CheatSheetView: View {
     let layer: CheatSheet.Layer
     let apps: [BoundApp]
-    let desktopCount: Int
-    let currentDesktop: Int?
+    let desktops: [SpaceManager.Summary]
 
     private var accent: Color { layer == .hyper ? Accent.hyper : Accent.meh }
 
@@ -114,7 +111,8 @@ private struct CheatSheetView: View {
     /// touch their labels.
     @ViewBuilder private var hyper: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
-            row([Glyph.hyper, "←", "→"], "Snap left or right")
+            row([Glyph.hyper, "←", "→"], "Snap left or right, again for the next display")
+            row([Glyph.hyper, "⌥", "←", "→"], "Move to the next display")
             row([Glyph.hyper, "↩"], "Fill the screen, again to restore")
             row([Glyph.hyper, "↑"], "Arrange the windows here")
             row([Glyph.hyper, "⇧", "←↑↓→"], "Swap with the next window")
@@ -144,26 +142,49 @@ private struct CheatSheetView: View {
         }
     }
 
+    /// One row of desktop tiles per display, current one lit. With several
+    /// displays each row is named, and the one under the pointer (where ☾
+    /// digits act) is marked.
     @ViewBuilder private var meh: some View {
-        if desktopCount > 0 {
-            HStack(spacing: 6) {
-                ForEach(1...desktopCount, id: \.self) { number in
-                    let current = number == currentDesktop
-                    Text("\(number)")
-                        .font(.system(size: 13, weight: current ? .semibold : .regular, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(current ? 1 : 0.85))
-                        .frame(width: 30, height: 24)
-                        .background(RoundedRectangle(cornerRadius: 7)
-                            .fill(current ? AnyShapeStyle(Accent.gradient(accent)) : AnyShapeStyle(Color.white.opacity(0.1))))
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(desktops.enumerated()), id: \.offset) { _, display in
+                if display.count > 0 {
+                    VStack(alignment: .leading, spacing: 5) {
+                        if let name = display.name {
+                            HStack(spacing: 6) {
+                                Text(name)
+                                if display.underPointer {
+                                    Image(systemName: "cursorarrow").font(.system(size: 10))
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(Color.white.opacity(display.underPointer ? 0.9 : 0.55))
+                        }
+                        tiles(display)
+                    }
                 }
             }
-            .accessibilityLabel("Desktop \(currentDesktop ?? 0) of \(desktopCount)")
         }
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
             row([Glyph.meh, "1–9"], "Switch to that desktop")
             row([Glyph.meh, "⇧", "1–9"], "Move the window there")
             row([Glyph.meh, "right ⌥"], "Flip back to the last one")
         }
+    }
+
+    private func tiles(_ display: SpaceManager.Summary) -> some View {
+        HStack(spacing: 6) {
+            ForEach(1...display.count, id: \.self) { number in
+                let current = number == display.current
+                Text("\(number)")
+                    .font(.system(size: 13, weight: current ? .semibold : .regular, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(current ? 1 : 0.85))
+                    .frame(width: 30, height: 24)
+                    .background(RoundedRectangle(cornerRadius: 7)
+                        .fill(current ? AnyShapeStyle(Accent.gradient(accent)) : AnyShapeStyle(Color.white.opacity(0.1))))
+            }
+        }
+        .accessibilityLabel("\(display.name.map { "\($0), " } ?? "")desktop \(display.current ?? 0) of \(display.count)")
     }
 
     private func row(_ keys: [String], _ text: String) -> some View {

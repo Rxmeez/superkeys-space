@@ -37,7 +37,8 @@ struct GeneralTab: View {
 
             Section {
                 LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock")
-                ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap the window to the left or right half")
+                ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half. Again to move to the next display")
+                ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
                 ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen. Press again to restore")
                 ChordRow(keys: [Glyph.hyper, "↑"], detail: "Arrange up to 4 windows on this screen. Again to undo")
                 ChordRow(keys: [Glyph.hyper, "⇧", "←↑↓→"], detail: "Swap the window with the one next to it")
@@ -52,7 +53,7 @@ struct GeneralTab: View {
 
             Section {
                 LayerKeyRow(layer: .meh, title: "Meh Key", detail: "Hold right ⌘")
-                ChordRow(keys: [Glyph.meh, "1–9"], detail: "Switch to that desktop")
+                ChordRow(keys: [Glyph.meh, "1–9"], detail: "Switch to that desktop on the display under the pointer")
                 ChordRow(keys: [Glyph.meh, "⇧", "1–9"], detail: "Move the window there and follow it")
                 ChordRow(keys: [Glyph.meh, "right ⌥"], detail: "Flip back to the previous desktop")
             } footer: {
@@ -241,6 +242,17 @@ struct PermissionsTab: View {
                         state.reconcile()
                     }
                 )
+                if state.multipleDisplays {
+                    PermissionRow(
+                        symbol: "display.2",
+                        title: "Separate desktops per display",
+                        detail: "\"Displays have separate Spaces\" gives each display its own desktops, so ☾ 1–9 act on the display under the pointer. Takes effect after logging out.",
+                        granted: state.separateSpaces,
+                        grantedTitle: "On",
+                        actionTitle: "Open Settings…",
+                        action: Permissions.openDesktopAndDockSettings
+                    )
+                }
                 if state.status == .unavailable {
                     PermissionRow(
                         symbol: "keyboard",

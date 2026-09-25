@@ -45,6 +45,9 @@ final class AppState: ObservableObject {
     @Published private(set) var accessibilityTrusted = false
     @Published private(set) var tapRunning = false
     @Published private(set) var desktopShortcutsEnabled = false
+    /// More than one display, and whether each has its own desktops.
+    @Published private(set) var multipleDisplays = false
+    @Published private(set) var separateSpaces = true
     @Published private(set) var launchAtLogin = false
     @Published private(set) var paused = false
 
@@ -88,6 +91,8 @@ final class AppState: ObservableObject {
         update(\.accessibilityTrusted, trusted)
         update(\.tapRunning, HyperEventTap.shared.isRunning)
         update(\.desktopShortcutsEnabled, MissionControlShortcuts.allEnabled)
+        update(\.multipleDisplays, NSScreen.screens.count > 1)
+        update(\.separateSpaces, SpaceManager.displaysHaveSeparateSpaces)
         scheduleRetry()
     }
 
@@ -124,6 +129,15 @@ final class AppState: ObservableObject {
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
         ) { _ in
             Task { @MainActor in AppState.shared.reconcile() }
+        })
+        // Plugging a display in or out changes which desktops ☾ can reach.
+        observers.append(NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                AppState.shared.reconcile()
+                SpaceManager.shared.trackDesktops()
+            }
         })
         // Posted system-wide whenever any app's Accessibility access changes.
         observers.append(DistributedNotificationCenter.default().addObserver(

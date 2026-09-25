@@ -16,7 +16,8 @@ Hold **Caps Lock**.
 
 | Chord | Action |
 | --- | --- |
-| ✦ ← / → | Snap the window to the left or right half |
+| ✦ ← / → | Snap the window to the left or right half. Again to move it to the next display |
+| ✦ ⌥ ← / → | Move the window to the next display, keeping its size and place |
 | ✦ Return | Fill the screen. Press again to restore |
 | ✦ ↑ | Arrange the windows on this screen. Press again to undo |
 | ✦ ⇧ arrow | Swap the window with the one next to it |
@@ -28,7 +29,7 @@ Hold **right ⌘**.
 
 | Chord | Action |
 | --- | --- |
-| ☾ 1–9 | Switch to that desktop, creating it if it doesn't exist yet |
+| ☾ 1–9 | Switch the display under the pointer to that desktop, creating it if it doesn't exist yet |
 | ☾ ⇧ 1–9 | Move the window to that desktop and follow it |
 | ☾ right ⌥ | Flip back to the previous desktop; again to flip forward |
 
@@ -127,7 +128,7 @@ Superkeys never records or stores what you type. Keys pass straight through unle
 
 ## Limitations
 
-- Desktop n is the nth desktop on the main display. Per-display desktops aren't handled yet.
+- With several displays each has its own desktops (macOS's "Displays have separate Spaces"): ☾ acts on the display under the pointer. How macOS numbers its Switch to Desktop shortcuts across displays is set by `defaults write space.superkeys desktopNumbering global|perDisplay`.
 - Desktop 10 has no system shortcut, so ☾ 0 does nothing.
 - The chord panel uses Liquid Glass on macOS 26 and later, and a blur before that.
 

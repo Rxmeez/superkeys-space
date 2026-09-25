@@ -48,7 +48,6 @@ Required before the Download button and `brew install` go live on superkeys.spac
 
 | # | Feature | Why it helps | Effort |
 |---|---|---|---|
-| 6 | **Move window to the next display** | ✦ ⌥ ← / → throws the window to the adjacent screen and keeps its relative size. Pure Accessibility work, no private APIs. | M |
 | 7 | **Bind keys to more than apps** | A URL, a folder, a file, or a Shortcuts.app shortcut on a Hyper key (✦ N runs a "New note" shortcut). The launcher already opens URLs through NSWorkspace; Shortcuts runs via `shortcuts run`. | M |
 | 8 | **Exclude apps** | Turn the Hyper Key off automatically while a game, VM, or remote-desktop client is frontmost, where Caps Lock may matter. Watch `didActivateApplicationNotification` and pause the tap. | M |
 | 9 | **Choose the Hyper Key** | Let people with an external keyboard pick right ⌘, right ⌥, or an F-key instead of Caps Lock. The remap already goes through `UserKeyMapping`; only the source usage changes. | M |
@@ -75,7 +74,6 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | # | Feature | Why it helps | Effort |
 |---|---|---|---|
 | 13 | **Desktop 10** | ☾ 0 currently reports "No Desktop 10". Symbolic hotkey 127 may be "Switch to Desktop 10", but that is unverified and needs ten desktops to test. | M |
-| 14 | **Per-display desktops** | With "Displays have separate Spaces", switch and move should act on the display under the pointer, not always the main one. | L |
 | 15 | **Rebind the built-in chords** | Let the snap and desktop chords move to other keys, for people who want ✦ H/J/K/L. The recorder and validation already exist. | M |
 | 17 | **Tests** | Unit tests for the remap merge, key labels, key validation, and snap geometry. The remap merge was verified by hand this time; it should not have to be again. | M |
 | 67 | **Build check on every push** | A GitHub Actions job on a macOS runner that builds the app (ad hoc signing, no secrets) and runs the tests from #17 for every push and pull request, so a broken build is caught before a release tag, not during it. Also a place to run `swift-format --lint`. Private repos get 2,000 free Actions minutes a month; macOS minutes count 10×, so keep it to one build per push. | S |
@@ -120,6 +118,7 @@ The same 8pt gap as snapping, inside the visible frame (below the menu bar, abov
 
 ## Built
 
+- **Multiple displays (built, needs a two-display test).** ✦ ← / → walk a window across displays half by half; ✦ ⌥ ← / → throw it as it is; each display has its own desktops, with ☾ acting on the display under the pointer, per-display flip back, per-display rows in the chord panel, and a "separate Spaces" check in Permissions. Open question for real hardware: whether macOS numbers Switch to Desktop n across displays (default assumption) or per display (`desktopNumbering` setting).
 - **First-launch guide.** superkeys.space/install walks through Done (not Move to Bin), Open Anyway, and Accessibility with real screenshots and rings on the exact controls; linked from the site's install box, the README, and the cask caveats.
 - **Self-updating releases (0.1.1+).** Sparkle checks superkeys.space/appcast.xml daily; updates are EdDSA-signed and signed with the stable "Superkeys" certificate, so they install with no Gatekeeper prompt and keep Accessibility. Verified 2026-09-25 by updating 0.1.1 → 0.1.2 in place. Keys live in the 1Password vault "Superkeys"; `scripts/release.sh x.y.z` publishes everything. Next: the GitHub Actions release job (#65).
 - **0.1.0, installable.** `brew trust --tap rxmeez/tap && brew install --cask rxmeez/tap/superkeys` installs a universal build signed with the stable self-signed identity (so Accessibility survives updates); macOS asks for a one-time Open Anyway until Developer ID notarisation (#16). Release checklist until #65 exists: bump `MARKETING_VERSION`, update CHANGELOG, Release build with `ARCHS="arm64 x86_64"`, `ditto` zip into `site/download/`, push, tag, then update `version` and `sha256` in the tap's `Casks/superkeys.rb`.

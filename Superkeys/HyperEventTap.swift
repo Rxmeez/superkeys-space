@@ -200,7 +200,17 @@ final class HyperEventTap: @unchecked Sendable {
 
     /// Hyper: arrows and Return snap the window, assigned keys open apps.
     private func dispatchHyper(_ keyCode: Int64, shift: Bool, control: Bool, option: Bool) {
-        guard !control, !option else { return }
+        guard !control else { return }
+        if option {
+            // ✦ ⌥ ← / → moves the window to the next display as it is.
+            guard !shift else { return }
+            switch keyCode {
+            case KeyCodes.leftArrow: Task { @MainActor in WindowManager.shared.throwWindow(.left) }
+            case KeyCodes.rightArrow: Task { @MainActor in WindowManager.shared.throwWindow(.right) }
+            default: break
+            }
+            return
+        }
         if shift {
             // ✦ ⇧ arrow swaps the window with its neighbour in that direction.
             let direction: WindowArranger.Direction
