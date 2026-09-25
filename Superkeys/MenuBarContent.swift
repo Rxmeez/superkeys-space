@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarContent: View {
     @EnvironmentObject private var state: AppState
+    @ObservedObject private var updater = Updater.shared
 
     var body: some View {
         Text(statusLine)
@@ -22,6 +23,10 @@ struct MenuBarContent: View {
             EmptyView()
         }
         Divider()
+        if Updater.isEnabled {
+            Button("Check for Updates…") { Updater.shared.checkForUpdates() }
+                .disabled(!updater.canCheckForUpdates)
+        }
         Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",")
         Divider()

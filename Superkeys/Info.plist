@@ -34,5 +34,13 @@
 	<true/>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>SUFeedURL</key>
+	<string>https://superkeys.space/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>SPARKLE_PUBLIC_KEY_NOT_SET</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>

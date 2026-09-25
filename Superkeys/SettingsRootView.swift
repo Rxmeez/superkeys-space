@@ -75,6 +75,7 @@ struct GeneralTab: View {
                     get: { state.launchAtLogin },
                     set: { state.setLaunchAtLogin($0) }
                 ))
+                UpdatesRow()
                 LabeledContent {
                     HStack {
                         Button("Import…") { SettingsTransfer.importFile() }
@@ -91,6 +92,31 @@ struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Version, automatic update checks, and a manual check.
+private struct UpdatesRow: View {
+    @ObservedObject private var updater = Updater.shared
+
+    var body: some View {
+        if Updater.isEnabled {
+            Toggle(isOn: $updater.checksAutomatically) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Keep Superkeys up to date")
+                    Text("Version \(Updater.version). New versions install in the background, and your keys keep working.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+            LabeledContent("Check for a new version now") {
+                Button("Check Now") { updater.checkForUpdates() }
+                    .disabled(!updater.canCheckForUpdates)
+            }
+        } else {
+            LabeledContent("Version", value: Updater.version)
+        }
     }
 }
 

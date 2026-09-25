@@ -2,7 +2,7 @@
 
 **Two private keys for your Mac.** Caps Lock becomes ✦ Hyper and right ⌘ becomes ☾ Meh. Hold one and the rest of the keyboard becomes shortcuts for opening apps, arranging windows, and moving between desktops.
 
-[superkeys.space](https://superkeys.space) · macOS 14 or later · native Swift, no dependencies
+[superkeys.space](https://superkeys.space) · macOS 14 or later · native Swift; one dependency, [Sparkle](https://sparkle-project.org), for updates
 
 ![Superkeys settings](docs/images/settings-general.png)
 
@@ -66,7 +66,7 @@ brew trust --tap rxmeez/tap
 brew install --cask rxmeez/tap/superkeys
 ```
 
-0.1.0 is an early build that isn't notarised by Apple yet, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. Updates keep the Accessibility grant, because every build is signed with the same identity. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
+Superkeys isn't notarised by Apple, so macOS blocks the first launch. Allow it once in **System Settings → Privacy & Security → Superkeys → Open Anyway**, then grant Accessibility when Superkeys asks. That's the only prompt: after that Superkeys updates itself in the background (Settings → General → Keep Superkeys up to date), and because every release is signed with the same certificate, updates keep both the approval and the Accessibility grant. `brew uninstall --cask superkeys` quits it (which puts Caps Lock and right ⌘ back to normal) and removes it; add `--zap` to delete its settings too.
 
 Or build it yourself:
 
@@ -86,6 +86,14 @@ ENABLE_DEBUG_DYLIB = NO
 ```
 
 A self-signed certificate from Keychain Access works. It has no Team ID, which is why Xcode's debug dylib has to be off: the hardened runtime won't load a library whose Team ID differs from the app's. Without a stable identity, run `tccutil reset Accessibility space.superkeys` after rebuilding and grant access again.
+
+## Releasing
+
+Releases are signed with a self-signed "Superkeys" certificate and a Sparkle update key, both kept in the 1Password vault "Superkeys" and read only while a release runs.
+
+- One-time: `scripts/setup_signing_keys.sh` creates both keys, stores them in 1Password, and writes the public update key into `Info.plist`.
+- Each release: add a `## [x.y.z]` section to `CHANGELOG.md`, commit, then run `scripts/release.sh x.y.z` (`--dry-run` to build and sign without publishing). It builds a universal app, publishes it and the signed update feed (`site/appcast.xml`) to superkeys.space, tags the release, and bumps the Homebrew cask.
+- The Xcode project is generated: edit `scripts/generate_project.py`, not the `.pbxproj`.
 
 ## Settings file
 

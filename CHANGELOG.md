@@ -4,6 +4,14 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Updates install themselves.** Superkeys checks superkeys.space once a day and installs new versions in the background, with no Gatekeeper prompt and without losing Accessibility access. Turn it off, or check now, in Settings → General; "Check for Updates…" is also in the menu bar menu. Every update is verified against a signing key before it's installed.
+
+### Changed
+
+- Releases are signed as "Superkeys" instead of "Hypercaps Dev". Coming from 0.1.0, grant Accessibility once more after upgrading; later updates keep it.
+
 ## [0.1.0] - 2026-09-24
 
 The first build anyone can install. It isn't signed with an Apple Developer ID or notarised yet, so macOS asks you to approve it once on first launch (see the README).
