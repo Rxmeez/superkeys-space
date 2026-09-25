@@ -42,7 +42,6 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 47 | **Real Caps Lock on both Shift keys** | Some people still need Caps Lock now and then. Pressing left and right Shift together would toggle it, a common Linux convention. Opt-in; the existing `CapsLock` helper already talks to IOHIDSystem, it would set the lock instead of clearing it. | S |
 | 51 | **Move focus between windows** | ✦ ⌃ + arrow focuses the window next to this one, without moving anything. After ✦ ↑ arranges four windows, this is how you get between them without the mouse. Reuses the arranger's neighbour search; ✦ ⌃ is unused. | S |
 | 58 | **Key labels that follow your keyboard layout** | Recorded keys take their label from the character typed at the time, which is right for that layout, but two things assume US ANSI: importing a settings file resolves `"key": "\\"` or `"§"` through a fixed US map (`KeyCodes.typed`), and labels don't update if you later switch layout (British ↔ US, or a German layout). Resolve and relabel with `TISCopyCurrentKeyboardLayoutInputSource` + `UCKeyTranslate`, watching for layout changes. Key codes stay the source of truth, so bindings never break. | M |
-| 59 | **Caps Lock never left dead** | If Superkeys crashes or is force-quit, Caps Lock stays mapped to F18 (which does nothing) until Superkeys starts again. A tiny launchd agent, or a `KeepAlive` login item that clears Superkeys' two `UserKeyMapping` entries when the app isn't running, would make the keys fall back to normal within seconds. | M |
 
 ## Worth doing
 
@@ -67,7 +66,6 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 49 | **Hide the menu bar icon** | For people who don't want another icon. Opening Superkeys again from Finder or Spotlight shows Settings, where the icon can come back; `applicationShouldHandleReopen` already does this. | S |
 | 52 | **Resize the split** | ✦ − / ✦ = moves the edge between the focused window and its neighbours in 10% steps, so the 3-split can become 60/40 and quarters can go 2:1. The neighbours shrink to match. Takes − and = away from app keys, so it should be opt-in or use ✦ ⌃ ⇧ arrows instead. | M |
 | 53 | **The 4 most recent when there are more** | With 5 or more windows ✦ ↑ does nothing, as designed. An option could arrange the 4 most recently used instead and leave the rest behind them. Off by default. | S |
-| 60 | **"Try it" check after setup** | Right after Accessibility is granted, General shows one line, "Hold Caps Lock", that turns into a lit ✦ with "You're set" the first time the key is held. Proves the setup worked without a tour or carousel (those stay decided against). | S |
 
 ## Later
 
@@ -118,6 +116,7 @@ The same 8pt gap as snapping, inside the visible frame (below the menu bar, abov
 
 ## Built
 
+- **Safety and first-run polish.** Crash watchdog restores Caps Lock and right ⌘ within 2 s after a crash or force quit (was #59); orange dot on the menu bar logo plus Reset Access when the keys should work but don't; What's New after an update; a one-time "Try it: hold Caps Lock" confirmation in General (was #60); Superkeys and Superkeys Dev refuse to run together.
 - **Multiple displays (built, needs a two-display test).** ✦ ← / → walk a window across displays half by half; ✦ ⌥ ← / → throw it as it is; each display has its own desktops, with ☾ acting on the display under the pointer, per-display flip back, per-display rows in the chord panel, and a "separate Spaces" check in Permissions. Open question for real hardware: whether macOS numbers Switch to Desktop n across displays (default assumption) or per display (`desktopNumbering` setting).
 - **First-launch guide.** superkeys.space/install walks through Done (not Move to Bin), Open Anyway, and Accessibility with real screenshots and rings on the exact controls; linked from the site's install box, the README, and the cask caveats.
 - **Self-updating releases (0.1.1+).** Sparkle checks superkeys.space/appcast.xml daily; updates are EdDSA-signed and signed with the stable "Superkeys" certificate, so they install with no Gatekeeper prompt and keep Accessibility. Verified 2026-09-25 by updating 0.1.1 → 0.1.2 in place. Keys live in the 1Password vault "Superkeys"; `scripts/release.sh x.y.z` publishes everything. Next: the GitHub Actions release job (#65).

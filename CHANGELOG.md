@@ -8,9 +8,16 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 - **Multiple displays.** ✦ ← / → snap to a half, and pressed again at the edge walk the window onto the neighbouring display's facing half. ✦ ⌥ ← / → move the window to the next display as it is. ✦ ↩'s restore works across displays.
 - **Desktops per display.** ☾ 1–9 switch the display under the pointer, ☾ ⇧ 1–9 move a window within its own display, and ☾ right ⌥ remembers the previous desktop separately for each display. The chord panel shows one row of desktops per display. Settings → Permissions checks that "Displays have separate Spaces" is on when more than one display is connected.
+- **Caps Lock is never left dead.** If Superkeys crashes or is force-quit, Caps Lock and right ⌘ go back to normal within two seconds instead of staying remapped until the next launch.
+- **"Keys aren't working" is visible and fixable.** The menu bar logo shows an orange dot when the keys should be on but aren't, and Settings and the menu offer Reset Access for the case where the Accessibility switch looks on but macOS is holding an old entry.
+- **What's New after an update**, in the menu until you've read it once.
+- **Try it**: right after setup, General asks you to hold Caps Lock and confirms it works.
+- Superkeys and Superkeys Dev (a development build) no longer run at the same time; launching one offers to quit the other.
+
 
 ### Changed
 
+- The privacy note now mentions the once-a-day update check, which sends nothing but the app's version.
 - Pressing ✦ ← or ✦ → again no longer restores the window's previous frame; ✦ ↩ still does.
 
 ## [0.1.2] - 2026-09-25

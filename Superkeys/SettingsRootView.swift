@@ -27,6 +27,9 @@ struct GeneralTab: View {
                 if state.status == .needsAccess || state.status == .unavailable {
                     SetupNotice()
                 }
+                if state.status == .on {
+                    TryItRow()
+                }
             } footer: {
                 if !state.lastAction.isEmpty {
                     Text("Last action: \(state.lastAction)")
@@ -93,6 +96,42 @@ struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Shown once setup works: asks you to hold Caps Lock, then confirms it the
+/// first time you do. Once confirmed it never shows again.
+private struct TryItRow: View {
+    @ObservedObject private var indicator = HyperIndicator.shared
+    @AppStorage("triedHyperKey") private var tried = false
+    @State private var confirmedNow = false
+
+    var body: some View {
+        if !tried || confirmedNow {
+            HStack(spacing: 12) {
+                Image(systemName: Glyph.symbol(for: Glyph.hyper) ?? "sparkle")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(confirmedNow || indicator.held ? Color.white : Accent.hyper)
+                    .frame(width: 30, height: 30)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(
+                        confirmedNow || indicator.held ? AnyShapeStyle(Accent.gradient(Accent.hyper))
+                                                        : AnyShapeStyle(Accent.hyper.opacity(0.14))))
+                    .animation(.easeOut(duration: 0.12), value: indicator.held)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(confirmedNow ? "You're set" : "Try it: hold Caps Lock")
+                    Text(confirmedNow ? "The Hyper Key works. Keep holding for a moment to see everything it does."
+                                      : "It lights up here when Superkeys sees it.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .onChange(of: indicator.held) { _, held in
+                if held, !tried {
+                    tried = true
+                    confirmedNow = true
+                }
+            }
+        }
     }
 }
 
