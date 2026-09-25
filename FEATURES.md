@@ -25,7 +25,6 @@ Required before the Download button and `brew install` go live on superkeys.spac
 | 72 | **Release check before shipping** | `scripts/release.sh` builds and signs, but nothing launches the built app before publishing. A smoke test (launch the Release build, wait for the event tap and remap, quit) would stop a release that can't start, like the missing runpath that stopped Sparkle from loading. | S |
 | 73 | **Self-check for macOS behaviour changes** | Two things broke silently this week because macOS changed underneath: synthetic drags from the HID-system event source stopped moving windows, and Mission Control's add button moved outside its screen. A debug-only "diagnostics" run (drag a test window, add then remove a desktop on each display, flip back) would catch both after any macOS update, before users do. | M |
 | 74 | **Remove a desktop with ☾ ⌫** | Mission Control exposes `AXRemoveDesktop` on each desktop button (used to clean up during testing). ☾ ⌫ could remove the current desktop on the display under the pointer, moving its windows to the previous one, the counterpart to ☾ n creating desktops. Supersedes #12. | S |
-| 75 | **Settings in a helper process** | Opening Settings once leaves ~25 MB of SwiftUI/AppKit runtime caches and heap fragmentation that can't be reclaimed (measured 17 MB at launch, ~42 MB after). Running Settings as a small helper app that quits on close would keep the menu bar process at ~17 MB for good. Only worth it if memory becomes a complaint: it means an XPC or shared-defaults link between the two. | L |
 | 76 | **Memory and idle check in CI** | Launch the built app headless-ish, open and close Settings through AX, and fail if the footprint after close grows past a budget or if any process wakes while idle. Would have caught the polling watchdog and the retained Settings window automatically. Pairs with #72 and #73. | M |
 
 ## Next up
@@ -142,6 +141,7 @@ The same 8pt gap as snapping, inside the visible frame (below the menu bar, abov
 - **Animations, sounds, onboarding carousels.** Out of character for a quiet utility.
 - **Analytics, accounts.** Explicit non-goals. (Sparkle updates were too, until the no-$99 distribution plan needed a way to update without Gatekeeper prompts; see #56.)
 - **AeroSpace-style features.** Emulated desktops, app home desktops, layer lock, automatic tiling that re-arranges on its own, and a URL scheme were considered and set aside by choice. The on-demand arrange (#50) is different: it runs only when asked.
+- **Settings in a separate helper app.** Would keep memory at ~17 MB instead of ~42 MB after Settings is first opened, but means two bundles, an XPC link for live state, slower opening and more release risk. Decided 2026-09-25: not worth the cost for ~25 MB.
 - **Naming desktops.** Little benefit with a handful of desktops when the ☾ panel already shows which one you're on.
 - **Show a window on every desktop.** macOS offers this only for an app's own windows. Doing it to another app's window would need the same kind of cross-process SkyLight call that is ignored for moves. Untested, so it stays off the list until someone proves it works.
 
