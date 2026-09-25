@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Changed
+
+- The welcome tour opens with "Your whole Mac, one key away."
+
 ## [0.2.6] - 2026-09-25
 
 ### Changed
