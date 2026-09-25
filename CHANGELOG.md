@@ -4,6 +4,11 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Changed
+
+- Single-letter keycaps use the system font, so ✦ O no longer looks like ✦ 0.
+- The welcome tour opens with "Caps Lock and right ⌘, finally useful."
+
 ## [0.2.5] - 2026-09-25
 
 ### Added
