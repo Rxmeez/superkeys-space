@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Changed
+
+- What's New ends with a short thank-you to Superkeys' sponsors.
+
 ## [0.2.7] - 2026-09-25
 
 ### Added

@@ -1,0 +1,24 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["site/**", "**.md", "docs/**", "design/**"]
+  pull_request:
+    paths-ignore: ["site/**", "**.md", "docs/**", "design/**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # Signed ad hoc (Signing.xcconfig's default): no certificates or secrets.
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild -scheme Superkeys -configuration Debug -derivedDataPath build test | tail -40

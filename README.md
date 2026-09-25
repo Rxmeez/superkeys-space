@@ -1,5 +1,7 @@
 # Superkeys
 
+[![Build and test](https://github.com/Rxmeez/superkeys-space/actions/workflows/ci.yml/badge.svg)](https://github.com/Rxmeez/superkeys-space/actions/workflows/ci.yml)
+
 **Your whole Mac, one key away.** Caps Lock becomes ✦ Hyper and right ⌘ becomes ☾ Meh. Hold one and the rest of the keyboard becomes shortcuts for opening apps, arranging windows, and moving between desktops.
 
 [superkeys.space](https://superkeys.space) · macOS 14 or later · native Swift; one dependency, [Sparkle](https://sparkle-project.org), for updates
@@ -156,7 +158,9 @@ The landing page for [superkeys.space](https://superkeys.space) lives in `site/`
 
 [Suggest a feature](https://github.com/Rxmeez/superkeys-space/issues/new?template=feature.yml) or [report a problem](https://github.com/Rxmeez/superkeys-space/issues/new?template=bug.yml). Both are also in Settings → General, which fills in your versions for you. If an idea is already there, a 👍 on it helps decide what comes next.
 
-Pull requests are welcome. For anything bigger than a fix, open an issue first so we can agree on the shape before you build it. Keep to the style around you, run the tests, and note user-facing changes under `## [Unreleased]` in `CHANGELOG.md`.
+Pull requests are welcome: [CONTRIBUTING.md](CONTRIBUTING.md) covers building, tests, and what fits. Security problems go through [SECURITY.md](SECURITY.md), not public issues.
+
+If Superkeys is useful to you, a ⭐ on the repo helps other people find it.
 
 ## Sponsor
 

@@ -48,10 +48,16 @@ enum WhatsNew {
 
     private static func attributed(_ html: Data) -> NSAttributedString? {
         let styled = """
-        <style>body{font:13px -apple-system;color:\(NSColor.labelColor.hexString)}h3{font-size:13px;margin:10px 0 4px}ul{margin:0;padding-left:18px}li{margin:3px 0}</style>
-        """.data(using: .utf8)! + html
+        <style>body{font:13px -apple-system;color:\(NSColor.labelColor.hexString)}h3{font-size:13px;margin:10px 0 4px}ul{margin:0;padding-left:18px}li{margin:3px 0}.thanks{margin-top:12px;color:\(NSColor.secondaryLabelColor.hexString)}</style>
+        """.data(using: .utf8)! + html + thanks
         return NSAttributedString(html: styled, documentAttributes: nil)
     }
+
+    /// One quiet line under the notes, only here where someone opened them.
+    private static let thanks = """
+        <p class="thanks">Superkeys is free and open source, thanks to its \
+        <a href="https://github.com/sponsors/Rxmeez">sponsors</a>.</p>
+        """.data(using: .utf8)!
 
     private static func present(version: String, notes: NSAttributedString) {
         NSApp.activate(ignoringOtherApps: true)

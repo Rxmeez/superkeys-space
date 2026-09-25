@@ -17,6 +17,7 @@
 #   4. regenerates site/appcast.xml (the Sparkle update feed), signed
 #   5. commits, tags vX.Y.Z and pushes; Cloudflare Pages publishes the site
 #   6. bumps the cask in Rxmeez/homebrew-tap
+#   7. creates the GitHub release with the zip and the changelog notes
 set -euo pipefail
 
 VERSION=${1:?usage: scripts/release.sh <version> [--dry-run]}
@@ -167,5 +168,11 @@ grep -q "auto_updates true" "$TAP/Casks/superkeys.rb" || sed -i '' 's/^  depends
   depends_on macos/' "$TAP/Casks/superkeys.rb"
 git -C "$TAP" commit -qam "superkeys $VERSION"
 git -C "$TAP" push -q
+
+# The site stays the source for Sparkle and the cask; the GitHub release is a
+# mirror so the repo shows releases and watchers are notified.
+say "Creating the GitHub release"
+scripts/release_notes.sh "$VERSION" | gh release create "v$VERSION" "$ZIP" \
+  --title "Superkeys $VERSION" --notes-file - --verify-tag
 
 say "Released Superkeys $VERSION. Installed copies will offer it within a day."

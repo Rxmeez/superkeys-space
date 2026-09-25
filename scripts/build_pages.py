@@ -151,7 +151,13 @@ PRIVACY = """      <header>
           <strong>One request a day</strong>, to <code>superkeys.space/appcast.xml</code>, to check for a new version. It
           sends nothing but the standard request details, including the app's version number: no identifiers, no system
           profile, no usage data. Updates are signed and verified before they're installed. Turn the check off in
-          Settings → General → Keep Superkeys up to date.
+          Settings → General → Install updates automatically. Opening What's New fetches that version's release notes
+          from the same place.
+        </p>
+        <p>
+          <strong>Suggest a Feature</strong> and <strong>Report a Problem</strong> in Settings open a form on GitHub in
+          your browser. A problem report fills in the app's version, your macOS version and your Mac's model; nothing is
+          sent unless you submit the form, and you can edit or delete any of it first.
         </p>
         <p>There are no analytics, no crash reporting services, and no accounts.</p>
 
@@ -163,9 +169,10 @@ PRIVACY = """      <header>
 
         <h2>Checking it yourself</h2>
         <p>
-          Superkeys' source code will be published, so every line on this page can be checked against what the app
-          actually does. Until then, macOS shows you the same facts: Superkeys appears only under Accessibility in
-          Privacy &amp; Security, and its one network request is visible in any network monitor.
+          Superkeys is open source under the GNU GPL v3, so every line on this page can be checked against
+          <a href="https://github.com/Rxmeez/superkeys-space">what the app actually does</a>. <a href="https://github.com/Rxmeez/superkeys-space/blob/main/SECURITY.md">SECURITY.md</a> walks
+          through what the keyboard tap sees. macOS shows you the same facts: Superkeys appears only under
+          Accessibility in Privacy &amp; Security, and its network requests are visible in any network monitor.
         </p>
       </div>"""
 
