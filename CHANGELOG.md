@@ -6,7 +6,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Added
 
-- **Key groups.** Out of letters? ✦ O then P can open 1Password while ✦ O then S opens Slack, for apps and keystrokes alike. The first key keeps its own job: ✦ O on its own runs when you let go of ✦, so single keys stay instant and groups never need a timeout. Hold a moment after the first key and a panel shows what's in the group; Esc cancels. Record the second key with "+ then…" in Settings, or write `"O P"` in the config file.
+- **Key groups.** Out of letters? ✦ O then P can open 1Password while ✦ O then S opens Slack, for apps and keystrokes alike. The first key keeps its own job: ✦ O on its own runs when you let go of ✦, so single keys stay instant and groups never need a timeout. Hold a moment after the first key and a panel shows what's in the group; Esc cancels. Record the second key with "+ then…" in Settings (a first key that's already taken, like ✦ G for your browser, can still start a group), or write `"O P"` in the config file. Settings lists each group together, its second keys indented under the first.
 - The ✦ chord panel now lists your keystrokes too, not only your apps.
 - The welcome tour's app step mentions groups.
 

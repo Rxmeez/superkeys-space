@@ -140,6 +140,9 @@ private struct KeyRecorder: View {
     var keyCode2: Binding<Int?> = .constant(nil)
     var label2: Binding<String> = .constant("")
     var allowsSecond = true
+    /// Whether the recorder is waiting for a group's second key, so a sheet
+    /// can hold off its other recorders meanwhile.
+    var recordingSecondKey: Binding<Bool> = .constant(false)
     let validate: (Int, Int?) -> String?
 
     @State private var recordingSecond = false
@@ -187,6 +190,7 @@ private struct KeyRecorder: View {
                     }
                 }
             }
+            .fixedSize()
 
             if let error {
                 Text(error)
@@ -201,7 +205,13 @@ private struct KeyRecorder: View {
             }
         }
         .onChange(of: isRecording) { _, _ in sync() }
-        .onChange(of: recordingSecond) { _, _ in sync() }
+        .onChange(of: recordingSecond) { _, on in
+            recordingSecondKey.wrappedValue = on
+            sync()
+        }
+        .onChange(of: recordingSecondKey.wrappedValue) { _, on in
+            if !on, recordingSecond { recordingSecond = false }
+        }
         .onAppear(perform: sync)
         .onDisappear(perform: remove)
     }
@@ -241,6 +251,9 @@ private struct KeyRecorder: View {
         guard monitor == nil else { return }
         error = nil
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Holding a key repeats it; only a fresh press counts, so holding
+            // G can't record "G then G".
+            if event.isARepeat { return nil }
             if event.keyCode == UInt16(KeyCodes.escape) {
                 isRecording = false
                 recordingSecond = false
@@ -307,8 +320,11 @@ struct ShortcutsTab: View {
                 if store.bindings.isEmpty {
                     emptyState
                 } else {
-                    ForEach(store.bindings) { app in
-                        ShortcutRow(app: app) { rekeying = app }
+                    ForEach(KeyGroups.rows(store.bindings, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
+                        switch row.kind {
+                        case .header(let label): GroupHeader(label: label)
+                        case .item(let app, let indented): ShortcutRow(app: app, indented: indented) { rekeying = app }
+                        }
                     }
                 }
             } header: {
@@ -346,8 +362,11 @@ struct ShortcutsTab: View {
                         }
                     }
                 } else {
-                    ForEach(store.keystrokes) { stroke in
-                        KeystrokeRow(stroke: stroke)
+                    ForEach(KeyGroups.rows(store.keystrokes, first: \.keyCode, label: \.label, second: \.keyCode2, label2: \.label2)) { row in
+                        switch row.kind {
+                        case .header(let label): GroupHeader(label: label)
+                        case .item(let stroke, let indented): KeystrokeRow(stroke: stroke, indented: indented)
+                        }
                     }
                 }
             } header: {
@@ -402,6 +421,7 @@ struct ShortcutsTab: View {
 
 private struct ShortcutRow: View {
     let app: BoundApp
+    var indented = false
     let rebind: () -> Void
 
     @State private var hovering = false
@@ -409,6 +429,7 @@ private struct ShortcutRow: View {
     var body: some View {
         let installed = AppCatalog.shared.isInstalled(app.bundleID)
         HStack(spacing: 10) {
+            if indented { GroupConnector() }
             AppIcon(bundleID: app.bundleID)
             VStack(alignment: .leading, spacing: 1) {
                 Text(app.name)
@@ -667,10 +688,12 @@ private struct RebindSheet: View {
 
 private struct KeystrokeRow: View {
     let stroke: Keystroke
+    var indented = false
     @State private var hovering = false
 
     var body: some View {
         HStack(spacing: 10) {
+            if indented { GroupConnector() }
             SequenceCombo(label: stroke.label, then: stroke.label2)
             Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
             KeyCombo(keys: stroke.sendKeys)
@@ -703,6 +726,7 @@ private struct NewKeystrokeSheet: View {
     @State private var keyCode2: Int?
     @State private var label2 = ""
     @State private var recordingKey = true
+    @State private var recordingSecondKey = false
     @State private var send: (keyCode: Int, modifiers: Keystroke.Modifiers, label: String)?
     @State private var recordingSend = false
 
@@ -719,7 +743,7 @@ private struct NewKeystrokeSheet: View {
                 GridRow {
                     Text("Key").foregroundStyle(.secondary)
                     KeyRecorder(keyCode: $keyCode, label: $label, isRecording: $recordingKey,
-                                keyCode2: $keyCode2, label2: $label2) {
+                                keyCode2: $keyCode2, label2: $label2, recordingSecondKey: $recordingSecondKey) {
                         BindingsStore.shared.validate(keyCode: $0, then: $1, replacing: nil)
                     }
                 }
@@ -741,12 +765,23 @@ private struct NewKeystrokeSheet: View {
         }
         .padding(18)
         .frame(width: 420)
-        // Once the key is in, listen for what it sends.
-        .onChange(of: keyCode) { _, code in
-            if code != nil, send == nil { recordingSend = true }
+        // Once the key (and any second key) is in, listen for what it sends.
+        .onChange(of: keyCode) { _, _ in listenForSendIfReady() }
+        .onChange(of: recordingSecondKey) { _, on in
+            if on { recordingSend = false } else { listenForSendIfReady() }
         }
-        .onChange(of: recordingSend) { _, on in if on { recordingKey = false } }
+        .onChange(of: recordingSend) { _, on in
+            if on { recordingKey = false; recordingSecondKey = false }
+        }
         .onChange(of: recordingKey) { _, on in if on { recordingSend = false } }
+    }
+
+    private func listenForSendIfReady() {
+        // Deferred a beat: the key recorder decides whether it wants a second
+        // key in the same update.
+        DispatchQueue.main.async {
+            if keyCode != nil, send == nil, !recordingKey, !recordingSecondKey { recordingSend = true }
+        }
     }
 
     private func add() {
@@ -802,6 +837,9 @@ private struct ComboRecorder: View {
     private func install() {
         guard monitor == nil else { return }
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Holding a key repeats it; only a fresh press counts, so holding
+            // G can't record "G then G".
+            if event.isARepeat { return nil }
             // Escape alone cancels; with a modifier it's a combination to send.
             let modifiers = Keystroke.Modifiers(event.modifierFlags)
             if event.keyCode == UInt16(KeyCodes.escape), modifiers.isEmpty {
@@ -821,5 +859,73 @@ private struct ComboRecorder: View {
     private func remove() {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
+    }
+}
+
+// MARK: - Groups in the lists
+
+/// Orders apps or keystrokes by key and keeps a group together: ✦ O's own
+/// entry, then ✦ O then P, ✦ O then S indented beneath it. A group with no
+/// entry of its own gets a small header instead.
+enum KeyGroups {
+    struct Row<Item: Identifiable>: Identifiable {
+        enum Kind {
+            case header(String)
+            case item(Item, indented: Bool)
+        }
+        let id: String
+        let kind: Kind
+    }
+
+    static func rows<Item: Identifiable>(
+        _ items: [Item], first: KeyPath<Item, Int>, label: KeyPath<Item, String>,
+        second: KeyPath<Item, Int?>, label2: KeyPath<Item, String?>
+    ) -> [Row<Item>] where Item.ID == String {
+        let sorted = items.sorted {
+            ($0[keyPath: label], $0[keyPath: first], $0[keyPath: label2] ?? "")
+                < ($1[keyPath: label], $1[keyPath: first], $1[keyPath: label2] ?? "")
+        }
+        var rows: [Row<Item>] = []
+        var index = 0
+        while index < sorted.count {
+            let key = sorted[index][keyPath: first]
+            var end = index
+            while end < sorted.count, sorted[end][keyPath: first] == key { end += 1 }
+            let members = sorted[index..<end]
+            let own = members.first { $0[keyPath: second] == nil }
+            let grouped = members.filter { $0[keyPath: second] != nil }
+            if let own { rows.append(Row(id: own.id, kind: .item(own, indented: false))) }
+            if own == nil, !grouped.isEmpty {
+                rows.append(Row(id: "header-\(key)", kind: .header(members.first![keyPath: label])))
+            }
+            for item in grouped { rows.append(Row(id: item.id, kind: .item(item, indented: true))) }
+            index = end
+        }
+        return rows
+    }
+}
+
+/// The small └ that ties a group's second keys to its first.
+private struct GroupConnector: View {
+    var body: some View {
+        Image(systemName: "arrow.turn.down.right")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.tertiary)
+            .frame(width: 14)
+            .accessibilityHidden(true)
+    }
+}
+
+private struct GroupHeader: View {
+    let label: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            SequenceCombo(label: label, then: nil)
+            Text("group").font(.caption).foregroundStyle(.secondary)
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Hyper \(label) group")
     }
 }
