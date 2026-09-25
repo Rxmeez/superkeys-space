@@ -48,6 +48,7 @@ struct GeneralTab: View {
                     set: { state.setLaunchAtLogin($0) }
                 ))
                 .toggleStyle(.switch)
+                .accessibilityLabel("Open at login")
             }
 
             Section {

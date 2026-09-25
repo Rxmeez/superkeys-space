@@ -784,6 +784,7 @@ private struct FinishStep: View {
             .toggleStyle(.switch)
             .controlSize(.small)
             .foregroundStyle(.secondary)
+            .accessibilityLabel("Open Superkeys at login")
         }
         .onChange(of: indicator.meh) { _, held in
             if held { tried = true }
