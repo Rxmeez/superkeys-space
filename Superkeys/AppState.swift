@@ -83,9 +83,17 @@ final class AppState: ObservableObject {
         observe()
     }
 
+    #if DEBUG
+    /// Screenshots of the no-access states on a Mac that has access.
+    var debugUntrusted = false { didSet { reconcile() } }
+    #endif
+
     /// Brings the event tap in line with permissions and the pause switch.
     func reconcile() {
-        let trusted = Permissions.isTrusted
+        var trusted = Permissions.isTrusted
+        #if DEBUG
+        if debugUntrusted { trusted = false }
+        #endif
         if trusted && !paused && !HyperEventTap.shared.isRunning,
            !HyperEventTap.shared.start(), !requestedInputMonitoring {
             // Some Macs also want Input Monitoring before a tap can be created.
@@ -124,7 +132,10 @@ final class AppState: ObservableObject {
     /// the fallback, and only runs the full check when something it can see
     /// has changed; a full pass costs several cross-process calls.
     private func pollAccess() {
-        let trusted = Permissions.isTrusted
+        var trusted = Permissions.isTrusted
+        #if DEBUG
+        if debugUntrusted { trusted = false }
+        #endif
         if trusted != accessibilityTrusted || (trusted && !tapRunning) {
             reconcile()
         }

@@ -208,6 +208,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "snap-right": if !OnboardingWindowController.handleHyperArrow(.right) { WindowManager.shared.snap(.right) }
                 case "fill": WindowManager.shared.snap(.full)
                 case "whatsnew": WhatsNew.show()
+                case "settings": SettingsWindowController.shared.show()
+                case "untrusted": AppState.shared.debugUntrusted = true
+                case "trusted": AppState.shared.debugUntrusted = false
+                case "appearance-light": NSApp.appearance = NSAppearance(named: .aqua)
+                case "appearance-dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+                case "appearance-system": NSApp.appearance = nil
                 case let s? where s.hasPrefix("onboarding"):
                     OnboardingWindowController.debugShow(step: Int(s.dropFirst("onboarding-".count)) ?? 0)
                 case "attention-on": HyperIndicator.shared.needsAttention = true

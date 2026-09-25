@@ -145,6 +145,7 @@ private final class TourModel: ObservableObject {
 private struct OnboardingView: View {
     @ObservedObject var tour: TourModel
     @EnvironmentObject private var state: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var step: Step { tour.step }
 
@@ -162,7 +163,7 @@ private struct OnboardingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 40)
             .padding(.top, 44)
-            .transition(.asymmetric(
+            .transition(reduceMotion ? .opacity : .asymmetric(
                 insertion: .move(edge: tour.forward ? .trailing : .leading).combined(with: .opacity),
                 removal: .move(edge: tour.forward ? .leading : .trailing).combined(with: .opacity)))
             .id(step)
@@ -471,6 +472,25 @@ private struct KeyboardRow: View {
     }
 }
 
+/// Shown on the try-it steps when Accessibility was skipped: without it
+/// Superkeys can't see the keys, so holding one would do nothing.
+private struct NeedsAccess: View {
+    var body: some View {
+        VStack(spacing: 10) {
+            Button {
+                Permissions.requestAccessibility()
+                Permissions.openAccessibilitySettings()
+            } label: {
+                Label("Open Accessibility Settings", systemImage: "arrow.up.forward.app")
+            }
+            .controlSize(.large)
+            Text("Switch on Superkeys in the list, then come back here.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 // MARK: 1. Welcome
 
 private struct WelcomeStep: View {
@@ -533,6 +553,7 @@ private struct AccessStep: View {
 // MARK: 3. Try ✦
 
 private struct TryHyperStep: View {
+    @EnvironmentObject private var state: AppState
     @ObservedObject private var indicator = HyperIndicator.shared
     @AppStorage("triedHyperKey") private var tried = false
 
@@ -540,11 +561,18 @@ private struct TryHyperStep: View {
         VStack(spacing: 30) {
             Spacer(minLength: 0)
             KeyboardRow.capsLock(held: indicator.held)
-            StepHeader(eyebrow: "Step 2 · Try it",
-                       title: tried ? "That's ✦ Hyper." : "Hold Caps Lock.",
-                       detail: tried
-                           ? "Keep holding for a moment and a panel lists everything ✦ does. ✦ ← and ✦ → snap a window; ✦ ↑ arranges them all."
-                           : "Press and hold it now, on the left of your keyboard. The key above lights up when Superkeys sees it.")
+            if state.accessibilityTrusted {
+                StepHeader(eyebrow: "Step 2 · Try it",
+                           title: tried ? "That's ✦ Hyper." : "Hold Caps Lock.",
+                           detail: tried
+                               ? "Keep holding for a moment and a panel lists everything ✦ does. ✦ ← and ✦ → snap a window; ✦ ↑ arranges them all."
+                               : "Press and hold it now, on the left of your keyboard. The key above lights up when Superkeys sees it.")
+            } else {
+                StepHeader(eyebrow: "Step 2 · Try it",
+                           title: "Caps Lock becomes ✦ Hyper.",
+                           detail: "Superkeys needs Accessibility turned on before it can see the key. Turn it on and try it here.")
+                NeedsAccess()
+            }
             Spacer(minLength: 0)
         }
         .onChange(of: indicator.held) { _, held in
@@ -736,11 +764,18 @@ private struct FinishStep: View {
         VStack(spacing: 30) {
             Spacer(minLength: 0)
             KeyboardRow.rightCommand(held: indicator.meh)
-            StepHeader(eyebrow: "Step 4 · Try it",
-                       title: tried ? "That's ☾ Meh." : "Hold right ⌘.",
-                       detail: tried
-                           ? "☾ 1–9 switch desktops, adding any you don't have yet. ☾ ⇧ 1–9 takes the window with you, and hold ☾ for a moment to see the rest."
-                           : "The one to the right of the space bar, not the left. The key above lights up when Superkeys sees it.")
+            if state.accessibilityTrusted {
+                StepHeader(eyebrow: "Step 4 · Try it",
+                           title: tried ? "That's ☾ Meh." : "Hold right ⌘.",
+                           detail: tried
+                               ? "☾ 1–9 switch desktops, adding any you don't have yet. ☾ ⇧ 1–9 takes the window with you, and hold ☾ for a moment to see the rest."
+                               : "The one to the right of the space bar, not the left. The key above lights up when Superkeys sees it.")
+            } else {
+                StepHeader(eyebrow: "Step 4 · Try it",
+                           title: "Right ⌘ becomes ☾ Meh.",
+                           detail: "The one to the right of the space bar, for desktops: ☾ 1–9 switch between them. It works once Accessibility is on.")
+                NeedsAccess()
+            }
             Spacer(minLength: 0)
             Toggle("Open Superkeys at login", isOn: Binding(
                 get: { state.launchAtLogin },
