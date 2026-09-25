@@ -6,6 +6,9 @@ struct MenuBarContent: View {
 
     var body: some View {
         Text("Superkeys \(Updater.version)")
+        if let version = WhatsNew.pending {
+            Button("What's New in \(version)") { WhatsNew.show() }
+        }
         Text(statusLine)
         if !state.lastAction.isEmpty {
             Text(state.lastAction)

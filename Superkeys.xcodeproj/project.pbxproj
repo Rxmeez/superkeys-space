@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		28DC8C06AC8F86DADD3ED685 /* SuperkeysApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54A4AE32CC3C310103D3B17 /* SuperkeysApp.swift */; };
 		A1A66C32B127076BF1674AAC /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8983CE5C16C6D6BFB5FBFC /* Updater.swift */; };
+		FCEC3EB0AA3CCC2678E6E7D5 /* WhatsNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 361FF37CDF72F023A2799528 /* WhatsNew.swift */; };
 		47E1AE208D3C2F02FD7C2F29 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81F5466E550E24891B16E19D /* AppState.swift */; };
 		C54CE6E2F3C9F73C2A153853 /* HyperEventTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A42B936C87C8FDCA0DBED2D5 /* HyperEventTap.swift */; };
 		A80C0884156F6BF76D19AC3F /* CapsLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91208D5C57A7760E694C106B /* CapsLock.swift */; };
@@ -44,6 +45,7 @@
 		F5BF48AA40CAD7891EB709FC /* Superkeys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Superkeys.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F54A4AE32CC3C310103D3B17 /* SuperkeysApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperkeysApp.swift; sourceTree = "<group>"; };
 		2E8983CE5C16C6D6BFB5FBFC /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
+		361FF37CDF72F023A2799528 /* WhatsNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNew.swift; sourceTree = "<group>"; };
 		81F5466E550E24891B16E19D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A42B936C87C8FDCA0DBED2D5 /* HyperEventTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperEventTap.swift; sourceTree = "<group>"; };
 		91208D5C57A7760E694C106B /* CapsLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsLock.swift; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 			children = (
 				F54A4AE32CC3C310103D3B17 /* SuperkeysApp.swift */,
 				2E8983CE5C16C6D6BFB5FBFC /* Updater.swift */,
+				361FF37CDF72F023A2799528 /* WhatsNew.swift */,
 				81F5466E550E24891B16E19D /* AppState.swift */,
 				A42B936C87C8FDCA0DBED2D5 /* HyperEventTap.swift */,
 				91208D5C57A7760E694C106B /* CapsLock.swift */,
@@ -233,6 +236,7 @@
 			files = (
 				28DC8C06AC8F86DADD3ED685 /* SuperkeysApp.swift in Sources */,
 				A1A66C32B127076BF1674AAC /* Updater.swift in Sources */,
+				FCEC3EB0AA3CCC2678E6E7D5 /* WhatsNew.swift in Sources */,
 				47E1AE208D3C2F02FD7C2F29 /* AppState.swift in Sources */,
 				C54CE6E2F3C9F73C2A153853 /* HyperEventTap.swift in Sources */,
 				A80C0884156F6BF76D19AC3F /* CapsLock.swift in Sources */,

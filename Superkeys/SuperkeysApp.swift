@@ -207,6 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "snap-left": WindowManager.shared.snap(.left)
                 case "snap-right": WindowManager.shared.snap(.right)
                 case "fill": WindowManager.shared.snap(.full)
+                case "whatsnew": WhatsNew.show()
                 case "attention-on": HyperIndicator.shared.needsAttention = true
                 case "attention-off": HyperIndicator.shared.needsAttention = false
                 case "throw-left": WindowManager.shared.throwWindow(.left)

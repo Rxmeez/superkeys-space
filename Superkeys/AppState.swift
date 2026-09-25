@@ -75,6 +75,7 @@ final class AppState: ObservableObject {
     func bootstrap() {
         _ = BindingsStore.shared
         MissionControlShortcuts.enable()
+        WhatsNew.noteLaunch()
         SpaceManager.shared.trackDesktops()
         launchAtLogin = SMAppService.mainApp.status == .enabled
         if !Permissions.isTrusted { Permissions.requestAccessibility() }
