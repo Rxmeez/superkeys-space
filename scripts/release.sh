@@ -119,7 +119,7 @@ python3 scripts/build_pages.py   # site/changelog.html gains this release
 
 say "Signing the update feed"
 op read "op://$VAULT/Sparkle update key/credential" | "$BIN/generate_appcast" --ed-key-file - \
-  --download-url-prefix "$SITE_URL/download/" --embed-release-notes --maximum-deltas 0 \
+  --download-url-prefix "$SITE_URL/download/" --embed-release-notes --maximum-deltas 0 --maximum-versions 0 \
   -o site/appcast.xml site/download
 grep -q "<sparkle:shortVersionString>$VERSION<" site/appcast.xml || die "appcast is missing $VERSION"
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
