@@ -294,6 +294,34 @@
         mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
       }
 
+      /* ---------- displays ---------- */
+      .walk-loop {
+        position: relative;
+        margin: 40px auto 0;
+        max-width: 1000px;
+      }
+      .walk-loop::before {
+        content: "";
+        position: absolute;
+        inset: 10% 8%;
+        background: radial-gradient(40% 60% at 35% 50%, rgba(255, 184, 77, 0.1), transparent 70%),
+          radial-gradient(40% 60% at 70% 50%, rgba(163, 163, 255, 0.1), transparent 70%);
+        filter: blur(40px);
+        pointer-events: none;
+      }
+      .walk-loop video {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: auto;
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+        mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+      }
+      .displays-chords {
+        max-width: 760px;
+        margin: 28px auto 0;
+      }
+
       /* ---------- compare ---------- */
       .compare {
         display: grid;
@@ -751,6 +779,7 @@
           <a href="#apps">Apps</a>
           <a href="#windows">Windows</a>
           <a href="#desktops">Desktops</a>
+          <a href="#displays">Displays</a>
           <a href="#privacy">Privacy</a>
         </div>
       </div>
@@ -846,6 +875,7 @@
             <ul class="chords">
               <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">←</span><span class="kc">→</span></span>Snap left or right; again for the next display</li>
               <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">↩</span></span>Fill the screen, again to restore</li>
+              <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">⌥</span><span class="kc">←</span><span class="kc">→</span></span>Move to the next display as it is</li>
               <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">↑</span></span>Arrange up to four windows, again to undo</li>
               <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">⇧</span><span class="kc">←↑↓→</span></span>Swap with the window next to it</li>
             </ul>
@@ -880,7 +910,7 @@
             <span class="eyebrow indigo">☾ Desktops</span>
             <h2>Every desktop,<br />one key away.</h2>
             <ul class="chords">
-              <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">1–9</span></span>Switch to that desktop</li>
+              <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">1–9</span></span>Switch the display under the pointer</li>
               <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">⇧</span><span class="kc">1–9</span></span>Move the window there and follow it</li>
               <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">right ⌥</span></span>Flip back to the previous desktop</li>
             </ul>
@@ -889,6 +919,27 @@
           <div class="shot">
             <img src="assets/chords-meh.png" width="438" height="258" alt="The ☾ Meh chord panel showing desktops 1 to 4" loading="lazy" />
           </div>
+        </div>
+      </section>
+
+      <!-- ================= displays ================= -->
+      <section class="block" id="displays">
+        <div class="wrap">
+          <span class="eyebrow"><span class="amber">✦</span>&nbsp;<span class="indigo">☾</span>&nbsp;Multiple displays</span>
+          <h2>Two screens?<br />Same two keys.</h2>
+          <p class="sub">
+            Keep pressing ✦ → and a window walks half by half across your displays, in the order they sit on your
+            desk. And every display keeps its own desktops: ☾ acts on whichever one your pointer is on.
+          </p>
+          <div class="walk-loop">
+            <video src="assets/displays-walk.mp4" poster="assets/displays-walk.jpg" autoplay muted loop playsinline preload="metadata" width="1200" height="580" aria-label="A Notes window walks from the left half of a laptop screen to the right half of an ultrawide, one ✦ → press at a time"></video>
+          </div>
+          <ul class="chords displays-chords">
+            <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">←</span><span class="kc">→</span></span>Snap to a half; again to step onto the next display</li>
+            <li><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">⌥</span><span class="kc">←</span><span class="kc">→</span></span>Throw the window to the next display, same size and place</li>
+            <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">1–9</span></span>Switch desktops on the display under the pointer</li>
+            <li><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">right ⌥</span></span>Flip back, remembered for each display</li>
+          </ul>
         </div>
       </section>
 
@@ -914,7 +965,7 @@
         <div class="wrap">
           <span class="eyebrow">The tour</span>
           <h2>25 seconds of Superkeys.</h2>
-          <p class="sub">Apps, snapping, arranging and desktops, start to finish.</p>
+          <p class="sub">Apps, snapping, arranging, two displays and their desktops, start to finish.</p>
         </div>
       <div class="wrap" id="film" style="scroll-margin-top: 80px; margin-top: 40px">
         <div class="film">
@@ -939,7 +990,7 @@
             <div class="card">
               <h3>Rectangle</h3>
               <p class="them">Keyboard window snapping, on multi-key shortcuts like ⌃⌥←.</p>
-              <p class="us">Superkeys snaps and arranges from a single held key, and also opens apps and moves between desktops, per display.</p>
+              <p class="us">Superkeys snaps and arranges from a single held key, walks windows across displays, and also opens apps and moves between desktops.</p>
             </div>
             <div class="card">
               <h3>Raycast</h3>
