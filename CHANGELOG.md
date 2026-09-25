@@ -4,11 +4,17 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-25
+
 ### Added
 
 - **Key groups.** Out of letters? ✦ O then P can open 1Password while ✦ O then S opens Slack, for apps and keystrokes alike. The first key keeps its own job: ✦ O on its own runs when you let go of ✦, so single keys stay instant and groups never need a timeout. Hold a moment after the first key and a panel shows what's in the group; Esc cancels. Record the second key with "+ then…" in Settings (a first key that's already taken, like ✦ G for your browser, can still start a group), or write `"O P"` in the config file. Settings lists each group together, its second keys indented under the first.
 - The ✦ chord panel now lists your keystrokes too, not only your apps.
 - The welcome tour's app step mentions groups.
+
+### Changed
+
+- Tidier Shortcuts lists: apps line up on the left, keys on the right in one column, and keystrokes show what they send at the right edge. The Keys tab no longer links to Shortcuts.
 
 ## [0.2.4] - 2026-09-25
 
@@ -103,7 +109,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.1...v0.2.2
