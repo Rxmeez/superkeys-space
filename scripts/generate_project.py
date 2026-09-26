@@ -172,14 +172,14 @@ a(f"""\t\t{uid('pdebug')} /* Debug */ = {{
 t="""\t\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 \t\t\t\tCODE_SIGN_ENTITLEMENTS = Superkeys/Superkeys.entitlements;
 \t\t\t\tCODE_SIGN_STYLE = Manual;
-\t\t\t\tCURRENT_PROJECT_VERSION = 11;
+\t\t\t\tCURRENT_PROJECT_VERSION = 12;
 \t\t\t\tDEVELOPMENT_TEAM = "";
 \t\t\t\tENABLE_APP_SANDBOX = NO;
 \t\t\t\tENABLE_HARDENED_RUNTIME = YES;
 \t\t\t\tGENERATE_INFOPLIST_FILE = NO;
 \t\t\t\tINFOPLIST_FILE = Superkeys/Info.plist;
 \t\t\t\tLD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-\t\t\t\tMARKETING_VERSION = 0.2.7;
+\t\t\t\tMARKETING_VERSION = 0.2.8;
 \t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = space.superkeys;
 \t\t\t\tPRODUCT_NAME = Superkeys;
 \t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "";"""

@@ -3,6 +3,26 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.8</title>
+            <pubDate>Sat, 26 Sep 2026 07:48:00 +0100</pubDate>
+            <sparkle:version>12</sparkle:version>
+            <sparkle:shortVersionString>0.2.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Added</h3>
+<ul>
+<li>Several windows of one app? Press its key again (✦ 2, 2, 2…) to bring each of its windows forward in turn, or ☾ ↩ for whichever app is in front. Covers the windows on the desktops you can see.</li>
+<li>Copy Diagnostics in Settings → Advanced: versions, whether the keys are on, how many app keys you have and which keyboards are connected, for a problem report. Report a Problem fills it in for you. Never which keys you use or anything typed.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>If the app in front stops responding, a window chord now gives up after a second instead of six, so your typing never stalls behind it.</li>
+<li>Snapping is smoother in apps that animate each resize step while an assistive app is on (Chrome and Electron apps with VoiceOver, for example).</li>
+<li>What&#x27;s New ends with a short thank-you to Superkeys&#x27; sponsors.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.8.zip" length="3073606" type="application/octet-stream" sparkle:edSignature="ign4kAiDZ+sehqowvcjb0zNWjwilJl3gzFZ/FeLXJKPT/LH8a9gRXKHHgrZQXFXXaI28LdwX3E9iVGPPHcAlAw=="/>
+        </item>
+        <item>
             <title>0.2.7</title>
             <pubDate>Fri, 25 Sep 2026 20:02:49 +0100</pubDate>
             <sparkle:version>11</sparkle:version>
