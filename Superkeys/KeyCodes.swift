@@ -14,6 +14,7 @@ enum KeyCodes {
     static let leftOptionFlag: UInt64 = 0x20
     static let escape: CGKeyCode = 53
     static let returnKey: Int64 = 36
+    static let rightCommand: Int64 = 54
     static let keypadEnter: Int64 = 76
     static let leftArrow: Int64 = 123
     static let rightArrow: Int64 = 124

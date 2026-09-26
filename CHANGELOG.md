@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Fixed
+
+- ☾ could stop working after a keyboard reconnected (waking from sleep, a Bluetooth keyboard coming back) while ✦ carried on. Superkeys now puts right ⌘ back to ☾ as soon as a keyboard appears.
+
 ## [0.2.8] - 2026-09-26
 
 ### Added

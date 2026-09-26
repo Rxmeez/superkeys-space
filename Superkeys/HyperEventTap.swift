@@ -224,6 +224,11 @@ final class HyperEventTap: @unchecked Sendable {
         case .keyUp:
             return consumed.remove(keyCode) == nil ? pass : nil
         case .flagsChanged:
+            // Right ⌘ arriving as itself means a keyboard lost the mapping
+            // that turns it into ☾; put it back for the next press.
+            if keyCode == KeyCodes.rightCommand, HIDRemap.isInstalled {
+                Task { @MainActor in HIDRemap.reapply() }
+            }
             // ☾ with right Option flips to the previous desktop. The modifier
             // itself passes through; it does nothing on its own.
             if mehHeld, keyCode == KeyCodes.rightOption, rightOptionWentDown(event.flags) {

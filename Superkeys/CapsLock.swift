@@ -1,4 +1,5 @@
 import Foundation
+import IOKit
 
 /// Clears the hardware Caps Lock latch and LED through IOHIDSystem.
 /// IOKit is resolved with dlopen/dlsym so no bridging header is needed.
@@ -98,6 +99,9 @@ enum HIDRemap {
 
     /// The user's own mappings, held while ours is installed.
     private static var saved: [Mapping]?
+    /// Everything written while installed, to write again for keyboards that
+    /// appear later.
+    private static var installed: [Mapping]?
 
     /// Whether Caps Lock and right ⌘ are remapped right now.
     static var isInstalled: Bool { saved != nil }
@@ -124,11 +128,24 @@ enum HIDRemap {
         let kept = theirs.filter { !ourSources.contains($0[source] ?? 0) }
         if write(kept + ours) {
             saved = theirs
+            installed = kept + ours
             Watchdog.start(restoring: theirs)
+            KeyboardWatcher.start()
         }
     }
 
+    /// A keyboard that connects after the mapping went in (waking from sleep,
+    /// Bluetooth reconnecting) starts without it: Caps Lock still works through
+    /// its flagsChanged fallback, but right ⌘ stays plain ⌘ and ☾ does nothing.
+    /// Writing the property again reaches every keyboard there now.
+    static func reapply() {
+        guard let installed else { return }
+        _ = write(installed)
+    }
+
     static func disable() {
+        KeyboardWatcher.stop()
+        installed = nil
         Watchdog.stop()
         if let saved {
             if write(saved) { self.saved = nil }
@@ -156,6 +173,48 @@ enum HIDRemap {
             }
         }
         return []
+    }
+
+    /// Tells Superkeys when a keyboard appears, through an IOKit matching
+    /// notification: no permission needed, and nothing wakes while idle.
+    /// Arrivals come in bursts (one keyboard is several services), so the
+    /// mapping is written once, shortly after the last.
+    private enum KeyboardWatcher {
+        private static var port: IONotificationPortRef?
+        private static var iterator: io_iterator_t = 0
+        private static var pending: DispatchWorkItem?
+
+        static func start() {
+            guard port == nil, let newPort = IONotificationPortCreate(kIOMainPortDefault) else { return }
+            port = newPort
+            CFRunLoopAddSource(CFRunLoopGetMain(), IONotificationPortGetRunLoopSource(newPort).takeUnretainedValue(), .commonModes)
+            let matching = IOServiceMatching("IOHIDEventService")
+            let result = IOServiceAddMatchingNotification(newPort, kIOFirstMatchNotification, matching, { _, iterator in
+                HIDRemap.KeyboardWatcher.drain(iterator)
+                HIDRemap.KeyboardWatcher.scheduleReapply()
+            }, nil, &iterator)
+            // The notification only arms once the existing services are drained.
+            if result == KERN_SUCCESS { drain(iterator) }
+        }
+
+        static func stop() {
+            pending?.cancel()
+            pending = nil
+            if iterator != 0 { IOObjectRelease(iterator); iterator = 0 }
+            if let port { IONotificationPortDestroy(port) }
+            port = nil
+        }
+
+        fileprivate static func drain(_ iterator: io_iterator_t) {
+            while case let service = IOIteratorNext(iterator), service != 0 { IOObjectRelease(service) }
+        }
+
+        fileprivate static func scheduleReapply() {
+            pending?.cancel()
+            let work = DispatchWorkItem { HIDRemap.reapply() }
+            pending = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+        }
     }
 
     /// If Superkeys is force-quit or crashes, nothing would take its
