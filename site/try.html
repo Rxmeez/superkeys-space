@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Try Superkeys in your browser</title>
-    <meta name="description" content="Hold Caps Lock and right ⌘ on a pretend Mac, right in the page: open apps, snap windows and switch desktops the Superkeys way. No install." />
+    <meta name="description" content="Hold ✦ and ☾ on a pretend Mac, right in the page: open apps, snap windows and switch desktops the Superkeys way. No install." />
     <meta name="color-scheme" content="dark" />
     <meta property="og:title" content="Try Superkeys in your browser" />
     <meta property="og:description" content="Two keys, six steps, no install: apps, windows and desktops on a pretend Mac." />
@@ -401,7 +401,7 @@
         opacity: 0;
         transition: opacity 0.15s, transform 0.15s;
         z-index: 70;
-        white-space: nowrap;
+        max-width: 92%;
       }
       .toast.show {
         opacity: 1;
@@ -664,17 +664,19 @@
         <h2>Two keys. Try them here.</h2>
         <p class="sub">
           A pretend Mac, right in the page. Hold <span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span>
-          Caps Lock for apps and windows, and <span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span> right ⌘ for
+          for apps and windows, and <span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span> right ⌘ for
           desktops. Follow the steps, or just play.
         </p>
         <p class="hint" style="margin-top: 10px">
+          In Superkeys, ✦ is Caps Lock. Here, hold <span class="kc">tab</span>, just above it: browsers on a Mac can't tell
+          when Caps Lock is let go.
           Already running Superkeys? It catches both keys before your browser sees them. Switch off
           <strong>Hyper and Meh Keys</strong> from its menu bar icon while you play, or use the on-screen keys.
         </p>
 
         <div class="play">
           <div>
-            <div class="stage" id="stage" aria-label="A pretend Mac desktop that answers to Caps Lock and right Command">
+            <div class="stage" id="stage" aria-label="A pretend Mac desktop that answers to Tab or Caps Lock, and right Command">
               <div class="menubar">
                 <div class="spaces" id="spaces"><i class="on">1</i><i>2</i><i>3</i></div>
                 <span>Fri 9:41</span>
@@ -773,8 +775,8 @@
     <footer>
       <div class="wrap">
         <a href="index.html">superkeys.space</a> · This page is a pretend Mac: everything happens in your browser, and nothing
-        is loaded or sent. On a Mac, Safari and Chrome report Caps Lock turning on and off rather than being held, so here
-        it's tap on, tap off; in Superkeys you just hold it.
+        is loaded or sent. Browsers on a Mac report Caps Lock turning on and off, never being let go, so here Tab stands in
+        for it; in Superkeys you hold Caps Lock itself.
       </div>
     </footer>
 
@@ -861,8 +863,8 @@
         toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
       }
 
-      function hint(text) {
-        toast.innerHTML = `<span class="kc meh">${moon}</span><span class="text">${text}</span>`;
+      function hint(layer, text) {
+        toast.innerHTML = `<span class="kc ${layer}">${layer === "hyper" ? sparkle : moon}</span><span class="text">${text}</span>`;
         toast.classList.add("show");
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
@@ -966,15 +968,39 @@
         render();
       }
 
-      // Real keyboard. Right ⌘ is told apart from left ⌘ by its code. Caps Lock:
-      // most browsers send keydown on press and keyup on release; on a Mac,
-      // Safari and Chrome send keydown when the lock turns on and keyup when it
-      // turns off, so there it works tap on, tap off.
+      // Real keyboard. Right ⌘ is told apart from left ⌘ by its code.
+      //
+      // ✦: browsers on a Mac report Caps Lock turning on and off but never
+      // being let go, so there it would stay stuck down. Tab, just above it,
+      // stands in: held with a chord key it's ✦; tapped on its own it still
+      // moves focus, so the page stays usable from the keyboard. Elsewhere
+      // Caps Lock reports press and release, and works too.
+      const mac = /Mac|iPhone|iPad/.test(navigator.platform) || navigator.userAgentData?.platform === "macOS";
+      let tabDown = false;
+      let tabShift = false;
+      function moveFocus(back) {
+        const all = [...document.querySelectorAll("a[href], button:not([disabled])")].filter((el) => el.offsetParent);
+        const i = all.indexOf(document.activeElement);
+        const next = back ? (i <= 0 ? all.length - 1 : i - 1) : i + 1 >= all.length ? 0 : i + 1;
+        all[next]?.focus();
+      }
       addEventListener("keydown", (e) => {
-        if (e.key === "CapsLock") return hold("hyper", true);
+        if (e.key === "Tab") {
+          e.preventDefault();
+          if (!e.repeat) {
+            tabDown = true;
+            tabShift = e.shiftKey;
+            hold("hyper", true);
+          }
+          return;
+        }
+        if (e.key === "CapsLock") {
+          if (mac) return hint("hyper", "On a Mac your browser can't see Caps Lock being held. Hold Tab here instead.");
+          return hold("hyper", true);
+        }
         if (e.code === "MetaRight") return hold("meh", true);
         // The usual mix-up: ☾ is the right ⌘, not the one beside the space bar on the left.
-        if (e.code === "MetaLeft" && !meh) return hint("That's the left ⌘. ☾ is the one on the right of the space bar.");
+        if (e.code === "MetaLeft" && !meh) return hint("meh", "That's the left ⌘. ☾ is the one on the right of the space bar.");
         if (e.key === "Shift") {
           shift = true;
           return paintKeys();
@@ -989,7 +1015,13 @@
         if (!e.repeat) press(k);
       });
       addEventListener("keyup", (e) => {
-        if (e.key === "CapsLock") hold("hyper", false);
+        if (e.key === "Tab" && tabDown) {
+          tabDown = false;
+          const chorded = used;
+          hold("hyper", false);
+          if (!chorded) moveFocus(tabShift);
+        }
+        if (e.key === "CapsLock" && !mac) hold("hyper", false);
         if (e.code === "MetaRight") hold("meh", false);
         if (e.key === "Shift") {
           shift = false;
