@@ -3,6 +3,19 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.9</title>
+            <pubDate>Sat, 26 Sep 2026 22:32:29 +0100</pubDate>
+            <sparkle:version>13</sparkle:version>
+            <sparkle:shortVersionString>0.2.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Fixed</h3>
+<ul>
+<li>☾ could stop working after a keyboard reconnected (waking from sleep, a Bluetooth keyboard coming back) while ✦ carried on. Superkeys now puts right ⌘ back to ☾ as soon as a keyboard appears.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.9.zip" length="3077314" type="application/octet-stream" sparkle:edSignature="B1iqnGkVyMnmilmvdX3iCQHxPat1CWk03+8sStbF4HVwqQ/tCQXsdW748jGWDc6bAO9jbPlf5xw6o5Wyhsg1AQ=="/>
+        </item>
+        <item>
             <title>0.2.8</title>
             <pubDate>Sat, 26 Sep 2026 07:48:00 +0100</pubDate>
             <sparkle:version>12</sparkle:version>
