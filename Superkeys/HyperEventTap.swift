@@ -268,8 +268,14 @@ final class HyperEventTap: @unchecked Sendable {
         }
     }
 
-    /// Meh: 1–9 switches desktop, Shift with 1–9 moves the window there.
+    /// Meh: 1–9 switches desktop, Shift with 1–9 moves the window there, and
+    /// Return steps through the front app's windows.
     private func dispatchMeh(_ keyCode: Int64, shift: Bool, control: Bool, option: Bool) {
+        if keyCode == KeyCodes.returnKey || keyCode == KeyCodes.keypadEnter {
+            guard !shift, !control, !option else { return }
+            Task { @MainActor in WindowManager.shared.cycleWindows() }
+            return
+        }
         guard let digit = KeyCodes.digitForKeyCode[keyCode], !control, !option else { return }
         let n = KeyCodes.spaceNumber(for: digit)
         if shift {

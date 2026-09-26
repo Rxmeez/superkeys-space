@@ -133,7 +133,7 @@ struct KeysTab: View {
         Form {
             Section {
                 LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock. Apps and windows.")
-                ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app, or send a keystroke such as ⌃ C")
+                ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app (again for its next window), or send a keystroke such as ⌃ C")
                 ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half; again for the next display")
                 ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
                 ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen; again to restore")
@@ -146,6 +146,7 @@ struct KeysTab: View {
                 ChordRow(keys: [Glyph.meh, "1–9"], detail: "Switch to that desktop, adding it if needed")
                 ChordRow(keys: [Glyph.meh, "⇧", "1–9"], detail: "Move the window there and follow it")
                 ChordRow(keys: [Glyph.meh, "right ⌥"], detail: "Flip back to the previous desktop")
+                ChordRow(keys: [Glyph.meh, "↩"], detail: "Bring forward the front app's next window")
             } footer: {
                 Text("With more than one display, ☾ acts on the display under the pointer.")
                     .font(.caption)

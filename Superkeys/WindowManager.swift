@@ -67,6 +67,27 @@ final class WindowManager {
         }
     }
 
+    /// ☾ ↩, or an app's own key pressed while it's in front: bring the app's
+    /// backmost window forward. Each press rotates the stack, so pressing
+    /// again and again visits every window and comes back round. macOS only
+    /// lists windows on the desktops showing now, so it cycles those.
+    @discardableResult
+    func cycleWindows(of app: NSRunningApplication? = NSWorkspace.shared.frontmostApplication) -> Bool {
+        guard Permissions.isTrusted else {
+            Permissions.requestAccessibility()
+            return false
+        }
+        guard let app, app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return false }
+        let windows = AXWindow.windows(of: app.processIdentifier).filter(\.isCyclable)
+        guard windows.count > 1, let next = windows.last else {
+            AppState.shared.lastAction = "Only one \(app.localizedName ?? "") window here"
+            return false
+        }
+        next.raise()
+        AppState.shared.lastAction = "Next \(app.localizedName ?? "") window"
+        return true
+    }
+
     /// ✦ ⌥ ← / → moves the window to the next display in that direction as it
     /// is: the same size and place relative to the screen, so a snapped half
     /// stays a half.

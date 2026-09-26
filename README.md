@@ -23,7 +23,7 @@ Hold **Caps Lock**.
 | ✦ Return | Fill the screen. Press again to restore |
 | ✦ ↑ | Arrange the windows on this screen. Press again to undo |
 | ✦ ⇧ arrow | Swap the window with the one next to it |
-| ✦ any key you choose | Open that app, or bring it forward (✦ B for your browser, ✦ T for your terminal…) |
+| ✦ any key you choose | Open that app, or bring it forward (✦ B for your browser, ✦ T for your terminal…). Press it again for the app's next window |
 
 ### ☾ Meh: desktops
 
@@ -34,6 +34,7 @@ Hold **right ⌘**.
 | ☾ 1–9 | Switch the display under the pointer to that desktop, creating it if it doesn't exist yet |
 | ☾ ⇧ 1–9 | Move the window to that desktop and follow it |
 | ☾ right ⌥ | Flip back to the previous desktop; again to flip forward |
+| ☾ ↩ | Bring forward the front app's next window; again to keep going |
 
 ### Arrange windows
 

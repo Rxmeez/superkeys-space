@@ -261,6 +261,19 @@ extension AXWindow {
         return true
     }
 
+    /// A normal window that can be brought forward: not a panel, sheet or
+    /// minimised.
+    var isCyclable: Bool {
+        string(kAXSubroleAttribute) == (kAXStandardWindowSubrole as String) && bool(kAXMinimizedAttribute) != true
+    }
+
+    /// Brings this window in front of the app's other windows and makes it
+    /// the one that takes typing.
+    func raise() {
+        AXUIElementPerformAction(element, kAXRaiseAction as CFString)
+        AXUIElementSetAttributeValue(element, kAXMainAttribute as CFString, kCFBooleanTrue)
+    }
+
     private func string(_ attribute: String) -> String? {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }

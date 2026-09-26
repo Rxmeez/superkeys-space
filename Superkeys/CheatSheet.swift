@@ -212,6 +212,7 @@ private struct CheatSheetView: View {
             row([Glyph.meh, "1–9"], "Switch to that desktop")
             row([Glyph.meh, "⇧", "1–9"], "Move the window there")
             row([Glyph.meh, "right ⌥"], "Flip back to the last one")
+            row([Glyph.meh, "↩"], "Next window of this app")
         }
     }
 

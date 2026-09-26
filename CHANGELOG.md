@@ -6,6 +6,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Added
 
+- Several windows of one app? Press its key again (✦ 2, 2, 2…) to bring each of its windows forward in turn, or ☾ ↩ for whichever app is in front. Covers the windows on the desktops you can see.
 - Copy Diagnostics in Settings → Advanced: versions, whether the keys are on, how many app keys you have and which keyboards are connected, for a problem report. Report a Problem fills it in for you. Never which keys you use or anything typed.
 
 ### Changed

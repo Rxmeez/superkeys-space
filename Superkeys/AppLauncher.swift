@@ -8,6 +8,12 @@ enum AppLauncher {
     }
 
     static func launch(_ app: BoundApp) {
+        // Its key again while it's in front: the next of its windows. With
+        // one window or none, open it as usual (which reopens a closed one).
+        if let front = NSWorkspace.shared.frontmostApplication, front.bundleIdentifier == app.bundleID,
+           WindowManager.shared.cycleWindows(of: front) {
+            return
+        }
         guard let url = applicationURL(for: app) else {
             AppState.shared.lastAction = "Could not open \(app.name)"
             return
