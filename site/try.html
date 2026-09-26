@@ -667,6 +667,10 @@
           Caps Lock for apps and windows, and <span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span> right ⌘ for
           desktops. Follow the steps, or just play.
         </p>
+        <p class="hint" style="margin-top: 10px">
+          Already running Superkeys? It catches both keys before your browser sees them. Switch off
+          <strong>Hyper and Meh Keys</strong> from its menu bar icon while you play, or use the on-screen keys.
+        </p>
 
         <div class="play">
           <div>
@@ -740,8 +744,7 @@
             </div>
             <p class="hint">
               Use your keyboard, or click <strong>caps lock</strong> or <strong>right ⌘</strong> above to hold it and tap
-              the rest (on a phone, hold it with one finger). Already running Superkeys? It catches both keys before the
-              browser can, so use the keys above.
+              the rest (on a phone, hold it with one finger).
             </p>
           </div>
 
@@ -858,6 +861,13 @@
         toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
       }
 
+      function hint(text) {
+        toast.innerHTML = `<span class="kc meh">${moon}</span><span class="text">${text}</span>`;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+
       function paintKeys() {
         stage.classList.toggle("hyper", hyper);
         stage.classList.toggle("meh", meh);
@@ -963,6 +973,8 @@
       addEventListener("keydown", (e) => {
         if (e.key === "CapsLock") return hold("hyper", true);
         if (e.code === "MetaRight") return hold("meh", true);
+        // The usual mix-up: ☾ is the right ⌘, not the one beside the space bar on the left.
+        if (e.code === "MetaLeft" && !meh) return hint("That's the left ⌘. ☾ is the one on the right of the space bar.");
         if (e.key === "Shift") {
           shift = true;
           return paintKeys();
