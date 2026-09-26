@@ -6,3 +6,4 @@ build/
 Signing.local.xcconfig
 brag-output*/
 .claude/
+.serena/
