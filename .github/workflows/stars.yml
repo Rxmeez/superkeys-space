@@ -1,0 +1,33 @@
+name: Star count
+
+# Once a day, bake the repo's star count into the site's Star button (shown
+# from 50 stars). The site then serves a plain number: no visitor's browser
+# talks to GitHub. Commits only when the shown label changes.
+on:
+  schedule:
+    - cron: "41 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stars
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Update the Star button
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          stars=$(gh api "repos/${{ github.repository }}" --jq .stargazers_count)
+          python3 scripts/update_stars.py "$stars"
+          git diff --quiet && { echo "no change ($stars stars)"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "Site: $stars stars"
+          git push

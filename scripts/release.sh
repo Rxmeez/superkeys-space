@@ -42,6 +42,8 @@ if [[ "$DRY_RUN" == "--dry-run" ]]; then
 else
   [[ -z "$(git status --porcelain)" ]] || die "commit or stash your changes first"
   [[ "$(git branch --show-current)" == main ]] || die "release from main"
+  # The star-count workflow commits to main too; start from its latest.
+  git pull -q --ff-only || die "main has diverged from origin; pull and sort it out first"
   git rev-parse "v$VERSION" >/dev/null 2>&1 && die "v$VERSION is already tagged"
   grep -q "^## \[$VERSION\]" CHANGELOG.md || die "add a '## [$VERSION] - $(date +%F)' section to CHANGELOG.md"
 fi
