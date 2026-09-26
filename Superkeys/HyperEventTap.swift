@@ -388,6 +388,9 @@ final class HyperEventTap: @unchecked Sendable {
     func selfTestGroups(first: CGKeyCode, second: CGKeyCode, other: CGKeyCode) -> [String] {
         func feed(_ key: CGKeyCode, _ type: CGEventType) {
             let e = CGEvent(keyboardEventSource: nil, virtualKey: key, keyDown: type == .keyDown)!
+            // A new event copies the modifiers macOS thinks are down, which a
+            // shortcut Superkeys sent (☾'s ⌃ 2) can leave set; start clean.
+            e.flags = []
             _ = handle(type: type, event: e)
         }
         func tap(_ key: CGKeyCode) { feed(key, .keyDown); feed(key, .keyUp) }
@@ -415,6 +418,9 @@ final class HyperEventTap: @unchecked Sendable {
         defer { captured = nil }
         func feed(_ type: CGEventType, repeating: Bool = false) -> String {
             let e = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: type == .keyDown)!
+            // A new event copies the modifiers macOS thinks are down, which a
+            // shortcut Superkeys sent (☾'s ⌃ 2) can leave set; start clean.
+            e.flags = []
             if repeating { e.setIntegerValueField(.keyboardEventAutorepeat, value: 1) }
             return handle(type: type, event: e) == nil ? "consumed" : "passed"
         }
