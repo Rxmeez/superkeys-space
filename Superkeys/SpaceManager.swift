@@ -317,15 +317,22 @@ final class SpaceManager {
         return buttons.first
     }
 
+    /// Mission Control is drawn by WindowManager on current macOS, and by the
+    /// Dock before that (macOS 14 and 15), with the same identifiers in both.
+    private static let missionControlOwners = ["com.apple.WindowManager", "com.apple.dock"]
+
     private func missionControlGroup(for display: String) async -> AXUIElement? {
-        guard let windowManager = NSRunningApplication
-            .runningApplications(withBundleIdentifier: "com.apple.WindowManager").first else { return nil }
-        let app = AXUIElementCreateApplication(windowManager.processIdentifier)
+        let owners = Self.missionControlOwners.compactMap {
+            NSRunningApplication.runningApplications(withBundleIdentifier: $0).first
+        }.map { AXUIElementCreateApplication($0.processIdentifier) }
+        guard !owners.isEmpty else { return nil }
         let single = displays().count == 1
         let area = screen(for: display).map { AXWindow.cocoaToAX($0.frame) }
         for _ in 0..<20 {
             var groups: [AXUIElement] = []
-            elements(app, identifier: "mc.display", depth: 0, into: &groups)
+            for app in owners where groups.isEmpty {
+                elements(app, identifier: "mc.display", depth: 0, into: &groups)
+            }
             if single, groups.count == 1 { return groups[0] }
             if let area, let match = groups.first(where: { group in
                 guard let origin = position(of: group) else { return false }

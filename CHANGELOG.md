@@ -4,6 +4,10 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+### Fixed
+
+- On macOS 14 and 15, ☾ with a number opened Mission Control but never added the missing desktop. Superkeys now finds Mission Control wherever macOS draws it.
+
 ## [0.2.9] - 2026-09-26
 
 ### Fixed
