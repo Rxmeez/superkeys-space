@@ -3,6 +3,19 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.10</title>
+            <pubDate>Sat, 26 Sep 2026 22:42:13 +0100</pubDate>
+            <sparkle:version>14</sparkle:version>
+            <sparkle:shortVersionString>0.2.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Fixed</h3>
+<ul>
+<li>On macOS 14 and 15, ☾ with a number opened Mission Control but never added the missing desktop. Superkeys now finds Mission Control wherever macOS draws it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.10.zip" length="3078725" type="application/octet-stream" sparkle:edSignature="p9/XebixcW26+kgQCqCbEBtN3KpOWbSSS8kPRbnsWOQa7Dm3kei3FCuIIsQJH/cQz3g2lHjg2a+nUrK3tpFkBg=="/>
+        </item>
+        <item>
             <title>0.2.9</title>
             <pubDate>Sat, 26 Sep 2026 22:32:29 +0100</pubDate>
             <sparkle:version>13</sparkle:version>
