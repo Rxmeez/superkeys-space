@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Try Superkeys in your browser</title>
+    <meta name="description" content="Hold Caps Lock and right ⌘ on a pretend Mac, right in the page: open apps, snap windows and switch desktops the Superkeys way. No install." />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Try Superkeys in your browser" />
+    <meta property="og:description" content="Two keys, six steps, no install: apps, windows and desktops on a pretend Mac." />
+    <meta property="og:image" content="https://superkeys.space/assets/superkeys-poster.jpg" />
+    <meta property="og:url" content="https://superkeys.space/try" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #16161a;
+        --cap: #1c1c20;
+        --edge: rgba(255, 255, 255, 0.12);
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.62);
+        --faint: rgba(255, 255, 255, 0.42);
+        --amber: #ffb84d;
+        --indigo: #a3a3ff;
+        --amber-wash: rgba(255, 184, 77, 0.14);
+        --indigo-wash: rgba(163, 163, 255, 0.14);
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      section {
+        padding: 72px 0 96px;
+      }
+      nav {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      nav .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 18px;
+        text-decoration: none;
+        color: var(--text);
+      }
+      .brand img {
+        width: 24px;
+        height: 24px;
+      }
+      nav .get {
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 184, 77, 0.5);
+        background: var(--amber-wash);
+        color: var(--text);
+        font-size: 14px;
+        text-decoration: none;
+      }
+      footer {
+        padding: 40px 0 56px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--faint);
+        font-size: 14px;
+      }
+      footer a {
+        color: var(--muted);
+      }
+      .steps .head {
+        margin: 0 0 2px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+      .steps .head.meh-title {
+        margin-top: 14px;
+      }
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--amber);
+      }
+      h2 {
+        margin: 12px 0 0;
+        font-size: clamp(34px, 5vw, 52px);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+      .sub {
+        margin: 16px 0 0;
+        max-width: 640px;
+        color: var(--muted);
+        font-size: 19px;
+        line-height: 1.55;
+        font-weight: 300;
+      }
+      .kc {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 26px;
+        height: 26px;
+        padding: 0 7px;
+        border-radius: 7px;
+        background: var(--cap);
+        border: 1px solid var(--edge);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--text);
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+      .kc svg {
+        width: 13px;
+        height: 13px;
+      }
+      .kc.hyper {
+        background: var(--amber-wash);
+        border-color: rgba(255, 184, 77, 0.5);
+      }
+      .kc.meh {
+        background: var(--indigo-wash);
+        border-color: rgba(163, 163, 255, 0.5);
+      }
+      .combo {
+        display: inline-flex;
+        gap: 3px;
+      }
+
+      /* ---------- layout: stage + steps ---------- */
+      .play {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 28px;
+        margin-top: 40px;
+        align-items: start;
+      }
+
+      /* ---------- the pretend Mac ---------- */
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 10;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid var(--edge);
+        background: radial-gradient(900px 500px at 20% 0%, #2a2340, transparent 60%),
+          radial-gradient(800px 500px at 90% 100%, #3a2a1c, transparent 60%), #141418;
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.5);
+      }
+      .menubar {
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 0 12px;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(10px);
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        z-index: 50;
+      }
+      .spaces {
+        display: flex;
+        gap: 4px;
+      }
+      .spaces i {
+        display: grid;
+        place-items: center;
+        width: 16px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        font: 600 8px system-ui;
+        font-style: normal;
+        color: rgba(255, 255, 255, 0.6);
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+      }
+      .spaces i.on {
+        background: var(--indigo);
+        border-color: var(--indigo);
+        color: #16161a;
+      }
+      .menubar .icon {
+        width: 15px;
+        height: 15px;
+      }
+      .menubar .icon .star {
+        fill: rgba(255, 255, 255, 0.8);
+        transition: fill 0.15s;
+      }
+      .menubar .icon .moon {
+        fill: rgba(255, 255, 255, 0.8);
+        transition: fill 0.15s;
+      }
+      .stage.hyper .menubar .icon .star {
+        fill: var(--amber);
+      }
+      .stage.meh .menubar .icon .moon {
+        fill: var(--indigo);
+      }
+      .area {
+        position: absolute;
+        inset: 26px 0 0 0;
+        overflow: hidden;
+      }
+      .desk-label {
+        position: absolute;
+        right: 14px;
+        bottom: 10px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.35);
+        z-index: 1;
+      }
+      .win {
+        position: absolute;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #1f1f24;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        transition: left 0.32s var(--ease), top 0.32s var(--ease), width 0.32s var(--ease), height 0.32s var(--ease),
+          box-shadow 0.2s;
+      }
+      .win.front {
+        box-shadow: 0 0 0 1.5px rgba(255, 184, 77, 0.55), 0 24px 60px rgba(0, 0, 0, 0.55);
+      }
+      .bar {
+        height: 24px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .dots {
+        display: flex;
+        gap: 5px;
+        margin-right: 6px;
+      }
+      .dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .win.front .dots i:nth-child(1) {
+        background: #ff5f57;
+      }
+      .win.front .dots i:nth-child(2) {
+        background: #febc2e;
+      }
+      .win.front .dots i:nth-child(3) {
+        background: #28c840;
+      }
+      .body {
+        padding: 12px;
+        display: grid;
+        gap: 7px;
+      }
+      .body span {
+        display: block;
+        height: 7px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .term .body span {
+        background: rgba(40, 200, 64, 0.22);
+      }
+      .notes .body span {
+        background: rgba(255, 214, 10, 0.2);
+      }
+      .mail .body span {
+        background: rgba(163, 163, 255, 0.2);
+      }
+      .browser .body span:first-child {
+        height: 16px;
+        background: rgba(10, 132, 255, 0.25);
+      }
+
+      /* ---------- chord panels ---------- */
+      .panel {
+        position: absolute;
+        left: 50%;
+        top: 52%;
+        transform: translate(-50%, -46%) scale(0.98);
+        min-width: 250px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(30, 30, 36, 0.74);
+        backdrop-filter: blur(24px) saturate(1.5);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.16s, transform 0.16s;
+        z-index: 60;
+      }
+      .panel.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      .panel h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 10px;
+        font-size: 14px;
+      }
+      .panel h3 svg {
+        width: 15px;
+        height: 15px;
+      }
+      .panel .row {
+        display: grid;
+        grid-template-columns: 84px 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 3px 0;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .panel .kc {
+        min-width: 22px;
+        height: 22px;
+        font-size: 11px;
+        padding: 0 6px;
+      }
+      .panel hr {
+        border: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 8px 0;
+      }
+      .tiles {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .tiles div {
+        width: 52px;
+        height: 34px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .tiles div.on {
+        border-color: var(--indigo);
+        background: var(--indigo-wash);
+        color: var(--text);
+      }
+
+      /* ---------- toast ---------- */
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 6%;
+        transform: translate(-50%, 8px);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: rgba(20, 20, 24, 0.82);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.15s, transform 0.15s;
+        z-index: 70;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .toast .text {
+        margin-left: 4px;
+      }
+
+      /* ---------- steps ---------- */
+      .steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 6px;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 10px;
+        align-items: start;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        color: var(--faint);
+        font-size: 14px;
+        line-height: 1.45;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+      }
+      .step .check {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        color: transparent;
+        margin-top: 1px;
+        transition: all 0.2s;
+      }
+      .step .combo {
+        margin-bottom: 4px;
+      }
+      .step.current {
+        color: var(--text);
+        background: var(--surface);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      .step.done {
+        color: var(--muted);
+      }
+      .step.done .check {
+        background: var(--amber);
+        border-color: var(--amber);
+        color: #16161a;
+      }
+      .step.meh.done .check {
+        background: var(--indigo);
+        border-color: var(--indigo);
+      }
+      .finale {
+        margin-top: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        background: radial-gradient(260px 120px at 20% 0%, rgba(255, 184, 77, 0.14), transparent 70%),
+          radial-gradient(260px 120px at 90% 100%, rgba(163, 163, 255, 0.14), transparent 70%), var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+        color: var(--muted);
+        display: none;
+      }
+      .finale.show {
+        display: block;
+      }
+      .finale strong {
+        display: block;
+        color: var(--text);
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+      .finale a {
+        color: var(--amber);
+      }
+      .reset {
+        margin-top: 10px;
+        appearance: none;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--faint);
+        font: inherit;
+        font-size: 13px;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      /* ---------- on-screen keys ---------- */
+      .keys {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+      }
+      .key {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-width: 42px;
+        height: 42px;
+        padding: 0 12px;
+        border-radius: 10px;
+        background: var(--cap);
+        border: 1px solid var(--edge);
+        border-bottom-width: 3px;
+        color: var(--text);
+        font: 600 15px system-ui, -apple-system, sans-serif;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        transition: transform 0.06s, background 0.12s, border-color 0.12s;
+      }
+      .key:active,
+      .key.down {
+        transform: translateY(2px);
+        border-bottom-width: 1px;
+      }
+      .key.mod {
+        font-size: 12px;
+        color: var(--muted);
+        justify-content: flex-start;
+      }
+      .key.mod svg {
+        width: 16px;
+        height: 16px;
+      }
+      .key.caps {
+        min-width: 118px;
+      }
+      .key.rcmd {
+        min-width: 104px;
+      }
+      .key.caps.down {
+        background: var(--amber-wash);
+        border-color: rgba(255, 184, 77, 0.6);
+        color: var(--text);
+      }
+      .key.rcmd.down,
+      .key.shift.down,
+      .key.ropt.down {
+        background: var(--indigo-wash);
+        border-color: rgba(163, 163, 255, 0.6);
+        color: var(--text);
+      }
+      .keys .sep {
+        width: 1px;
+        height: 30px;
+        margin: 0 6px;
+        background: var(--edge);
+      }
+      .hint {
+        margin: 14px 0 0;
+        font-size: 14px;
+        color: var(--faint);
+        line-height: 1.5;
+      }
+      .hint strong {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .play {
+          grid-template-columns: 1fr;
+        }
+        .steps {
+          grid-template-columns: 1fr 1fr;
+        }
+        .steps .head {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        .bar {
+          height: 16px;
+          font-size: 8px;
+        }
+        .dots i {
+          width: 6px;
+          height: 6px;
+        }
+        .body {
+          padding: 6px;
+          gap: 4px;
+        }
+        .body span {
+          height: 4px;
+        }
+        .panel {
+          min-width: 0;
+          width: 84%;
+          padding: 10px 12px;
+        }
+        .panel .row {
+          grid-template-columns: 64px 1fr;
+          font-size: 11px;
+        }
+        .tiles div {
+          width: 40px;
+          height: 26px;
+        }
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .key {
+          min-width: 38px;
+          height: 40px;
+          padding: 0 10px;
+        }
+        .keys .sep {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .win,
+        .panel,
+        .toast {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <path id="sparkle" d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0Z" />
+        <path id="moon" d="M58 8 A44 44 0 1 0 92 70 A36 36 0 0 1 58 8 Z" />
+      </defs>
+    </svg>
+
+    <nav>
+      <div class="wrap">
+        <a class="brand" href="index.html"><img src="assets/favicon.svg" alt="" />Superkeys</a>
+        <a class="get" href="index.html">Get Superkeys, free</a>
+      </div>
+    </nav>
+
+    <main>
+    <section>
+      <div class="wrap">
+        <span class="eyebrow">Try it in your browser</span>
+        <h2>Two keys. Try them here.</h2>
+        <p class="sub">
+          A pretend Mac, right in the page. Hold <span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span>
+          Caps Lock for apps and windows, and <span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span> right ⌘ for
+          desktops. Follow the steps, or just play.
+        </p>
+
+        <div class="play">
+          <div>
+            <div class="stage" id="stage" aria-label="A pretend Mac desktop that answers to Caps Lock and right Command">
+              <div class="menubar">
+                <div class="spaces" id="spaces"><i class="on">1</i><i>2</i><i>3</i></div>
+                <span>Fri 9:41</span>
+                <svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><use class="moon" href="#moon" /><use class="star" href="#sparkle" transform="translate(60 0) scale(0.36)" /></svg>
+              </div>
+              <div class="area" id="area">
+                <div class="win browser" data-app="b" data-name="Browser">
+                  <div class="bar"><div class="dots"><i></i><i></i><i></i></div>Browser</div>
+                  <div class="body"><span></span><span style="width: 80%"></span><span style="width: 65%"></span><span style="width: 90%"></span><span style="width: 50%"></span></div>
+                </div>
+                <div class="win term" data-app="t" data-name="Terminal">
+                  <div class="bar"><div class="dots"><i></i><i></i><i></i></div>Terminal</div>
+                  <div class="body"><span style="width: 40%"></span><span style="width: 70%"></span><span style="width: 55%"></span><span style="width: 30%"></span></div>
+                </div>
+                <div class="win notes" data-app="n" data-name="Notes">
+                  <div class="bar"><div class="dots"><i></i><i></i><i></i></div>Notes</div>
+                  <div class="body"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 75%"></span></div>
+                </div>
+                <div class="win mail" data-app="m" data-name="Mail">
+                  <div class="bar"><div class="dots"><i></i><i></i><i></i></div>Mail</div>
+                  <div class="body"><span style="width: 70%"></span><span style="width: 45%"></span><span style="width: 80%"></span><span style="width: 60%"></span></div>
+                </div>
+                <div class="desk-label" id="deskLabel">Desktop 1</div>
+              </div>
+
+              <div class="panel" id="hyperPanel" aria-hidden="true">
+                <h3><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg>Hyper</h3>
+                <div class="row"><span class="kc">B</span>Browser</div>
+                <div class="row"><span class="kc">T</span>Terminal</div>
+                <div class="row"><span class="kc">N</span>Notes</div>
+                <div class="row"><span class="kc">M</span>Mail</div>
+                <hr />
+                <div class="row"><span class="combo"><span class="kc">←</span><span class="kc">→</span></span>Snap left or right</div>
+                <div class="row"><span class="kc">↩</span>Fill, again to restore</div>
+              </div>
+
+              <div class="panel" id="mehPanel" aria-hidden="true">
+                <h3><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg>Meh</h3>
+                <div class="tiles" id="tiles"><div class="on">1</div><div>2</div><div>3</div></div>
+                <div class="row"><span class="kc">1–3</span>Switch to that desktop</div>
+                <div class="row"><span class="combo"><span class="kc">⇧</span><span class="kc">1–3</span></span>Take the window there</div>
+                <div class="row"><span class="kc">right ⌥</span>Flip back</div>
+              </div>
+
+              <div class="toast" id="toast" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="keys" aria-label="On-screen keys for Hyper">
+              <button class="key mod caps" id="capsKey" type="button" aria-pressed="false"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#sparkle" fill="#ffb84d" /></svg>caps lock</button>
+              <button class="key" data-key="b" type="button">B</button>
+              <button class="key" data-key="t" type="button">T</button>
+              <button class="key" data-key="n" type="button">N</button>
+              <button class="key" data-key="m" type="button">M</button>
+              <span class="sep"></span>
+              <button class="key" data-key="ArrowLeft" type="button" aria-label="Left arrow">←</button>
+              <button class="key" data-key="ArrowRight" type="button" aria-label="Right arrow">→</button>
+              <button class="key" data-key="Enter" type="button" aria-label="Return">↩</button>
+            </div>
+            <div class="keys" style="margin-top: 8px" aria-label="On-screen keys for Meh">
+              <button class="key mod rcmd" id="rcmdKey" type="button" aria-pressed="false"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#moon" fill="#a3a3ff" /></svg>right ⌘</button>
+              <button class="key" data-key="1" type="button">1</button>
+              <button class="key" data-key="2" type="button">2</button>
+              <button class="key" data-key="3" type="button">3</button>
+              <span class="sep"></span>
+              <button class="key mod shift" id="shiftKey" type="button" aria-pressed="false">⇧ shift</button>
+              <button class="key mod ropt" data-key="AltRight" type="button">right ⌥</button>
+            </div>
+            <p class="hint">
+              Use your keyboard, or click <strong>caps lock</strong> or <strong>right ⌘</strong> above to hold it and tap
+              the rest (on a phone, hold it with one finger). Already running Superkeys? It catches both keys before the
+              browser can, so use the keys above.
+            </p>
+          </div>
+
+          <div>
+            <ol class="steps" id="steps">
+              <li class="head" aria-hidden="true">✦ Hyper · apps and windows</li>
+              <li class="step" data-step="app"><span class="check">✓</span><span><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">B</span></span><br />Bring the browser forward</span></li>
+              <li class="step" data-step="snap"><span class="check">✓</span><span><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">←</span></span><br />Snap it to the left half</span></li>
+              <li class="step" data-step="pair"><span class="check">✓</span><span><span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">T</span></span> then <span class="combo"><span class="kc hyper"><svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d" /></svg></span><span class="kc">→</span></span><br />Terminal on the right</span></li>
+              <li class="head meh-title" aria-hidden="true">☾ Meh · desktops</li>
+              <li class="step meh" data-step="switch"><span class="check">✓</span><span><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">2</span></span><br />Go to Desktop 2, where Mail is</span></li>
+              <li class="step meh" data-step="flip"><span class="check">✓</span><span><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">right ⌥</span></span><br />Flip back to Desktop 1</span></li>
+              <li class="step meh" data-step="move"><span class="check">✓</span><span><span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">2</span></span> then <span class="combo"><span class="kc meh"><svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff" /></svg></span><span class="kc">⇧</span><span class="kc">1</span></span><br />Bring Mail over to Desktop 1</span></li>
+            </ol>
+            <div class="finale" id="finale">
+              <strong>That's Superkeys.</strong>
+              Your whole Mac, one key away. It's free: <a href="index.html">get it here</a>, and pick your own keys for every app.
+            </div>
+            <button class="reset" id="reset" type="button">Start over</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <a href="index.html">superkeys.space</a> · This page is a pretend Mac: everything happens in your browser, and nothing
+        is loaded or sent. On a Mac, Safari and Chrome report Caps Lock turning on and off rather than being held, so here
+        it's tap on, tap off; in Superkeys you just hold it.
+      </div>
+    </footer>
+
+    <script>
+      // A pretend Mac that answers to ✦ and ☾ like Superkeys does. Everything
+      // happens in the page; nothing is loaded or sent.
+      const $ = (id) => document.getElementById(id);
+      const stage = $("stage");
+      const hyperPanel = $("hyperPanel");
+      const mehPanel = $("mehPanel");
+      const toast = $("toast");
+      const windows = [...document.querySelectorAll(".win")];
+      const steps = [...document.querySelectorAll(".step")];
+      const sparkle = '<svg viewBox="0 0 100 100"><use href="#sparkle" fill="#ffb84d"/></svg>';
+      const moon = '<svg viewBox="0 0 100 100"><use href="#moon" fill="#a3a3ff"/></svg>';
+
+      // Frames in % of one desktop; `d` is the desktop each window lives on.
+      const start = () => ({
+        b: { l: 6, t: 8, w: 56, h: 70, d: 1 },
+        t: { l: 40, t: 30, w: 46, h: 52, d: 1 },
+        n: { l: 62, t: 12, w: 30, h: 46, d: 1 },
+        m: { l: 18, t: 14, w: 60, h: 66, d: 2 },
+      });
+      const g = 1.2;
+      const slots = {
+        left: { l: g, t: g * 1.6, w: 50 - g * 1.5, h: 100 - g * 3.2 },
+        right: { l: 50 + g * 0.5, t: g * 1.6, w: 50 - g * 1.5, h: 100 - g * 3.2 },
+        full: { l: g, t: g * 1.6, w: 100 - g * 2, h: 100 - g * 3.2 },
+      };
+      let frames, before, order, desk, lastDesk, hyper, meh, shift, used, panelTimer, toastTimer;
+
+      function reset() {
+        frames = start();
+        before = {};
+        order = ["b", "t", "n", "m"]; // back to front
+        desk = 1;
+        lastDesk = 1;
+        hyper = meh = shift = false;
+        for (const s of steps) s.classList.remove("done");
+        $("finale").classList.remove("show");
+        paintKeys();
+        render();
+      }
+
+      const win = (app) => windows.find((w) => w.dataset.app === app);
+      const here = () => order.filter((a) => frames[a].d === desk);
+      const front = () => here().at(-1);
+
+      function render() {
+        for (const w of windows) {
+          const a = w.dataset.app;
+          const f = frames[a];
+          // Windows on other desktops sit a screen-width away, so switching slides.
+          Object.assign(w.style, {
+            left: f.l + (f.d - desk) * 100 + "%",
+            top: f.t + "%",
+            width: f.w + "%",
+            height: f.h + "%",
+            zIndex: 10 + order.indexOf(a),
+          });
+          w.classList.toggle("front", a === front());
+        }
+        [...$("spaces").children].forEach((t, i) => t.classList.toggle("on", i + 1 === desk));
+        [...$("tiles").children].forEach((t, i) => t.classList.toggle("on", i + 1 === desk));
+        $("deskLabel").textContent = "Desktop " + desk;
+        const current = steps.find((s) => !s.classList.contains("done"));
+        for (const s of steps) s.classList.toggle("current", s === current);
+        if (!current) $("finale").classList.add("show");
+      }
+
+      function done(name) {
+        const s = steps.find((x) => x.dataset.step === name);
+        if (s) s.classList.add("done");
+      }
+
+      function say(layer, keys, text) {
+        const cls = layer === "hyper" ? "hyper" : "meh";
+        toast.innerHTML =
+          `<span class="kc ${cls}">${layer === "hyper" ? sparkle : moon}</span>` +
+          keys.map((k) => `<span class="kc">${k}</span>`).join("") +
+          `<span class="text">${text}</span>`;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
+      }
+
+      function paintKeys() {
+        stage.classList.toggle("hyper", hyper);
+        stage.classList.toggle("meh", meh);
+        for (const [id, on] of [["capsKey", hyper], ["rcmdKey", meh], ["shiftKey", shift]]) {
+          $(id).classList.toggle("down", on);
+          $(id).setAttribute("aria-pressed", String(on));
+        }
+      }
+
+      function hold(layer, on) {
+        if ((layer === "hyper" ? hyper : meh) === on) return;
+        if (layer === "hyper") hyper = on;
+        else meh = on;
+        used = false;
+        paintKeys();
+        clearTimeout(panelTimer);
+        hyperPanel.classList.remove("show");
+        mehPanel.classList.remove("show");
+        if (on) {
+          // Like the app: the panel only appears if you pause.
+          const panel = layer === "hyper" ? hyperPanel : mehPanel;
+          panelTimer = setTimeout(() => !used && panel.classList.add("show"), 600);
+        }
+      }
+
+      function nudge() {
+        stage.animate([{ transform: "translateX(0)" }, { transform: "translateX(-4px)" }, { transform: "translateX(4px)" }, { transform: "translateX(0)" }], 180);
+      }
+
+      function switchTo(n) {
+        if (n === desk) return;
+        lastDesk = desk;
+        desk = n;
+      }
+
+      function press(key) {
+        const k = key.length === 1 ? key.toLowerCase() : key;
+        if (!hyper && !meh) return nudge();
+        used = true;
+        hyperPanel.classList.remove("show");
+        mehPanel.classList.remove("show");
+
+        if (hyper && !meh) {
+          const app = front();
+          if (k in frames) {
+            // Bringing an app forward switches to its desktop, like macOS.
+            if (frames[k].d !== desk) switchTo(frames[k].d);
+            order = order.filter((a) => a !== k).concat(k);
+            say("hyper", [k.toUpperCase()], win(k).dataset.name);
+            if (k === "b") done("app");
+          } else if (!app) {
+            return nudge();
+          } else if (k === "ArrowLeft" || k === "ArrowRight") {
+            const side = k === "ArrowLeft" ? "left" : "right";
+            before[app] ??= { ...frames[app] };
+            frames[app] = { ...slots[side], d: frames[app].d };
+            say("hyper", [side === "left" ? "←" : "→"], side === "left" ? "Snapped left" : "Snapped right");
+            if (app === "b" && side === "left") done("snap");
+            if (app === "t" && side === "right") done("pair");
+          } else if (k === "Enter") {
+            const f = frames[app];
+            const isFull = f.l === slots.full.l && f.w === slots.full.w;
+            if (isFull && before[app]) {
+              frames[app] = { ...before[app], d: f.d };
+              delete before[app];
+              say("hyper", ["↩"], "Restored");
+            } else {
+              before[app] ??= { ...f };
+              frames[app] = { ...slots.full, d: f.d };
+              say("hyper", ["↩"], "Filled the screen");
+            }
+          } else return;
+        } else if (meh && !hyper) {
+          if (["1", "2", "3"].includes(k)) {
+            const n = Number(k);
+            if (shift) {
+              const app = front();
+              if (!app) return nudge();
+              frames[app].d = n;
+              order = order.filter((a) => a !== app).concat(app);
+              switchTo(n);
+              say("meh", ["⇧", k], `${win(app).dataset.name} to Desktop ${n}`);
+              if (app === "m" && n === 1) done("move");
+            } else {
+              switchTo(n);
+              say("meh", [k], `Desktop ${n}`);
+              if (n === 2) done("switch");
+            }
+          } else if (k === "AltRight") {
+            const back = lastDesk;
+            switchTo(back);
+            say("meh", ["right ⌥"], `Back to Desktop ${back}`);
+            if (back === 1) done("flip");
+          } else return;
+        } else return;
+        render();
+      }
+
+      // Real keyboard. Right ⌘ is told apart from left ⌘ by its code. Caps Lock:
+      // most browsers send keydown on press and keyup on release; on a Mac,
+      // Safari and Chrome send keydown when the lock turns on and keyup when it
+      // turns off, so there it works tap on, tap off.
+      addEventListener("keydown", (e) => {
+        if (e.key === "CapsLock") return hold("hyper", true);
+        if (e.code === "MetaRight") return hold("meh", true);
+        if (e.key === "Shift") {
+          shift = true;
+          return paintKeys();
+        }
+        if (!hyper && !meh) return;
+        const key = e.code === "AltRight" ? "AltRight" : /^Digit[1-3]$/.test(e.code) ? e.code.slice(5) : e.key;
+        const k = key.length === 1 ? key.toLowerCase() : key;
+        const known = ["b", "t", "n", "m", "ArrowLeft", "ArrowRight", "Enter", "1", "2", "3", "AltRight"];
+        if (!known.includes(k)) return;
+        // ☾ is ⌘ to the browser, so stop ⌘-digit switching tabs while we play.
+        e.preventDefault();
+        if (!e.repeat) press(k);
+      });
+      addEventListener("keyup", (e) => {
+        if (e.key === "CapsLock") hold("hyper", false);
+        if (e.code === "MetaRight") hold("meh", false);
+        if (e.key === "Shift") {
+          shift = false;
+          paintKeys();
+        }
+      });
+      addEventListener("blur", () => {
+        hold("hyper", false);
+        hold("meh", false);
+        shift = false;
+        paintKeys();
+      });
+
+      // On-screen modifiers: hold with a finger on touch, click to latch with a
+      // mouse (a second click, or the other modifier, lets go).
+      function modKey(el, onDown, onUp, latch) {
+        el.addEventListener("pointerdown", (e) => {
+          if (e.pointerType !== "touch") return;
+          el.setPointerCapture(e.pointerId);
+          onDown();
+        });
+        el.addEventListener("pointerup", (e) => e.pointerType === "touch" && onUp());
+        el.addEventListener("pointercancel", onUp);
+        el.addEventListener("click", (e) => {
+          if (e.pointerType === "touch") return;
+          latch();
+        });
+      }
+      modKey($("capsKey"), () => hold("hyper", true), () => hold("hyper", false), () => {
+        hold("meh", false);
+        hold("hyper", !hyper);
+      });
+      modKey($("rcmdKey"), () => hold("meh", true), () => hold("meh", false), () => {
+        hold("hyper", false);
+        hold("meh", !meh);
+      });
+      modKey($("shiftKey"), () => ((shift = true), paintKeys()), () => ((shift = false), paintKeys()), () => {
+        shift = !shift;
+        paintKeys();
+      });
+      for (const b of document.querySelectorAll(".key[data-key]")) {
+        b.addEventListener("click", () => {
+          press(b.dataset.key);
+          // A tapped ⇧ applies to one chord, like a sticky key.
+          if (shift && ["1", "2", "3"].includes(b.dataset.key)) {
+            shift = false;
+            paintKeys();
+          }
+        });
+      }
+      $("reset").addEventListener("click", reset);
+
+      reset();
+
+    </script>
+  </body>
+</html>
