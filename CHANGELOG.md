@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-09-26
+
 ### Fixed
 
 - ☾ could stop working after a keyboard reconnected (waking from sleep, a Bluetooth keyboard coming back) while ✦ carried on. Superkeys now puts right ⌘ back to ☾ as soon as a keyboard appears.
@@ -146,7 +148,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.9...HEAD
+[0.2.9]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.5...v0.2.6
