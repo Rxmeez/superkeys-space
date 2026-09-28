@@ -18,6 +18,22 @@ enum AppLauncher {
             AppState.shared.lastAction = "Could not open \(app.name)"
             return
         }
+        // Every window on a desktop nobody is looking at (say Desktop 2 of the
+        // second display, while it shows Desktop 1): macOS won't go there when
+        // another app asks it to activate, so show that desktop first and
+        // bring the app forward once it has slid in.
+        if let running = NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleID).first,
+           SpaceManager.shared.revealDesktop(ofWindowsOf: running.processIdentifier) {
+            Task {
+                try? await Task.sleep(for: .milliseconds(300))
+                open(url, app)
+            }
+            return
+        }
+        open(url, app)
+    }
+
+    private static func open(_ url: URL, _ app: BoundApp) {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, error in

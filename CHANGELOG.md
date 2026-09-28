@@ -4,6 +4,12 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.11] - 2026-09-28
+
+### Fixed
+
+- An app's ✦ key now takes you to it when its windows are on a desktop you're not looking at, on any display: that display switches to the app's desktop and the app comes forward. Before, nothing happened.
+
 ## [0.2.10] - 2026-09-26
 
 ### Fixed
@@ -154,7 +160,8 @@ The first build anyone can install. It isn't signed with an Apple Developer ID o
 - Superkeys' own Settings window snaps and arranges like any other window.
 - Menu bar logo that lights amber for ✦ and indigo for ☾ while held.
 
-[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.10...HEAD
+[Unreleased]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.11...HEAD
+[0.2.11]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.10...v0.2.11
 [0.2.10]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.9...v0.2.10
 [0.2.9]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/Rxmeez/superkeys-space/compare/v0.2.7...v0.2.8

@@ -119,6 +119,42 @@ final class SpaceManager {
         }
     }
 
+    /// When none of an app's windows is on a desktop showing on any display,
+    /// switches the display that holds one of them to its desktop. Returns
+    /// whether it switched. Windows on a desktop that's showing (even hidden
+    /// with ⌘H), or an app with no windows, are left to macOS.
+    func revealDesktop(ofWindowsOf pid: pid_t) -> Bool {
+        let all = displays()
+        let showing = Set(all.compactMap(\.current))
+        var target: (display: String, number: Int)?
+        for wid in normalWindows(of: pid) {
+            let spaces = windowSpaces(wid)
+            if spaces.contains(where: showing.contains) { return false }
+            guard target == nil, let space = spaces.first,
+                  let display = all.first(where: { $0.spaces.contains(space) }),
+                  let index = display.spaces.firstIndex(of: space) else { continue }
+            target = (display.uuid, index + 1)
+        }
+        guard let target else { return false }
+        performSwitch(to: target.number, on: target.display)
+        return true
+    }
+
+    /// An app's ordinary windows on every desktop, front to back, from the
+    /// window server (Accessibility only sees the desktops showing now).
+    private func normalWindows(of pid: pid_t) -> [UInt32] {
+        guard let list = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID)
+                as? [[String: Any]] else { return [] }
+        return list.compactMap { info in
+            guard (info[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == pid,
+                  (info[kCGWindowLayer as String] as? NSNumber)?.intValue == 0,
+                  let bounds = info[kCGWindowBounds as String] as? [String: Any],
+                  ((bounds["Width"] as? NSNumber)?.doubleValue ?? 0) > 50,
+                  ((bounds["Height"] as? NSNumber)?.doubleValue ?? 0) > 50 else { return nil }
+            return (info[kCGWindowNumber as String] as? NSNumber)?.uint32Value
+        }
+    }
+
     private func windowSpaces(_ wid: UInt32) -> [UInt64] {
         guard let connection = SkyLightBridge.mainConnectionID,
               let copy = SkyLightBridge.copySpacesForWindows,
