@@ -9,7 +9,11 @@ private func superkeysTapCallback(
     _ event: CGEvent,
     _ refcon: UnsafeMutableRawPointer?
 ) -> Unmanaged<CGEvent>? {
-    HyperEventTap.shared.handle(type: type, event: event)
+    #if DEBUG
+    // Stands in for Secure Input, which hides key presses from the tap.
+    if HyperEventTap.shared.debugBlind, type == .keyDown || type == .keyUp { return Unmanaged.passUnretained(event) }
+    #endif
+    return HyperEventTap.shared.handle(type: type, event: event)
 }
 
 /// Turns Caps Lock into the Hyper Key and right Command into the Meh Key: held
@@ -112,11 +116,13 @@ final class HyperEventTap: @unchecked Sendable {
         CGEvent.tapEnable(tap: port, enable: true)
         tap = port
         source = src
+        SecureInputFallback.start()
         CapsLock.unlock()
         return true
     }
 
     func stop() {
+        SecureInputFallback.stop()
         if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
         if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
         if let tap { CFMachPortInvalidate(tap) }
@@ -370,6 +376,9 @@ final class HyperEventTap: @unchecked Sendable {
     }
 
     #if DEBUG
+    /// Lets key presses past the tap, as Secure Input does.
+    var debugBlind = false
+
     /// While set, keystrokes and app launches are recorded here instead.
     private var captured: [String]?
 
