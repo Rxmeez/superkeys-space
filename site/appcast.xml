@@ -3,6 +3,24 @@
     <channel>
         <title>Superkeys</title>
         <item>
+            <title>0.2.12</title>
+            <pubDate>Wed, 30 Sep 2026 20:04:36 +0100</pubDate>
+            <sparkle:version>16</sparkle:version>
+            <sparkle:shortVersionString>0.2.12</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>Fixed</h3>
+<ul>
+<li>With a display above or below the laptop&#x27;s, ✦ ← / → now walk the window onto it when there&#x27;s no display to that side. Before, they only looked for displays to the side, so nothing happened.</li>
+<li>✦ ← / → move terminals such as Ghostty on to the next display. Terminals size themselves in whole rows, so they never counted as snapped and each press just snapped them again.</li>
+</ul>
+<h3>Removed</h3>
+<ul>
+<li>✦ ⌥ ← / →. ✦ ← / → already take the window to the next display, so there&#x27;s one less chord to learn.</li>
+</ul>
+]]></description>
+            <enclosure url="https://superkeys.space/download/Superkeys-0.2.12.zip" length="3085004" type="application/octet-stream" sparkle:edSignature="uWwxCLbXf7F351T1/orC9bvuNOqzy9e8oYpVMbD7T3v80z5L5dkSaxsO6ariLThOUVKK59B4VncQXKwC3eNtAw=="/>
+        </item>
+        <item>
             <title>0.2.11</title>
             <pubDate>Mon, 28 Sep 2026 09:31:01 +0100</pubDate>
             <sparkle:version>15</sparkle:version>
