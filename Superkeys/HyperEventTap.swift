@@ -9,11 +9,7 @@ private func superkeysTapCallback(
     _ event: CGEvent,
     _ refcon: UnsafeMutableRawPointer?
 ) -> Unmanaged<CGEvent>? {
-    #if DEBUG
-    // Stands in for Secure Input, which hides key presses from the tap.
-    if HyperEventTap.shared.debugBlind, type == .keyDown || type == .keyUp { return Unmanaged.passUnretained(event) }
-    #endif
-    return HyperEventTap.shared.handle(type: type, event: event)
+    HyperEventTap.shared.handle(type: type, event: event)
 }
 
 /// Turns Caps Lock into the Hyper Key and right Command into the Meh Key: held
@@ -67,6 +63,19 @@ final class HyperEventTap: @unchecked Sendable {
     /// go out too, even if ✦ is let go first.
     private var sending: [Int64: (key: CGKeyCode, flags: CGEventFlags)] = [:]
 
+    /// Keys that do something with ✦, for Secure Input's ⌃ hot keys. A
+    /// keystroke that sends ⌃ and its own key is left out: with Caps Lock as
+    /// Control it already is that keystroke.
+    func chordKeyCodes() -> [Int64] {
+        let control = CGEventFlags.maskControl
+        let natural = keystrokes.compactMap { chord, sent in
+            chord.second == nil && Int64(sent.key) == chord.first && sent.flags.intersection([.maskControl, .maskAlternate, .maskShift, .maskCommand]) == control
+                ? chord.first : nil
+        }
+        let single = apps.filter { $0.second == nil }.map(\.first) + keystrokes.keys.filter { $0.second == nil }.map(\.first)
+        return Array(Set(single + KeyCodes.windowKeys).subtracting(natural)).sorted()
+    }
+
     func setBindings(apps: Set<Chord>, keystrokes map: [Chord: (CGKeyCode, CGEventFlags)]) {
         self.apps = apps
         keystrokes = map.mapValues { (key: $0.0, flags: $0.1) }
@@ -88,7 +97,9 @@ final class HyperEventTap: @unchecked Sendable {
         let mask: CGEventMask =
             (1 << CGEventType.keyDown.rawValue) |
             (1 << CGEventType.keyUp.rawValue) |
-            (1 << CGEventType.flagsChanged.rawValue)
+            (1 << CGEventType.flagsChanged.rawValue) |
+            (1 << CGEventType.leftMouseDown.rawValue) |
+            (1 << CGEventType.rightMouseDown.rawValue)
 
         var created = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
@@ -145,8 +156,24 @@ final class HyperEventTap: @unchecked Sendable {
             releaseMeh()
             return pass
         }
+        if type == .leftMouseDown || type == .rightMouseDown {
+            // A click can move focus into or out of a password field.
+            SecureInputFallback.checkSoon()
+            return pass
+        }
         if posting || event.getIntegerValueField(.eventSourceUserData) == Self.syntheticMarker {
             return pass
+        }
+        if type == .keyDown { SecureInputFallback.checkSoon() }
+        if SecureInputFallback.active {
+            // Caps Lock is right Control until Superkeys notices Secure Input
+            // ended; seen here, it's ✦ all the same.
+            if type == .flagsChanged, event.getIntegerValueField(.keyboardEventKeycode) == KeyCodes.rightControl {
+                if event.flags.contains(.maskControl) { press() } else { finishGroup(); release() }
+                SecureInputFallback.check()
+                return nil
+            }
+            if hyperHeld { event.flags.remove(.maskControl) }
         }
 
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
@@ -376,9 +403,6 @@ final class HyperEventTap: @unchecked Sendable {
     }
 
     #if DEBUG
-    /// Lets key presses past the tap, as Secure Input does.
-    var debugBlind = false
-
     /// While set, keystrokes and app launches are recorded here instead.
     private var captured: [String]?
 

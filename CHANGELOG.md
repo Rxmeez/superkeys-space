@@ -6,7 +6,7 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Fixed
 
-- ✦ and ☾ chords work in password fields and in terminals with Secure Keyboard Entry on. macOS hides key presses from other apps there, so ✦ V typed a plain "v" instead of opening your clipboard history.
+- ✦ chords work in password fields and in terminals with Secure Keyboard Entry on. macOS hides key presses from other apps there, so ✦ V typed a plain "v" instead of sending ⌃ V to open your clipboard history. While a password field has focus, Caps Lock stands in as Control, which macOS lets through; key groups and ✦ ⇧ arrows don't work there yet.
 - What's New shows ✦, arrows and other symbols as they are, instead of garbled characters like "âœ¦".
 
 ## [0.2.12] - 2026-09-30

@@ -226,8 +226,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let code = CGKeyCode(s.dropFirst("selftest-keystroke-".count)) ?? 8
                     let log = HyperEventTap.shared.selfTestKeystrokes(keyCode: code).joined(separator: "\n")
                     try? log.write(toFile: NSTemporaryDirectory() + "superkeys-selftest.txt", atomically: true, encoding: .utf8)
-                case "blind": HyperEventTap.shared.debugBlind = true
-                case "sighted": HyperEventTap.shared.debugBlind = false
                 case "untrusted": AppState.shared.debugUntrusted = true
                 case "trusted": AppState.shared.debugUntrusted = false
                 case "appearance-light": NSApp.appearance = NSAppearance(named: .aqua)

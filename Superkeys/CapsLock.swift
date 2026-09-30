@@ -91,11 +91,15 @@ enum HIDRemap {
     private static let rightCommandUsage: UInt64 = 0x7_0000_00E7
     private static let f18Usage: UInt64 = 0x7_0000_006D
     private static let f19Usage: UInt64 = 0x7_0000_006E
+    private static let rightControlUsage: UInt64 = 0x7_0000_00E4
     private static let ours: [Mapping] = [
         [source: capsLockUsage, destination: f18Usage],
         [source: rightCommandUsage, destination: f19Usage]
     ]
     private static let ourSources = Set(ours.compactMap { $0[source] })
+    /// Ours, plus Caps Lock as Control, so a run that crashed in a password
+    /// field isn't mistaken for the user's own mapping.
+    private static let anyOfOurs = ours + [[source: capsLockUsage, destination: rightControlUsage]]
 
     /// The user's own mappings, held while ours is installed.
     private static var saved: [Mapping]?
@@ -122,7 +126,7 @@ enum HIDRemap {
 
     static func enable() {
         guard saved == nil else { return }
-        let theirs = current().filter { !ours.contains($0) }
+        let theirs = current().filter { !anyOfOurs.contains($0) }
         // Superkeys owns Caps Lock and right Command while it runs; any other
         // entry stays.
         let kept = theirs.filter { !ourSources.contains($0[source] ?? 0) }
@@ -143,6 +147,15 @@ enum HIDRemap {
         _ = write(installed)
     }
 
+    /// Caps Lock as right Control instead of F18, for while Secure Input
+    /// hides key presses from the tap (see SecureInputFallback).
+    static func capsLockAsControl(_ on: Bool) {
+        guard let current = installed else { return }
+        let caps: Mapping = [source: capsLockUsage, destination: on ? rightControlUsage : f18Usage]
+        let next = current.filter { $0[source] != capsLockUsage } + [caps]
+        if write(next) { installed = next }
+    }
+
     static func disable() {
         KeyboardWatcher.stop()
         installed = nil
@@ -152,8 +165,8 @@ enum HIDRemap {
         } else {
             // A crashed earlier run can leave our entries behind.
             let mappings = current()
-            if mappings.contains(where: ours.contains) {
-                _ = write(mappings.filter { !ours.contains($0) })
+            if mappings.contains(where: anyOfOurs.contains) {
+                _ = write(mappings.filter { !anyOfOurs.contains($0) })
             }
         }
     }

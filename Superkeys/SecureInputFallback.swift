@@ -1,32 +1,33 @@
+import AppKit
 import Carbon.HIToolbox
 import CoreGraphics
 import os
 
 /// In a password field (or a terminal with Secure Keyboard Entry on) macOS
 /// turns on Secure Input, which hides every key press from event taps: ✦ V
-/// would reach the app as a plain "v". Hot keys still arrive then, so ✦ and ☾
-/// (F18 and F19 after the remap) are also registered as hot keys.
+/// would reach the app as a plain "v". Hot keys still arrive then, but only
+/// ones with ⌘, ⌃ or ⌥ in them.
 ///
-/// The tap sees keys before hot keys do and swallows ✦ and ☾, so these only
-/// fire while the tap can't see. Then, for as long as ✦ or ☾ is held, every
-/// other key is a hot key too, and each press and release goes through the
-/// tap's own handler, so chords do exactly what they always do.
+/// So while Secure Input is on, Caps Lock becomes right Control. ✦ V is then
+/// really ⌃ V, which types nothing, and a keystroke bound as ✦ V → ⌃ V works
+/// on its own. Every other ✦ chord is a ⌃ hot key that runs through the tap's
+/// handler as usual. When Secure Input ends, Caps Lock goes back to F18.
+///
+/// Secure Input has no notification, so it's checked when focus can change:
+/// a click, Tab, another app coming forward, and ✦ arriving as a hot key
+/// (F18 is registered as one; the tap swallows it first, so it only fires
+/// while the tap can't see).
 enum SecureInputFallback {
     private static let signature: OSType = 0x534B_4559 // "SKEY"
-    private static let shiftBit: UInt32 = 0x100
+
+    /// Caps Lock is right Control right now.
+    private(set) static var active = false
 
     private static var handler: EventHandlerRef?
-    private static var layerKeys: [EventHotKeyRef] = []
+    private static var hyperKey: EventHotKeyRef?
     private static var chordKeys: [EventHotKeyRef] = []
-    /// ✦ and ☾, whichever are held.
-    private static var held: Set<Int64> = []
-    /// Chord keys pressed and not yet released, with their modifiers.
-    private static var down: [Int64: CGEventFlags] = [:]
-
-    /// Every key but the modifiers, Caps Lock, fn and ✦ / ☾ themselves.
-    private static let chordCodes: [UInt32] = (0...126).map(UInt32.init).filter {
-        !(54...63).contains($0) && $0 != UInt32(KeyCodes.hyperF18) && $0 != UInt32(KeyCodes.mehF19)
-    }
+    private static var activation: NSObjectProtocol?
+    private static var pendingCheck: DispatchWorkItem?
 
     static func start() {
         guard handler == nil else { return }
@@ -37,21 +38,58 @@ enum SecureInputFallback {
         guard InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
             SecureInputFallback.received(event)
         }, types.count, &types, nil, &handler) == noErr else { return }
-        layerKeys = [KeyCodes.hyperF18, KeyCodes.mehF19].compactMap { register(UInt32($0), modifiers: 0) }
-        if layerKeys.count < 2 { Logger.secureInput.error("✦ / ☾ hot keys taken; they won't work in password fields") }
+        hyperKey = register(UInt32(KeyCodes.hyperF18), modifiers: 0)
+        activation = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { _ in SecureInputFallback.checkSoon() }
+        check()
     }
 
     static func stop() {
-        endChord()
-        layerKeys.forEach { UnregisterEventHotKey($0) }
-        layerKeys = []
+        pendingCheck?.cancel()
+        pendingCheck = nil
+        leave()
+        if let activation { NSWorkspace.shared.notificationCenter.removeObserver(activation) }
+        activation = nil
+        if let hyperKey { UnregisterEventHotKey(hyperKey) }
+        hyperKey = nil
         if let handler { RemoveEventHandler(handler) }
         handler = nil
     }
 
+    /// Focus settles a moment after a click or Tab.
+    static func checkSoon() {
+        pendingCheck?.cancel()
+        let work = DispatchWorkItem { check() }
+        pendingCheck = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
+    }
+
+    static func check() {
+        guard handler != nil else { return }
+        let secure = IsSecureEventInputEnabled()
+        if secure && !active { enter() } else if !secure && active { leave() }
+    }
+
+    private static func enter() {
+        active = true
+        HIDRemap.capsLockAsControl(true)
+        chordKeys = HyperEventTap.shared.chordKeyCodes().compactMap { register(UInt32($0), modifiers: UInt32(controlKey)) }
+        Logger.secureInput.info("Secure Input on: ✦ is right Control, \(chordKeys.count) chords as hot keys")
+    }
+
+    private static func leave() {
+        guard active else { return }
+        active = false
+        chordKeys.forEach { UnregisterEventHotKey($0) }
+        chordKeys = []
+        HIDRemap.capsLockAsControl(false)
+        Logger.secureInput.info("Secure Input off: ✦ is F18 again")
+    }
+
     private static func register(_ code: UInt32, modifiers: UInt32) -> EventHotKeyRef? {
         var ref: EventHotKeyRef?
-        let id = EventHotKeyID(signature: signature, id: code | (modifiers == 0 ? 0 : shiftBit))
+        let id = EventHotKeyID(signature: signature, id: code)
         guard RegisterEventHotKey(code, modifiers, id, GetApplicationEventTarget(), 0, &ref) == noErr else { return nil }
         return ref
     }
@@ -63,48 +101,28 @@ enum SecureInputFallback {
                                 nil, MemoryLayout<EventHotKeyID>.size, nil, &id) == noErr,
               id.signature == signature else { return OSStatus(eventNotHandledErr) }
         let pressed = GetEventKind(event) == UInt32(kEventHotKeyPressed)
-        let code = Int64(id.id & ~shiftBit)
-        let flags: CGEventFlags = id.id & shiftBit == 0 ? [] : .maskShift
+        let code = Int64(id.id)
 
-        if code == KeyCodes.hyperF18 || code == KeyCodes.mehF19 {
-            if pressed {
-                guard held.insert(code).inserted else { return noErr }
-                Logger.secureInput.info("Secure Input: \(code == KeyCodes.hyperF18 ? "✦" : "☾", privacy: .public) held as a hot key")
-                if chordKeys.isEmpty {
-                    chordKeys = chordCodes.flatMap { code in
-                        [register(code, modifiers: 0), register(code, modifiers: UInt32(shiftKey))].compactMap { $0 }
-                    }
-                }
-                feed(code, down: true)
-            } else {
-                guard held.remove(code) != nil else { return noErr }
-                feed(code, down: false)
-                if held.isEmpty { endChord() }
-            }
+        if code == KeyCodes.hyperF18 {
+            // ✦ the tap didn't see: Secure Input came on without a click or
+            // Tab (a page that focuses its password field, say).
+            if pressed { check() }
         } else if pressed {
-            down[code] = flags
-            feed(code, down: true, flags: flags)
-        } else if let flags = down.removeValue(forKey: code) {
-            feed(code, down: false, flags: flags)
+            // ✦ (right Control) with this key: the same as the tap's ✦ chord.
+            feed(KeyCodes.hyperF18, down: true)
+            feed(code, down: true)
+        } else {
+            feed(code, down: false)
+            feed(KeyCodes.hyperF18, down: false)
         }
         return noErr
     }
 
-    /// Lets go of any chord key still down, so nothing is left sending, then
-    /// frees the keys for typing again.
-    private static func endChord() {
-        for (code, flags) in down { feed(code, down: false, flags: flags) }
-        down = [:]
-        held = []
-        chordKeys.forEach { UnregisterEventHotKey($0) }
-        chordKeys = []
-    }
-
-    private static func feed(_ code: Int64, down: Bool, flags: CGEventFlags = []) {
+    private static func feed(_ code: Int64, down: Bool) {
         guard let event = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(code), keyDown: down) else { return }
-        // A new event copies the modifiers macOS thinks are down; use only
-        // the ones the hot key was registered with.
-        event.flags = flags
+        // A new event copies the modifiers macOS thinks are down, right
+        // Control among them.
+        event.flags = []
         _ = HyperEventTap.shared.handle(type: down ? .keyDown : .keyUp, event: event)
     }
 }
