@@ -69,3 +69,14 @@ final class SnappedFrameTests: XCTestCase {
         XCTAssertFalse(WindowManager.close(half.offsetBy(dx: 0, dy: -40), half))
     }
 }
+
+/// What's New shows the release's notes page as the app reads it.
+@MainActor
+final class WhatsNewTests: XCTestCase {
+    func testNotesKeepTheirSymbols() {
+        for html in ["<li>✦ ← / →</li>", "<li>&#x2726; &#x2190; / &#x2192;</li>"] {
+            let text = WhatsNew.attributed(html.data(using: .utf8)!)?.string ?? ""
+            XCTAssertTrue(text.contains("✦ ← / →"), text)
+        }
+    }
+}

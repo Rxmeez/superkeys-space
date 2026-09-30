@@ -46,11 +46,15 @@ enum WhatsNew {
         }
     }
 
-    private static func attributed(_ html: Data) -> NSAttributedString? {
+    static func attributed(_ html: Data) -> NSAttributedString? {
         let styled = """
         <style>body{font:13px -apple-system;color:\(NSColor.labelColor.hexString)}h3{font-size:13px;margin:10px 0 4px}ul{margin:0;padding-left:18px}li{margin:3px 0}.thanks{margin-top:12px;color:\(NSColor.secondaryLabelColor.hexString)}</style>
         """.data(using: .utf8)! + html + thanks
-        return NSAttributedString(html: styled, documentAttributes: nil)
+        // Without a charset the HTML is read as Latin-1, turning ✦ into "âœ¦".
+        return try? NSAttributedString(data: styled, options: [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue,
+        ], documentAttributes: nil)
     }
 
     /// One quiet line under the notes, only here where someone opened them.

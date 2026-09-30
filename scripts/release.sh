@@ -121,7 +121,9 @@ for line in section.strip().splitlines():
     if line.startswith("### "): out.append(f"<h3>{inline(line[4:])}</h3>")
     elif line.strip(): out.append(f"<p>{inline(line)}</p>")
 if in_list: out.append("</ul>")
-print("\n".join(out))
+# ASCII only, with the rest as character references: the app reads these
+# notes and older copies assume Latin-1, turning ✦ into "âœ¦".
+print("\n".join(out).encode("ascii", "xmlcharrefreplace").decode())
 PY
 
 python3 scripts/build_pages.py   # site/changelog.html gains this release
