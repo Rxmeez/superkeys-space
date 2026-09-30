@@ -6,7 +6,11 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ### Fixed
 
-- With a display above or below the laptop's, ✦ ← / → and ✦ ⌥ ← / → now move the window onto it when there's no display to that side. Before, they only looked for displays to the side, so nothing happened.
+- With a display above or below the laptop's, ✦ ← / → now walk the window onto it when there's no display to that side. Before, they only looked for displays to the side, so nothing happened.
+
+### Removed
+
+- ✦ ⌥ ← / →. ✦ ← / → already take the window to the next display, so there's one less chord to learn.
 
 ## [0.2.11] - 2026-09-28
 

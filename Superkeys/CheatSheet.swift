@@ -146,7 +146,6 @@ private struct CheatSheetView: View {
     @ViewBuilder private var hyper: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
             row([Glyph.hyper, "←", "→"], "Snap; again for the next display")
-            row([Glyph.hyper, "⌥", "←", "→"], "Move to the next display")
             row([Glyph.hyper, "↩"], "Fill the screen, again to restore")
             row([Glyph.hyper, "↑"], "Arrange the windows here")
             row([Glyph.hyper, "⇧", "←↑↓→"], "Swap with the next window")

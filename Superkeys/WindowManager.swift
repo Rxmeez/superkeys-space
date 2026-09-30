@@ -22,7 +22,8 @@ final class WindowManager {
     private var filled: Set<UInt32> = []
 
     /// ✦ ← / → snap to a half; pressed again at the screen's edge, the window
-    /// walks onto the neighbouring display's facing half. ✦ ↩ fills, and again
+    /// walks onto the next display that way (or above or below, when there's
+    /// none to the side), landing on its facing half. ✦ ↩ fills, and again
     /// restores the frame it had before, on whichever display that was.
     func snap(_ target: Target) {
         guard Permissions.isTrusted else {
@@ -90,34 +91,6 @@ final class WindowManager {
         next.raise()
         AppState.shared.lastAction = "Next \(app.localizedName ?? "") window"
         return true
-    }
-
-    /// ✦ ⌥ ← / → moves the window to the next display that way as it is: the same size and place relative to the screen, so a snapped half
-    /// stays a half.
-    func throwWindow(_ side: Side) {
-        guard Permissions.isTrusted else {
-            Permissions.requestAccessibility()
-            return
-        }
-        guard let window = Windows.focused(), let current = window.cocoaFrame,
-              let screen = AXWindow.screen(for: current) else {
-            AppState.shared.lastAction = "No window focused"
-            return
-        }
-        guard let next = Self.display(beside: screen, toward: side) else {
-            AppState.shared.lastAction = NSScreen.screens.count < 2 ? "Only one display" : "No display that way"
-            return
-        }
-        let from = screen.visibleFrame, to = next.visibleFrame
-        var moved = CGRect(
-            x: to.minX + (current.minX - from.minX) / from.width * to.width,
-            y: to.minY + (current.minY - from.minY) / from.height * to.height,
-            width: current.width / from.width * to.width,
-            height: current.height / from.height * to.height)
-        moved = moved.intersection(to).isNull ? CGRect(origin: to.origin, size: moved.size) : moved
-        window.setCocoaFrame(moved)
-        filled.remove(window.windowID)
-        AppState.shared.lastAction = "Moved to \(next.localizedName)"
     }
 
     private func frame(for target: Target, in vis: CGRect) -> CGRect {
