@@ -4,6 +4,8 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.13] - 2026-10-01
+
 ### Fixed
 
 - ✦ chords work in password fields and in terminals with Secure Keyboard Entry on. macOS hides key presses from other apps there, so ✦ V typed a plain "v" instead of sending ⌃ V to open your clipboard history. While a password field has focus, Caps Lock stands in as Control, which macOS lets through; key groups and ✦ ⇧ arrows don't work there yet.
