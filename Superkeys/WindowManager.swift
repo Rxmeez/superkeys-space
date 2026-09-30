@@ -6,10 +6,7 @@ final class WindowManager {
 
     enum Target { case left, right, full }
     enum Side { case left, right }
-    enum Direction {
-        case left, right, up, down
-        init(_ side: Side) { self = side == .left ? .left : .right }
-    }
+    enum Direction { case left, right, up, down }
 
     private let gap: CGFloat = 8
     /// Frames to go back to, by window. Closed windows never say so, so this
@@ -108,18 +105,16 @@ final class WindowManager {
     /// is, the nearest one stacked above or below, so displays arranged on
     /// top of each other are still a key away.
     static func display(beside screen: NSScreen, toward side: Side) -> NSScreen? {
-        if let next = neighbour(of: screen, toward: Direction(side)) { return next }
-        let frames = NSScreen.screens.map(\.frame)
-        let stacked = [Direction.up, .down].compactMap { neighbour(of: screen.frame, among: frames, toward: $0) }
-        let nearest = stacked.min { a, b in
-            gap(screen.frame, frames[a]) < gap(screen.frame, frames[b])
-        }
-        return nearest.map { NSScreen.screens[$0] }
+        let screens = NSScreen.screens
+        return display(beside: screen.frame, among: screens.map(\.frame), toward: side).map { screens[$0] }
     }
 
-    static func neighbour(of screen: NSScreen, toward direction: Direction) -> NSScreen? {
-        neighbour(of: screen.frame, among: NSScreen.screens.map(\.frame), toward: direction)
-            .map { NSScreen.screens[$0] }
+    /// `display(beside:toward:)` on frames, by index into `displays`.
+    static func display(beside here: CGRect, among displays: [CGRect], toward side: Side) -> Int? {
+        if let next = neighbour(of: here, among: displays, toward: side == .left ? .left : .right) { return next }
+        return [Direction.up, .down]
+            .compactMap { neighbour(of: here, among: displays, toward: $0) }
+            .min { gap(here, displays[$0]) < gap(here, displays[$1]) }
     }
 
     /// The nearest display entirely in that direction from this one, as

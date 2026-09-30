@@ -4,9 +4,12 @@ All notable changes to Superkeys. The format follows [Keep a Changelog](https://
 
 ## [Unreleased]
 
+## [0.2.12] - 2026-09-30
+
 ### Fixed
 
 - With a display above or below the laptop's, ✦ ← / → now walk the window onto it when there's no display to that side. Before, they only looked for displays to the side, so nothing happened.
+- ✦ ← / → move terminals such as Ghostty on to the next display. Terminals size themselves in whole rows, so they never counted as snapped and each press just snapped them again.
 
 ### Removed
 

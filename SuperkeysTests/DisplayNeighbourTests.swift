@@ -29,6 +29,28 @@ final class DisplayNeighbourTests: XCTestCase {
         let diagonal = CGRect(x: 1800, y: 1300, width: 1800, height: 1169)
         XCTAssertEqual(WindowManager.neighbour(of: laptop, among: [laptop, diagonal, above], toward: .up), 2)
     }
+
+    func testSideArrowsReachADisplayAboveOrBelow() {
+        let above = CGRect(x: -772, y: 1169, width: 3440, height: 1440)
+        let displays = [laptop, above]
+        XCTAssertEqual(WindowManager.display(beside: laptop, among: displays, toward: .right), 1)
+        XCTAssertEqual(WindowManager.display(beside: laptop, among: displays, toward: .left), 1)
+        XCTAssertEqual(WindowManager.display(beside: above, among: displays, toward: .right), 0)
+    }
+
+    func testSideArrowsPreferADisplayToTheSide() {
+        let right = CGRect(x: 1800, y: 0, width: 1800, height: 1169)
+        let above = CGRect(x: 0, y: 1169, width: 1800, height: 1169)
+        let displays = [laptop, right, above]
+        XCTAssertEqual(WindowManager.display(beside: laptop, among: displays, toward: .right), 1)
+        XCTAssertEqual(WindowManager.display(beside: laptop, among: displays, toward: .left), 2)
+    }
+
+    func testLastInARowStopsAtTheEdge() {
+        let middle = CGRect(x: 1800, y: 0, width: 1800, height: 1169)
+        let last = CGRect(x: 3600, y: 0, width: 1800, height: 1169)
+        XCTAssertNil(WindowManager.display(beside: last, among: [laptop, middle, last], toward: .right))
+    }
 }
 
 /// When a snapped window counts as already on its half.
