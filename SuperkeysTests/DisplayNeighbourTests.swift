@@ -30,3 +30,20 @@ final class DisplayNeighbourTests: XCTestCase {
         XCTAssertEqual(WindowManager.neighbour(of: laptop, among: [laptop, diagonal, above], toward: .up), 2)
     }
 }
+
+/// When a snapped window counts as already on its half.
+@MainActor
+final class SnappedFrameTests: XCTestCase {
+    private let half = CGRect(x: 952, y: 46, width: 1708, height: 1394)
+
+    func testTerminalRoundedToWholeRowsIsStillThere() {
+        // Ghostty keeps the top left corner and grows to a whole row.
+        let ghostty = CGRect(x: 952, y: 30, width: 1708, height: 1410)
+        XCTAssertTrue(WindowManager.close(ghostty, half))
+    }
+
+    func testWindowElsewhereIsNot() {
+        XCTAssertFalse(WindowManager.close(CGRect(x: 200, y: 300, width: 800, height: 600), half))
+        XCTAssertFalse(WindowManager.close(half.offsetBy(dx: 0, dy: -40), half))
+    }
+}

@@ -152,10 +152,12 @@ final class WindowManager {
         max(0, a.minX - b.maxX, b.minX - a.maxX) + max(0, a.minY - b.maxY, b.minY - a.maxY)
     }
 
-    /// Apps round frames to whole points and some honour a minimum size, so
-    /// "already there" allows a little slack.
-    private static func close(_ a: CGRect, _ b: CGRect) -> Bool {
-        abs(a.minX - b.minX) < 12 && abs(a.minY - b.minY) < 12
-            && abs(a.width - b.width) < 12 && abs(a.height - b.height) < 12
+    /// Apps round frames to whole points, some honour a minimum size, and
+    /// terminals size themselves in whole rows and columns, keeping their top
+    /// left corner where it was put. So "already there" wants that corner in
+    /// place but lets the size be a character cell or so out.
+    static func close(_ a: CGRect, _ b: CGRect) -> Bool {
+        abs(a.minX - b.minX) < 12 && abs(a.maxY - b.maxY) < 12
+            && abs(a.width - b.width) < 48 && abs(a.height - b.height) < 48
     }
 }
