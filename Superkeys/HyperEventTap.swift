@@ -294,13 +294,11 @@ final class HyperEventTap: @unchecked Sendable {
     private func dispatchHyper(_ keyCode: Int64, shift: Bool, control: Bool, option: Bool) {
         guard !control else { return }
         if option {
-            // ✦ ⌥ arrow moves the window to the next display as it is.
+            // ✦ ⌥ ← / → moves the window to the next display as it is.
             guard !shift else { return }
             switch keyCode {
             case KeyCodes.leftArrow: Task { @MainActor in WindowManager.shared.throwWindow(.left) }
             case KeyCodes.rightArrow: Task { @MainActor in WindowManager.shared.throwWindow(.right) }
-            case KeyCodes.upArrow: Task { @MainActor in WindowManager.shared.throwWindow(.up) }
-            case KeyCodes.downArrow: Task { @MainActor in WindowManager.shared.throwWindow(.down) }
             default: break
             }
             return

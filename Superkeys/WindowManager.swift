@@ -92,10 +92,9 @@ final class WindowManager {
         return true
     }
 
-    /// ✦ ⌥ arrow moves the window to the next display in that direction as it
-    /// is: the same size and place relative to the screen, so a snapped half
+    /// ✦ ⌥ ← / → moves the window to the next display that way as it is: the same size and place relative to the screen, so a snapped half
     /// stays a half.
-    func throwWindow(_ direction: Direction) {
+    func throwWindow(_ side: Side) {
         guard Permissions.isTrusted else {
             Permissions.requestAccessibility()
             return
@@ -105,12 +104,7 @@ final class WindowManager {
             AppState.shared.lastAction = "No window focused"
             return
         }
-        let next: NSScreen? = switch direction {
-        case .left: Self.display(beside: screen, toward: .left)
-        case .right: Self.display(beside: screen, toward: .right)
-        case .up, .down: Self.neighbour(of: screen, toward: direction)
-        }
-        guard let next else {
+        guard let next = Self.display(beside: screen, toward: side) else {
             AppState.shared.lastAction = NSScreen.screens.count < 2 ? "Only one display" : "No display that way"
             return
         }

@@ -19,7 +19,7 @@ Hold **Caps Lock**.
 | Chord | Action |
 | --- | --- |
 | ✦ ← / → | Snap the window to the left or right half. Again to move it to the next display |
-| ✦ ⌥ arrow | Move the window to the next display that way, keeping its size and place |
+| ✦ ⌥ ← / → | Move the window to the next display, keeping its size and place |
 | ✦ Return | Fill the screen. Press again to restore |
 | ✦ ↑ | Arrange the windows on this screen. Press again to undo |
 | ✦ ⇧ arrow | Swap the window with the one next to it |
