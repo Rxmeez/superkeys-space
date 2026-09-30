@@ -4,7 +4,7 @@ import hashlib
 def uid(s): return hashlib.md5(s.encode()).hexdigest()[:24].upper()
 swift=["SuperkeysApp","Updater","WhatsNew","Onboarding","AppState","HyperEventTap","CapsLock","KeyCodes","WindowManager","WindowArranger","AXWindow","SpaceManager","SkyLightBridge","AppLauncher","BindingsStore","Permissions","SettingsRootView","ShortcutsView","Components","SettingsWindowController","CheatSheet","ConfigFile","MenuBarContent","Feedback"]
 # Unit tests, hosted in the app (which skips its startup under XCTest).
-tests=["ConfigFileTests","KeystrokeTests","KeyHandlingTests","KeyGroupsTests"]
+tests=["ConfigFileTests","KeystrokeTests","KeyHandlingTests","KeyGroupsTests","DisplayNeighbourTests"]
 fw=["AppKit","SwiftUI","ApplicationServices","ServiceManagement","UniformTypeIdentifiers","Combine","Carbon","CoreGraphics"]
 L=[]
 a=L.append

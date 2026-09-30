@@ -45,6 +45,7 @@
 		1B5956F2E1C38D084B7C0DF4 /* KeystrokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837AD11619498B0FF06C32EB /* KeystrokeTests.swift */; };
 		877B980F52C2B26173FB4B42 /* KeyHandlingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */; };
 		302BA7E01983ECDB5A35E955 /* KeyGroupsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */; };
+		24ADB4B0B8FE253AD790787A /* DisplayNeighbourTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9A47EE74A76C3D586D036E /* DisplayNeighbourTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +101,7 @@
 		837AD11619498B0FF06C32EB /* KeystrokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeTests.swift; sourceTree = "<group>"; };
 		4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyHandlingTests.swift; sourceTree = "<group>"; };
 		586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyGroupsTests.swift; sourceTree = "<group>"; };
+		6E9A47EE74A76C3D586D036E /* DisplayNeighbourTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayNeighbourTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +183,7 @@
 				837AD11619498B0FF06C32EB /* KeystrokeTests.swift */,
 				4B8D568BF856E0A8FD8E5007 /* KeyHandlingTests.swift */,
 				586CEE3943E038A1FC9F7298 /* KeyGroupsTests.swift */,
+				6E9A47EE74A76C3D586D036E /* DisplayNeighbourTests.swift */,
 			);
 			path = SuperkeysTests;
 			sourceTree = "<group>";
@@ -332,6 +335,7 @@
 				1B5956F2E1C38D084B7C0DF4 /* KeystrokeTests.swift in Sources */,
 				877B980F52C2B26173FB4B42 /* KeyHandlingTests.swift in Sources */,
 				302BA7E01983ECDB5A35E955 /* KeyGroupsTests.swift in Sources */,
+				24ADB4B0B8FE253AD790787A /* DisplayNeighbourTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

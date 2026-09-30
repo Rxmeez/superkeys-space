@@ -6,6 +6,10 @@ final class WindowManager {
 
     enum Target { case left, right, full }
     enum Side { case left, right }
+    enum Direction {
+        case left, right, up, down
+        init(_ side: Side) { self = side == .left ? .left : .right }
+    }
 
     private let gap: CGFloat = 8
     /// Frames to go back to, by window. Closed windows never say so, so this
@@ -53,7 +57,7 @@ final class WindowManager {
             // Already on this edge: step onto the next display in that
             // direction, landing on the half that faces this one.
             if Self.close(current, frame(for: target, in: screen.visibleFrame)) {
-                guard let next = Self.neighbour(of: screen, toward: side) else {
+                guard let next = Self.display(beside: screen, toward: side) else {
                     AppState.shared.lastAction = side == .left ? "Already at the left edge" : "Already at the right edge"
                     return
                 }
@@ -88,10 +92,10 @@ final class WindowManager {
         return true
     }
 
-    /// ✦ ⌥ ← / → moves the window to the next display in that direction as it
+    /// ✦ ⌥ arrow moves the window to the next display in that direction as it
     /// is: the same size and place relative to the screen, so a snapped half
     /// stays a half.
-    func throwWindow(_ side: Side) {
+    func throwWindow(_ direction: Direction) {
         guard Permissions.isTrusted else {
             Permissions.requestAccessibility()
             return
@@ -101,7 +105,12 @@ final class WindowManager {
             AppState.shared.lastAction = "No window focused"
             return
         }
-        guard let next = Self.neighbour(of: screen, toward: side) else {
+        let next: NSScreen? = switch direction {
+        case .left: Self.display(beside: screen, toward: .left)
+        case .right: Self.display(beside: screen, toward: .right)
+        case .up, .down: Self.neighbour(of: screen, toward: direction)
+        }
+        guard let next else {
             AppState.shared.lastAction = NSScreen.screens.count < 2 ? "Only one display" : "No display that way"
             return
         }
@@ -128,23 +137,52 @@ final class WindowManager {
         }
     }
 
-    /// The nearest display entirely to the left or right of this one, as
-    /// arranged in System Settings → Displays. Displays that share some height
-    /// win over ones that are only diagonally beside it.
-    static func neighbour(of screen: NSScreen, toward side: Side) -> NSScreen? {
-        let here = screen.frame
-        let candidates = NSScreen.screens.filter { other in
-            other != screen && (side == .left ? other.frame.midX < here.minX + 1 : other.frame.midX > here.maxX - 1)
+    /// The display ← / → reach: the nearest one to that side, or, when none
+    /// is, the nearest one stacked above or below, so displays arranged on
+    /// top of each other are still a key away.
+    static func display(beside screen: NSScreen, toward side: Side) -> NSScreen? {
+        if let next = neighbour(of: screen, toward: Direction(side)) { return next }
+        let frames = NSScreen.screens.map(\.frame)
+        let stacked = [Direction.up, .down].compactMap { neighbour(of: screen.frame, among: frames, toward: $0) }
+        let nearest = stacked.min { a, b in
+            gap(screen.frame, frames[a]) < gap(screen.frame, frames[b])
         }
-        return candidates.min { a, b in
-            func score(_ s: NSScreen) -> (Int, CGFloat) {
-                let overlap = min(here.maxY, s.frame.maxY) - max(here.minY, s.frame.minY)
-                let distance = side == .left ? here.minX - s.frame.maxX : s.frame.minX - here.maxX
-                return (overlap > 0 ? 0 : 1, abs(distance))
+        return nearest.map { NSScreen.screens[$0] }
+    }
+
+    static func neighbour(of screen: NSScreen, toward direction: Direction) -> NSScreen? {
+        neighbour(of: screen.frame, among: NSScreen.screens.map(\.frame), toward: direction)
+            .map { NSScreen.screens[$0] }
+    }
+
+    /// The nearest display entirely in that direction from this one, as
+    /// arranged in System Settings → Displays, by index into `displays`.
+    /// Displays that line up with it win over ones only diagonally beside it.
+    /// Frames are Cocoa's, so up is +y.
+    static func neighbour(of here: CGRect, among displays: [CGRect], toward direction: Direction) -> Int? {
+        let candidates = displays.indices.filter { i in
+            let other = displays[i]
+            guard other != here else { return false }
+            switch direction {
+            case .left: return other.midX < here.minX + 1
+            case .right: return other.midX > here.maxX - 1
+            case .down: return other.midY < here.minY + 1
+            case .up: return other.midY > here.maxY - 1
             }
-            let (sa, sb) = (score(a), score(b))
-            return sa.0 != sb.0 ? sa.0 < sb.0 : sa.1 < sb.1
         }
+        func score(_ i: Int) -> (Int, CGFloat) {
+            let other = displays[i]
+            let overlap = direction == .left || direction == .right
+                ? min(here.maxY, other.maxY) - max(here.minY, other.minY)
+                : min(here.maxX, other.maxX) - max(here.minX, other.minX)
+            return (overlap > 0 ? 0 : 1, gap(here, other))
+        }
+        return candidates.min { score($0) < score($1) }
+    }
+
+    /// Distance between two displays' facing edges, or 0 where they touch.
+    private static func gap(_ a: CGRect, _ b: CGRect) -> CGFloat {
+        max(0, a.minX - b.maxX, b.minX - a.maxX) + max(0, a.minY - b.maxY, b.minY - a.maxY)
     }
 
     /// Apps round frames to whole points and some honour a minimum size, so

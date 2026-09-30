@@ -135,7 +135,7 @@ struct KeysTab: View {
                 LayerKeyRow(layer: .hyper, title: "Hyper Key", detail: "Hold Caps Lock. Apps and windows.")
                 ChordRow(keys: [Glyph.hyper, "key"], detail: "Open an app (again for its next window), or send a keystroke such as ⌃ C")
                 ChordRow(keys: [Glyph.hyper, "←", "→"], detail: "Snap to the left or right half; again for the next display")
-                ChordRow(keys: [Glyph.hyper, "⌥", "←", "→"], detail: "Move the window to the next display as it is")
+                ChordRow(keys: [Glyph.hyper, "⌥", "←↑↓→"], detail: "Move the window to the next display that way, as it is")
                 ChordRow(keys: [Glyph.hyper, "↩"], detail: "Fill the screen; again to restore")
                 ChordRow(keys: [Glyph.hyper, "↑"], detail: "Arrange up to 4 windows on this screen; again to undo")
                 ChordRow(keys: [Glyph.hyper, "⇧", "←↑↓→"], detail: "Swap the window with the one next to it")

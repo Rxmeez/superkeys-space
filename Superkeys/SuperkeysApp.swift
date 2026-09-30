@@ -237,6 +237,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 case "attention-off": HyperIndicator.shared.needsAttention = false
                 case "throw-left": WindowManager.shared.throwWindow(.left)
                 case "throw-right": WindowManager.shared.throwWindow(.right)
+                case "throw-up": WindowManager.shared.throwWindow(.up)
+                case "throw-down": WindowManager.shared.throwWindow(.down)
                 case "flip": SpaceManager.shared.flipToPreviousDesktop()
                 case let desk? where desk.hasPrefix("desktop-"):
                     if let n = Int(desk.dropFirst(8)) { SpaceManager.shared.switchTo(space: n) }
